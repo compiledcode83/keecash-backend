@@ -10,6 +10,8 @@ import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import { validate } from './common/validators/env.validator';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 EnvHelper.verifyNodeEnv();
 
@@ -33,6 +35,8 @@ EnvHelper.verifyNodeEnv();
       },
       inject: [ConfigService],
     }),
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
