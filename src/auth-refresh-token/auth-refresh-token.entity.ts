@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { User } from '@src/user/user.entity';
 
-@Entity('admin_refresh_token')
+@Entity('auth_refresh_token')
 export class AuthRefreshToken {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;

@@ -10,7 +10,7 @@ export default registerAs('databaseConfig', () => ({
   database: process.env.TYPEORM_DATABASE,
   entities: [path.join(__dirname, '../**/*.entity{.ts,.js}')],
   subscribers: [path.join(__dirname, '../**/*.subscriber{.ts,.js}')],
-  synchronize: false,
+  synchronize: true,
   logging: process.env.TYPEORM_LOGGING === 'true',
   migrationsTableName: 'migrations',
   migrations: [path.join(__dirname, '../migrations/*{.ts,.js')],
