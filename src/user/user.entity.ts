@@ -7,7 +7,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
+import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
 
 @Entity('user')
 export class User {
@@ -48,4 +51,11 @@ export class User {
   @Exclude({ toPlainOnly: true })
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @OneToMany(
+    () => AuthRefreshToken,
+    (authRefreshToken) => authRefreshToken.user,
+  )
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
+  refreshTokens: AuthRefreshToken[];
 }
