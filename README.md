@@ -31,7 +31,7 @@ $ docker build -t nest-cloud-run .
 ## Docker run
 
 ```bash
-$ docker run --env-file ./.env.development -p80:3000 nest-cloud-run
+$ docker run --env-file ./.env.development -p80:3005 nest-cloud-run
 ```
 
 ## Description
