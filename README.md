@@ -22,6 +22,18 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+## Docker build
+
+```bash
+$ docker build -t nest-cloud-run .
+```
+
+## Docker run
+
+```bash
+$ docker run --env-file ./.env.development -p80:3000 nest-cloud-run
+```
+
 ## Description
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
