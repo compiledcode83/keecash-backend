@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { RefreshTokenInfo } from '@src/auth/dto/refresh-token-info.dto';
 import { User } from '@src/user/user.entity';
 import { AuthRefreshToken } from './auth-refresh-token.entity';
 import { AuthRefreshTokenRepository } from './auth-refresh-token.repository';
@@ -21,7 +22,10 @@ export class AuthRefreshTokenService {
     return deleteResult.affected === 1;
   }
 
-  async create(user: User): Promise<AuthRefreshToken> {
-    return this.authRefreshTokenRepo.createRefreshToken(user);
+  async create(
+    user: User,
+    refreshTokenInfo: RefreshTokenInfo,
+  ): Promise<AuthRefreshToken> {
+    return this.authRefreshTokenRepo.createRefreshToken(user, refreshTokenInfo);
   }
 }

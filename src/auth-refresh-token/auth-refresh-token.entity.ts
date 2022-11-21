@@ -16,6 +16,12 @@ export class AuthRefreshToken {
   @Column({ type: 'int', nullable: false })
   userId: number;
 
+  @Column({ type: 'varchar', nullable: false })
+  ipaddress: string;
+
+  @Column({ type: 'varchar', nullable: false })
+  useragent: string;
+
   @ApiProperty({ description: 'Token', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
   token: string;

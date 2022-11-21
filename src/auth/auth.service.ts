@@ -8,6 +8,7 @@ import { AccessTokenInterface } from './auth.type';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
+import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
 
 @Injectable()
 export class AuthService {
@@ -17,9 +18,14 @@ export class AuthService {
     private readonly authRefreshTokenService: AuthRefreshTokenService,
   ) {}
 
-  async login(user: User): Promise<TokensResponseDto> {
+  async login(
+    user: User,
+    refreshTokenInfo: RefreshTokenInfo,
+  ): Promise<TokensResponseDto> {
     const oldRefreshToken = await this.authRefreshTokenService.findOneBy({
       userId: user.id,
+      useragent: refreshTokenInfo.useragent,
+      ipaddress: refreshTokenInfo.ipaddress,
     });
 
     if (oldRefreshToken) {
@@ -27,7 +33,7 @@ export class AuthService {
     }
 
     const accessToken = await this.createAccessToken(user);
-    const refreshToken = await this.createRefreshToken(user);
+    const refreshToken = await this.createRefreshToken(user, refreshTokenInfo);
 
     return {
       accessToken,
@@ -62,11 +68,17 @@ export class AuthService {
     return this.jwtService.signAsync(payload);
   }
 
-  private async createRefreshToken(user: User): Promise<AuthRefreshToken> {
-    return this.authRefreshTokenService.create(user);
+  private async createRefreshToken(
+    user: User,
+    refreshTokenInfo: RefreshTokenInfo,
+  ): Promise<AuthRefreshToken> {
+    return this.authRefreshTokenService.create(user, refreshTokenInfo);
   }
 
-  async refreshTokens(params: RefreshTokensDto): Promise<TokensResponseDto> {
+  async refreshTokens(
+    params: RefreshTokensDto,
+    refreshTokenInfo: RefreshTokenInfo,
+  ): Promise<TokensResponseDto> {
     const oldRefreshToken = await this.authRefreshTokenService.findOneBy({
       token: params.refreshToken,
     });
@@ -79,7 +91,7 @@ export class AuthService {
     const user = await this.userService.findOne(oldRefreshToken.userId);
 
     const accessToken = await this.createAccessToken(user);
-    const refreshToken = await this.createRefreshToken(user);
+    const refreshToken = await this.createRefreshToken(user, refreshTokenInfo);
 
     return {
       accessToken: accessToken,
