@@ -1,0 +1,10 @@
+image: amalheiros/node-gcloud
+pipelines:
+  default:
+    - step:
+      script:
+        - echo ${GOOGLE_CLIENT_SECRET} > client-secret.json
+        - npm install
+        - npm run build
+        - gcloud auth activate-service-account --key-file client-secret.json
+        - gcloud --verbosity=error app deploy app.yaml --promote --project keecashv2
