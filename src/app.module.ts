@@ -40,7 +40,5 @@ EnvHelper.verifyNodeEnv();
     AuthModule,
     AuthRefreshTokenModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
