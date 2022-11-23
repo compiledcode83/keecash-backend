@@ -19,6 +19,6 @@ async function bootstrap() {
 
   AppBootstrapManager.setAppDefaults(app);
 
-  await app.listen(process.env.PORT || 3005);
+  await app.listen(process.env.PORT || 3006);
 }
 bootstrap();
