@@ -17,3 +17,10 @@ pipelines:
               - npx eslint .
             caches:
               - node
+        - step:
+            name: Build and Test
+            caches:
+              - node
+            script:
+              - npm install
+              - npm build
