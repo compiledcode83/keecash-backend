@@ -1,12 +1,12 @@
-import { Module } from '@nestjs/common';
-import { EmailComfirmationModule } from '@src/email-comfirmation/email-comfirmation.module';
+import { forwardRef, Module } from '@nestjs/common';
+import { EmailComfirmationModule } from '@src/email-comfirmation/email-confirmation.module';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
 import { UserExistsByEmailValidator } from './validator/user-exists-by-email.validator';
 
 @Module({
-  imports: [EmailComfirmationModule],
+  imports: [forwardRef(() => EmailComfirmationModule)],
   controllers: [UserController],
   providers: [UserService, UserRepository, UserExistsByEmailValidator],
   exports: [UserService],

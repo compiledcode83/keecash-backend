@@ -1,7 +1,14 @@
-import { Body, Controller, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  forwardRef,
+  HttpStatus,
+  Inject,
+  Post,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
-import { EmailComfirmationService } from '@src/email-comfirmation/email-comfirmation.service';
+import { EmailComfirmationService } from '@src/email-comfirmation/email-confirmation.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
@@ -10,6 +17,7 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(
     private readonly userService: UserService,
+    @Inject(forwardRef(() => EmailComfirmationService))
     private readonly emailComfirmationService: EmailComfirmationService,
   ) {}
 

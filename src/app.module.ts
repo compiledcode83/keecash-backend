@@ -13,7 +13,7 @@ import { validate } from './common/validators/env.validator';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthRefreshTokenModule } from './auth-refresh-token/auth-refresh-token.module';
-import { EmailComfirmationModule } from './email-comfirmation/email-comfirmation.module';
+import { EmailComfirmationModule } from './email-comfirmation/email-confirmation.module';
 
 EnvHelper.verifyNodeEnv();
 

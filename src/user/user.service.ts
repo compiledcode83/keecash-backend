@@ -39,4 +39,8 @@ export class UserService {
   async findOne(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } });
   }
+
+  async makeEmailAsConfirmed(email: string) {
+    return this.userRepository.update({ email }, { emailVerified: true });
+  }
 }
