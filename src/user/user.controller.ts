@@ -27,8 +27,8 @@ export class UserController {
   @Post('auth/register')
   async register(@Body() body: CreateUserDto): Promise<string> {
     await this.userService.create(body);
-    return await this.emailComfirmationService.sendEmailComfirmationLink(
-      body.email,
-    );
+    const response =
+      await this.emailComfirmationService.sendEmailComfirmationLink(body.email);
+    return response;
   }
 }

@@ -79,7 +79,7 @@ export class AuthController {
     @RealIP() ip: string,
     @Body() params: RefreshTokensDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<any> {
+  ) {
     const refreshTokenInfo: RefreshTokenInfo = {
       useragent: req.headers['user-agent'],
       ipaddress: ip,

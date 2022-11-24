@@ -14,11 +14,21 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthRefreshTokenModule } from './auth-refresh-token/auth-refresh-token.module';
 import { EmailComfirmationModule } from './email-comfirmation/email-confirmation.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 EnvHelper.verifyNodeEnv();
 
 @Module({
   imports: [
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.sendgrid.net',
+        auth: {
+          user: 'apikey',
+          pass: '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',
+        },
+      },
+    }),
     ConfigModule.forRoot({
       envFilePath: EnvHelper.getEnvFilePath(),
       isGlobal: true,

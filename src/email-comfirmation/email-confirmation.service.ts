@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EmailConfirmationDTO } from './dto/email-confirmation.dto';
 import { UserService } from '@src/user/user.service';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class EmailComfirmationService {
@@ -16,17 +17,36 @@ export class EmailComfirmationService {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    private readonly mailerService: MailerService,
   ) {}
 
-  async sendEmailComfirmationLink(email: string): Promise<string> {
+  async sendEmailComfirmationLink(email: string): Promise<any> {
     const payload: EmailConfirmationDTO = { email: email };
     const token = await this.jwtService.signAsync(payload);
 
-    const url = `${this.configService.get<string>(
+    const emailVerificationLink = `${this.configService.get<string>(
       'jwtConfig.emailConfirmationUrl',
     )}?token=${token}`;
 
-    return url;
+    const response = await this.mailerService.sendMail({
+      to: email,
+      from: 'ryan.kennedy@keecash.com',
+      subject: 'Please verify your email',
+      text: `Verify your email by click this link ${emailVerificationLink}`,
+    });
+    if (response) {
+      return 'Please check your mail inbox';
+    }
+    return 'Error Occured';
+  }
+
+  async resendEmailComfirmationLink(email: string) {
+    const user = await this.userService.findByEmail(email);
+    if (user.emailVerified) {
+      throw new BadRequestException('Email already verified');
+    }
+
+    return await this.sendEmailComfirmationLink(email);
   }
 
   async decodeConfirmationLink(token: string): Promise<string> {
