@@ -48,7 +48,12 @@ export class AuthService {
     const user = await this.userService.findByEmail(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      return { name: user.name, email: user.email, id: user.id };
+      return {
+        name: user.name,
+        email: user.email,
+        id: user.id,
+        emailVerified: user.emailVerified,
+      };
     }
 
     return null;
@@ -63,6 +68,7 @@ export class AuthService {
       name: user.name,
       email: user.email,
       id: user.id,
+      emailVerified: user.emailVerified,
     };
 
     return this.jwtService.signAsync(payload);

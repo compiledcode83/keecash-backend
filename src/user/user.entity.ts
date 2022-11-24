@@ -30,6 +30,10 @@ export class User {
   @Column({ type: 'varchar', nullable: false, length: 255 })
   email: string;
 
+  @ApiProperty({ description: 'E-mail verified', required: true })
+  @Column({ type: 'boolean', nullable: false, default: false })
+  emailVerified: boolean;
+
   @ApiProperty({ description: 'Password', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: false, length: 255 })
   password: string;
