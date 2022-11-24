@@ -3,13 +3,13 @@ image: node:18.12.1
 pipelines:
   default:
     - parallel:
-        - step:
-            name: Build and Test
-            caches:
-              - node
-            script:
-              - npm install
-              - npm test
+        # - step:
+        #     name: Project Test
+        #     caches:
+        #       - node
+        #     script:
+        #       - npm install
+        #       - npm test
         - step:
             name: Code linting
             script:
@@ -18,7 +18,7 @@ pipelines:
             caches:
               - node
         - step:
-            name: Build and Test
+            name: Project build
             caches:
               - node
             script:
