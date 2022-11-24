@@ -9,8 +9,6 @@ export class EmailComfirmationController {
 
   @Get()
   async comfirmationEmail(@Query('token') token: string) {
-    console.log('token', token);
-
     const email = await this.emailComfirmationService.decodeConfirmationLink(
       token,
     );
