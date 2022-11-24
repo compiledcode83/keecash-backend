@@ -16,9 +16,7 @@ export class EmailComfirmationService {
 
     const url = `${this.configService.get<string>(
       'jwtConfig.emailConfirmationUrl',
-    )}${token}`;
-
-    console.log('url', url);
+    )}?token=${token}`;
 
     return url;
   }
