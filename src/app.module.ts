@@ -13,6 +13,7 @@ import { validate } from './common/validators/env.validator';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthRefreshTokenModule } from './auth-refresh-token/auth-refresh-token.module';
+import { VerificationModule } from './verification/verification.module';
 import verificationConfig from './config/verification.config';
 
 EnvHelper.verifyNodeEnv();
@@ -40,6 +41,7 @@ EnvHelper.verifyNodeEnv();
     UserModule,
     AuthModule,
     AuthRefreshTokenModule,
+    VerificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
