@@ -83,6 +83,18 @@ class EnvironmentVariables {
   JWT_ACCESS_TOKEN_DURATION_MINUTES: string;
 
   @IsString()
+  @MinLength(1)
+  TWILIO_VERIFICATION_SERVICE_SID: string;
+
+  @IsString()
+  @MinLength(1)
+  TWILIO_AUTH_TOKEN: string;
+
+  @IsString()
+  @MinLength(1)
+  TWILIO_ACCOUNT_SID: string;
+
+  @IsString()
   @IsIn(['true', 'false'])
   JWT_REFRESH_TOKEN_COOKIE_SECURE: 'true' | 'false';
 
