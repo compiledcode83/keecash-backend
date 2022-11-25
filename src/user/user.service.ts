@@ -17,6 +17,10 @@ export class UserService {
     return this.userRepository.findOne({ where: { email } });
   }
 
+  async findByPhoneNumber(phoneNumber: string): Promise<User> {
+    return this.userRepository.findOne({ where: { phoneNumber } });
+  }
+
   async update(uuid: string, body: UpdateUserDto): Promise<User> {
     await this.userRepository.update(
       { uuid },
@@ -38,5 +42,12 @@ export class UserService {
 
   async findOne(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } });
+  }
+
+  async makePhoneNumberVerified(phoneNumber: string) {
+    return this.userRepository.update(
+      { phoneNumber },
+      { isEmailVerified: true },
+    );
   }
 }

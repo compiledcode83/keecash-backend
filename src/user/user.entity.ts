@@ -30,6 +30,25 @@ export class User {
   @Column({ type: 'varchar', nullable: false, length: 255 })
   email: string;
 
+  @ApiProperty({
+    description: 'If e-mail verified',
+    required: true,
+  })
+  @Column({ type: 'boolean', nullable: false, default: false })
+  isEmailVerified: boolean;
+
+  @ApiProperty({ description: 'Phone number', maximum: 255, required: true })
+  @Column({ type: 'varchar', nullable: false, length: 255 })
+  phoneNumber: string;
+
+  @ApiProperty({
+    description: 'If phone number is verified',
+    maximum: 255,
+    required: true,
+  })
+  @Column({ type: 'varchar', nullable: false, default: false })
+  isPhoneNumberVerified: boolean;
+
   @ApiProperty({ description: 'Password', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: false, length: 255 })
   password: string;

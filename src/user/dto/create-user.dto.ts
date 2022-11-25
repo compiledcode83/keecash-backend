@@ -1,12 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
+  IsPhoneNumber,
   IsString,
   MaxLength,
   MinLength,
   Validate,
 } from 'class-validator';
 import { UserExistsByEmailValidator } from '../validator/user-exists-by-email.validator';
+import { UserExistsByPhoneNumberValidator } from '../validator/user-exists-by-phone-number.validator';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -31,6 +33,16 @@ export class CreateUserDto {
   @MaxLength(255)
   @Validate(UserExistsByEmailValidator)
   email: string;
+
+  @ApiProperty({
+    example: 'Phone Number',
+    required: true,
+    maximum: 255,
+    description: '+XXXXXXXXXXX',
+  })
+  @IsPhoneNumber()
+  @Validate(UserExistsByPhoneNumberValidator)
+  phoneNumber: string;
 
   @ApiProperty({
     example: 'password123!@#',

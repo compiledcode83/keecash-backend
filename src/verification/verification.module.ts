@@ -3,5 +3,6 @@ import { VerificationService } from './verification.service';
 
 @Module({
   providers: [VerificationService],
+  exports: [VerificationService],
 })
 export class VerificationModule {}
