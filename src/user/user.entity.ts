@@ -12,6 +12,16 @@ import {
 } from 'typeorm';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
 
+export enum Language {
+  ENGLISH = 'ENGLISH',
+  FRANCH = 'FRANCH',
+}
+
+export enum ACCOUNT_TYPE {
+  PERSON = 'PERSON',
+  ENTERPRISE = 'ENTERPRISE',
+}
+
 @Entity('user')
 export class User {
   @Exclude({ toPlainOnly: true })
@@ -52,6 +62,14 @@ export class User {
   @ApiProperty({ description: 'Password', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: false, length: 255 })
   password: string;
+
+  @ApiProperty({
+    description: 'Language',
+    maximum: 255,
+    required: true,
+  })
+  @Column({ type: 'enum', enum: Language, default: Language.ENGLISH })
+  language: Language;
 
   @ApiProperty({
     description: 'Date when the user was created',
