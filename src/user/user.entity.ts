@@ -17,7 +17,7 @@ export enum Language {
   FRANCH = 'FRANCH',
 }
 
-export enum ACCOUNT_TYPE {
+export enum AccountType {
   PERSON = 'PERSON',
   ENTERPRISE = 'ENTERPRISE',
 }
@@ -70,6 +70,14 @@ export class User {
   })
   @Column({ type: 'enum', enum: Language, default: Language.ENGLISH })
   language: Language;
+
+  @ApiProperty({
+    description: 'Language',
+    maximum: 255,
+    required: true,
+  })
+  @Column({ type: 'enum', enum: AccountType, default: Language.ENGLISH })
+  accountType: AccountType;
 
   @ApiProperty({
     description: 'Date when the user was created',
