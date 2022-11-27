@@ -13,6 +13,8 @@ import { ConfirmPhoneNumberVerificationCodeDto } from './dto/confirm-phone-verif
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
+import { SendEmailVerificationCodeDto } from './dto/send-email-verification.dto';
+import { ConfirmEmailVerificationCodeDto } from './dto/confirm-email-verification.dto';
 
 @Controller()
 export class UserController {
@@ -27,20 +29,10 @@ export class UserController {
   @Post('auth/register')
   async register(@Body() body: CreateUserDto) {
     await this.userService.create(body);
+    return 'Success';
   }
 
-  @ApiOperation({ description: `Confirm phone number by verification code` })
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Post('auth/confirm-phone-verification-code')
-  async confirmPhoneNumber(
-    @Body() body: ConfirmPhoneNumberVerificationCodeDto,
-  ) {
-    const res = await this.verificationService.confirmPhoneNumber(body);
-    if (res === true) return 'Phone number successfully verified';
-    throw new BadRequestException('Sorry, Can not confirm phone number');
-  }
-
-  @ApiOperation({ description: `Send phone number by verification code` })
+  @ApiOperation({ description: `Send phone number verification code` })
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/send-phone-verification-code')
   async sendPhoneVerificationCode(
@@ -53,5 +45,41 @@ export class UserController {
       return 'Phone number verification code was successfully sent';
     }
     throw new BadRequestException('Sorry, Can not send verification code');
+  }
+
+  @ApiOperation({ description: `Confirm phone number verification code` })
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('auth/confirm-phone-verification-code')
+  async confirmPhoneNumber(
+    @Body() body: ConfirmPhoneNumberVerificationCodeDto,
+  ) {
+    const res =
+      await this.verificationService.confirmPhoneNumberVerificationCode(body);
+    if (res === true) return 'Phone number successfully verified';
+    throw new BadRequestException('Sorry, Can not confirm phone number');
+  }
+
+  @ApiOperation({ description: `Send email verification code` })
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('auth/send-email-verification-code')
+  async sendEmailVerificationCode(@Body() body: SendEmailVerificationCodeDto) {
+    const res = await this.verificationService.sendEmailVerificationCode(
+      body.email,
+    );
+    if (res === true) {
+      return 'Email verification code was successfully sent';
+    }
+    throw new BadRequestException('Sorry, Can not send verification code');
+  }
+
+  @ApiOperation({ description: `Confirm email verification code` })
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('auth/confirm-email-verification-code')
+  async confirmEmail(@Body() body: ConfirmEmailVerificationCodeDto) {
+    const res = await this.verificationService.confirmEmailVerificationCode(
+      body,
+    );
+    if (res === true) return 'Email successfully verified';
+    throw new BadRequestException('Sorry, Can not confirm phone number');
   }
 }

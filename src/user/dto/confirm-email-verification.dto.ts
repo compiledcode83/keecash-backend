@@ -1,15 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsPhoneNumber, IsString } from 'class-validator';
 
-export class ConfirmPhoneNumberVerificationCodeDto {
+export class ConfirmEmailVerificationCodeDto {
   @ApiProperty({
-    example: '+XXXXXXXXXXX',
+    example: 'user@example.com',
     required: true,
     maximum: 255,
-    description: 'Phone Number',
+    description: 'Email address',
   })
   @IsPhoneNumber()
-  phoneNumber: string;
+  email: string;
 
   @ApiProperty({
     example: '15411',

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-verification.dto';
 import { ConfirmPhoneNumberVerificationCodeDto } from '@src/user/dto/confirm-phone-verification.dto';
 import { Twilio } from 'twilio';
 const SMSCHANNEL = 'sms';
@@ -33,6 +34,21 @@ export class VerificationService {
     return false;
   }
 
+  async confirmPhoneNumberVerificationCode(
+    body: ConfirmPhoneNumberVerificationCodeDto,
+  ): Promise<boolean> {
+    const serviceId = this.configService.get<string>(
+      'verificationConfig.twilioVerificationServiceSid',
+    );
+    const result = await this.twilioClient.verify
+      .services(serviceId)
+      .verificationChecks.create({ to: body.phoneNumber, code: body.code });
+    if (!result.valid || result.status !== 'approved') {
+      return false;
+    }
+    return true;
+  }
+
   async sendEmailVerificationCode(email: string): Promise<boolean> {
     const serviceId = this.configService.get<string>(
       'verificationConfig.twilioVerificationServiceSid',
@@ -47,15 +63,15 @@ export class VerificationService {
     return false;
   }
 
-  async confirmPhoneNumber(
-    body: ConfirmPhoneNumberVerificationCodeDto,
+  async confirmEmailVerificationCode(
+    body: ConfirmEmailVerificationCodeDto,
   ): Promise<boolean> {
     const serviceId = this.configService.get<string>(
       'verificationConfig.twilioVerificationServiceSid',
     );
     const result = await this.twilioClient.verify
       .services(serviceId)
-      .verificationChecks.create({ to: body.phoneNumber, code: body.code });
+      .verificationChecks.create({ to: body.email, code: body.code });
     if (!result.valid || result.status !== 'approved') {
       return false;
     }
