@@ -76,7 +76,7 @@ export class User {
     maximum: 255,
     required: true,
   })
-  @Column({ type: 'enum', enum: AccountType, default: Language.ENGLISH })
+  @Column({ type: 'enum', enum: AccountType, default: AccountType.PERSON })
   accountType: AccountType;
 
   @ApiProperty({
