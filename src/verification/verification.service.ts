@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PhoneNumberVerificationCodeDto } from '@src/user/dto/phone-verification.dto';
+import { ConfirmPhoneNumberVerificationCodeDto } from '@src/user/dto/confirm-phone-verification.dto';
 import { Twilio } from 'twilio';
 const SMSCHANNEL = 'sms';
 const EMAILCHANNEL = 'email';
@@ -48,7 +48,7 @@ export class VerificationService {
   }
 
   async confirmPhoneNumber(
-    body: PhoneNumberVerificationCodeDto,
+    body: ConfirmPhoneNumberVerificationCodeDto,
   ): Promise<boolean> {
     const serviceId = this.configService.get<string>(
       'verificationConfig.twilioVerificationServiceSid',

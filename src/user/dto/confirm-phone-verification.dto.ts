@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsPhoneNumber, IsString } from 'class-validator';
 
-export class PhoneNumberVerificationCodeDto {
+export class ConfirmPhoneNumberVerificationCodeDto {
   @ApiProperty({
     example: 'Phone Number',
     required: true,
