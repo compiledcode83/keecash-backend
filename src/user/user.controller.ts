@@ -26,7 +26,7 @@ export class UserController {
   @Post('auth/register')
   async register(@Body() body: CreateUserDto) {
     await this.userService.create(body);
-    const res = await this.verificationService.sendVerificationCode(
+    const res = await this.verificationService.sendPhoneVerificationCode(
       body.phoneNumber,
     );
     if (res === true) {

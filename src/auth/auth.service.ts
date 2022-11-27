@@ -42,13 +42,32 @@ export class AuthService {
   }
 
   async validateUser(
-    email: string,
+    emailOrPhoneNumber: string,
     password: string,
   ): Promise<Partial<User> | null> {
-    const user = await this.userService.findByEmail(email);
+    const userByEmail = await this.userService.findByEmail(emailOrPhoneNumber);
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      return { name: user.name, email: user.email, id: user.id };
+    if (userByEmail && (await bcrypt.compare(password, userByEmail.password))) {
+      return {
+        name: userByEmail.name,
+        email: userByEmail.email,
+        id: userByEmail.id,
+      };
+    }
+
+    const userByPhoneNumber = await this.userService.findByPhoneNumber(
+      emailOrPhoneNumber,
+    );
+
+    if (
+      userByPhoneNumber &&
+      (await bcrypt.compare(password, userByPhoneNumber.password))
+    ) {
+      return {
+        name: userByPhoneNumber.name,
+        email: userByPhoneNumber.email,
+        id: userByPhoneNumber.id,
+      };
     }
 
     return null;

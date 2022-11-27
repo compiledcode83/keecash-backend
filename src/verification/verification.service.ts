@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PhoneNumberVerificationCodeDto } from '@src/user/dto/phone-verification.dto';
 import { Twilio } from 'twilio';
 const SMSCHANNEL = 'sms';
+const EMAILCHANNEL = 'email';
 
 @Injectable()
 export class VerificationService {
@@ -18,13 +19,27 @@ export class VerificationService {
     this.twilioClient = new Twilio(accountSid, authToken);
   }
 
-  async sendVerificationCode(phoneNumber: string): Promise<boolean> {
+  async sendPhoneVerificationCode(phoneNumber: string): Promise<boolean> {
     const serviceId = this.configService.get<string>(
       'verificationConfig.twilioVerificationServiceSid',
     );
     const res = await this.twilioClient.verify
       .services(serviceId)
       .verifications.create({ to: phoneNumber, channel: SMSCHANNEL });
+
+    if (res.status === 'pending') {
+      return true;
+    }
+    return false;
+  }
+
+  async sendEmailVerificationCode(email: string): Promise<boolean> {
+    const serviceId = this.configService.get<string>(
+      'verificationConfig.twilioVerificationServiceSid',
+    );
+    const res = await this.twilioClient.verify
+      .services(serviceId)
+      .verifications.create({ to: email, channel: EMAILCHANNEL });
 
     if (res.status === 'pending') {
       return true;
