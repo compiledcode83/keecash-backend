@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PersonProfileRepository } from './person-profile.repository';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly personProfileRepository: PersonProfileRepository,
+  ) {}
 
   async findByUuid(uuid: string): Promise<User> {
     return this.userRepository.findOne({ where: { uuid } });

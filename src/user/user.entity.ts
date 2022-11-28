@@ -9,8 +9,10 @@ import {
   UpdateDateColumn,
   OneToMany,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
+import { PersonProfile } from './person-profile.entity';
 
 export enum Language {
   ENGLISH = 'ENGLISH',
@@ -103,4 +105,8 @@ export class User {
   )
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   refreshTokens: AuthRefreshToken[];
+
+  @OneToOne(() => PersonProfile, (personProfile) => personProfile.user)
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
+  personProfile: PersonProfile;
 }

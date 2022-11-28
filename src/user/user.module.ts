@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { VerificationModule } from '@src/verification/verification.module';
+import { PersonProfile } from './person-profile.entity';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
@@ -14,6 +15,7 @@ import { UserExistsByPhoneNumberValidator } from './validator/user-exists-by-pho
     UserRepository,
     UserExistsByEmailValidator,
     UserExistsByPhoneNumberValidator,
+    PersonProfile,
   ],
   exports: [UserService],
 })

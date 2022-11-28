@@ -13,12 +13,15 @@ export class AuthRefreshToken {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
+  @ApiProperty({ description: 'User id', maximum: 64, required: true })
   @Column({ type: 'int', nullable: false })
   userId: number;
 
+  @ApiProperty({ description: 'Ip address', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false })
   ipaddress: string;
 
+  @ApiProperty({ description: 'User agent', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false })
   useragent: string;
 
@@ -34,6 +37,6 @@ export class AuthRefreshToken {
   @Column({ type: 'timestamptz', nullable: false })
   expireAt: Date;
 
-  @ManyToOne(() => User, (admin) => admin.refreshTokens)
+  @ManyToOne(() => User, (user) => user.refreshTokens)
   user: User;
 }
