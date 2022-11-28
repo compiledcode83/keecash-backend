@@ -14,6 +14,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthRefreshTokenModule } from './auth-refresh-token/auth-refresh-token.module';
 import { VerificationModule } from './verification/verification.module';
+import { StorageModule } from './storage/storage.module';
 import verificationConfig from './config/verification.config';
 
 EnvHelper.verifyNodeEnv();
@@ -42,6 +43,7 @@ EnvHelper.verifyNodeEnv();
     AuthModule,
     AuthRefreshTokenModule,
     VerificationModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],
