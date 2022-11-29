@@ -91,7 +91,9 @@ export class User {
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   refreshTokens: AuthRefreshToken[];
 
-  @OneToOne(() => PersonProfile, (personProfile) => personProfile.user)
-  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
+  @OneToOne(
+    () => PersonProfile,
+    (personProfile: PersonProfile) => personProfile.user,
+  )
   personProfile: PersonProfile;
 }

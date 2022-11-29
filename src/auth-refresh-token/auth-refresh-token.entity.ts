@@ -13,7 +13,7 @@ export class AuthRefreshToken {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({ description: 'User id', maximum: 64, required: true })
+  @ApiProperty({ description: 'User Id', maximum: 64, required: true })
   @Column({ type: 'int', nullable: false })
   userId: number;
 

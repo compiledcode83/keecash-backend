@@ -16,6 +16,7 @@ import { AuthRefreshTokenModule } from './auth-refresh-token/auth-refresh-token.
 import { VerificationModule } from './verification/verification.module';
 import { StorageModule } from './storage/storage.module';
 import verificationConfig from './config/verification.config';
+import storageConfig from './config/storage.config';
 
 EnvHelper.verifyNodeEnv();
 
@@ -24,7 +25,13 @@ EnvHelper.verifyNodeEnv();
     ConfigModule.forRoot({
       envFilePath: EnvHelper.getEnvFilePath(),
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig, verificationConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        jwtConfig,
+        verificationConfig,
+        storageConfig,
+      ],
       validate: validate,
     }),
     TypeOrmModule.forRootAsync({

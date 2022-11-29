@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { CreatePersonProfileDto } from './dto/create-person-profile.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PersonProfile } from './person-profile.entity';
 import { PersonProfileRepository } from './person-profile.repository';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
@@ -34,6 +36,26 @@ export class UserService {
     return this.findByUuid(uuid);
   }
 
+  async createPersonalUser(
+    userEntity: CreateUserDto,
+    personProfileEntity: CreatePersonProfileDto,
+  ) {
+    const user: Partial<User> = {
+      ...this.userRepository.create(userEntity),
+      password: await bcrypt.hash(userEntity.password, 10),
+    };
+    const res = await this.userRepository.save(user, {
+      reload: false,
+    });
+    const savedUser = await this.findByUuid(res.uuid);
+    const personProfile: Partial<PersonProfile> = {
+      ...this.personProfileRepository.create(personProfileEntity),
+      user: savedUser,
+    };
+    await this.personProfileRepository.save(personProfile);
+    return 'success';
+  }
+
   async create(body: CreateUserDto): Promise<User> {
     const userEntity: Partial<User> = {
       ...this.userRepository.create(body),
@@ -46,12 +68,5 @@ export class UserService {
 
   async findOne(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } });
-  }
-
-  async makePhoneNumberVerified(phoneNumber: string) {
-    return this.userRepository.update(
-      { phoneNumber },
-      { isEmailVerified: true },
-    );
   }
 }

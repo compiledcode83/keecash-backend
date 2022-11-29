@@ -1,12 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
+  IsEnum,
   IsPhoneNumber,
   IsString,
   MaxLength,
   MinLength,
   Validate,
 } from 'class-validator';
+import { AccountType, Language } from '../user.entity';
 import { UserExistsByEmailValidator } from '../validator/user-exists-by-email.validator';
 import { UserExistsByPhoneNumberValidator } from '../validator/user-exists-by-phone-number.validator';
 
@@ -54,4 +56,20 @@ export class CreateUserDto {
   @MinLength(8)
   @MaxLength(255)
   password: string;
+
+  @ApiProperty({
+    description: 'Language',
+    maximum: 255,
+    required: true,
+  })
+  @IsEnum(Language)
+  language: Language;
+
+  @ApiProperty({
+    description: 'Language',
+    maximum: 255,
+    required: true,
+  })
+  @IsEnum(AccountType)
+  accountType: AccountType;
 }

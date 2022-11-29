@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from '@src/user/user.entity';
 
 export enum DocumentType {
@@ -14,10 +20,6 @@ export class PersonProfile {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({ description: 'User Id', maximum: 64, required: true })
-  @Column({ type: 'int', nullable: false })
-  userId: number;
-
   @ApiProperty({ description: 'Address', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
   address1: string;
@@ -26,7 +28,7 @@ export class PersonProfile {
   @Column({ type: 'varchar', nullable: false, length: 64 })
   address2: string;
 
-  @ApiProperty({ description: 'Token', maximum: 64, required: true })
+  @ApiProperty({ description: 'zipcode', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
   zipcode: string;
 
@@ -50,6 +52,7 @@ export class PersonProfile {
   @Column({ type: 'varchar', nullable: false, length: 255 })
   imageLink: string;
 
-  @OneToOne(() => User, (user) => user.personProfile)
+  @OneToOne(() => User)
+  @JoinColumn()
   user: User;
 }
