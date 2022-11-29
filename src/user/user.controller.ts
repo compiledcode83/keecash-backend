@@ -23,6 +23,7 @@ import { ConfirmEmailVerificationCodeDto } from './dto/confirm-email-verificatio
 import { CreatePersonProfileDto } from './dto/create-person-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StorageService } from '@src/storage/storage.service';
+import { v4 as uuid } from 'uuid';
 
 @Controller()
 export class UserController {
@@ -57,13 +58,18 @@ export class UserController {
     @Body() userEntity: CreateUserDto,
     @Body() personProfileEntity: CreatePersonProfileDto,
   ) {
+    const imageName = uuid() + '.jpg';
     await this.storageService.save(
-      'media/' + 'testImage',
+      'media/' + imageName,
       file.mimetype,
       file.buffer,
-      [{ mediaId: 'testImage' }],
+      [{ mediaId: imageName }],
     );
-    await this.userService.createPersonalUser(userEntity, personProfileEntity);
+    await this.userService.createPersonalUser(
+      userEntity,
+      personProfileEntity,
+      imageName,
+    );
     return 'Success';
   }
 

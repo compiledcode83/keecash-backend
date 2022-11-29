@@ -39,6 +39,7 @@ export class UserService {
   async createPersonalUser(
     userEntity: CreateUserDto,
     personProfileEntity: CreatePersonProfileDto,
+    imageLink: string,
   ) {
     const user: Partial<User> = {
       ...this.userRepository.create(userEntity),
@@ -50,6 +51,7 @@ export class UserService {
     const savedUser = await this.findByUuid(res.uuid);
     const personProfile: Partial<PersonProfile> = {
       ...this.personProfileRepository.create(personProfileEntity),
+      imageLink: imageLink,
       user: savedUser,
     };
     await this.personProfileRepository.save(personProfile);

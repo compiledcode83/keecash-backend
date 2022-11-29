@@ -36,10 +36,4 @@ export class CreatePersonProfileDto {
   @ApiProperty({ description: 'documentType', maximum: 64, required: true })
   @IsEnum(DocumentType)
   documentType: DocumentType;
-
-  @ApiProperty({ description: 'imageLink', maximum: 64, required: true })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(128)
-  imageLink: string;
 }
