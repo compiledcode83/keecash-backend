@@ -49,9 +49,11 @@ export class AuthService {
 
     if (userByEmail && (await bcrypt.compare(password, userByEmail.password))) {
       return {
+        id: userByEmail.id,
         name: userByEmail.name,
         email: userByEmail.email,
-        id: userByEmail.id,
+        phoneNumber: userByEmail.phoneNumber,
+        accountType: userByEmail.accountType,
       };
     }
 
@@ -64,9 +66,11 @@ export class AuthService {
       (await bcrypt.compare(password, userByPhoneNumber.password))
     ) {
       return {
+        id: userByPhoneNumber.id,
         name: userByPhoneNumber.name,
         email: userByPhoneNumber.email,
-        id: userByPhoneNumber.id,
+        phoneNumber: userByPhoneNumber.phoneNumber,
+        accountType: userByPhoneNumber.accountType,
       };
     }
 
@@ -79,9 +83,11 @@ export class AuthService {
 
   private async createAccessToken(user: User): Promise<string> {
     const payload: AccessTokenInterface = {
+      id: user.id,
       name: user.name,
       email: user.email,
-      id: user.id,
+      phoneNumber: user.phoneNumber,
+      accountType: user.accountType,
     };
 
     return this.jwtService.signAsync(payload);

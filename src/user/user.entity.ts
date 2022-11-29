@@ -22,6 +22,7 @@ export enum Language {
 export enum AccountType {
   PERSON = 'PERSON',
   ENTERPRISE = 'ENTERPRISE',
+  ADMIN = 'ADMIN',
 }
 
 @Entity('user')
