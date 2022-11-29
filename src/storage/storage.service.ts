@@ -10,13 +10,13 @@ export class StorageService {
 
   constructor(private readonly configService: ConfigService) {
     this.storage = new Storage({
-      projectId: configService.get<string>('storageConfig.projectId'),
+      projectId: configService.get('storageConfig.projectId'),
       credentials: {
-        client_email: configService.get<string>('storageConfig.clientEmail'),
-        private_key: configService.get<string>('storageConfig.privateKey'),
+        client_email: configService.get('storageConfig.clientEmail'),
+        private_key: configService.get('storageConfig.privateKey'),
       },
     });
-    this.bucket = configService.get<string>('storageConfig.storageMediaBucket');
+    this.bucket = configService.get('storageConfig.storageMediaBucket');
   }
 
   async delete(path: string) {
