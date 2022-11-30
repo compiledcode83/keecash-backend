@@ -96,7 +96,7 @@ class EnvironmentVariables {
 
   @IsString()
   @MinLength(1)
-  keecashv2: string;
+  PROJECT_ID: string;
 
   @IsString()
   @MinLength(1)
