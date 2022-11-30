@@ -61,6 +61,14 @@ export class UserController {
     @Body() userEntity: CreateUserDto,
     @Body() personProfileEntity: CreatePersonProfileDto,
   ) {
+    const emailPayload: any = this.jwtService.decode(userEntity.emailToken);
+    if (emailPayload.email != userEntity.email)
+      throw new BadRequestException('Please verify your email');
+    const phoneNumberPayload: any = this.jwtService.decode(
+      userEntity.phoneNumberToken,
+    );
+    if (phoneNumberPayload.phoneNumber != userEntity.phoneNumber)
+      throw new BadRequestException('Please verify your Phone Number');
     const imageName = uuid() + '.jpg';
     await this.storageService.save(
       'media/' + imageName,
@@ -99,14 +107,44 @@ export class UserController {
   ) {
     const res =
       await this.verificationService.confirmPhoneNumberVerificationCode(body);
-    if (res === true) return 'Phone number successfully verified';
+    const payload = { phoneNumber: body.phoneNumber };
+    const token = await this.jwtService.signAsync(payload);
+    if (res === true) return { phoneNumberToken: token };
+    throw new BadRequestException('Sorry, Can not confirm phone number');
+  }
+
+  @ApiOperation({ description: `Send email verification code` })
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('auth/send-email-verification-code')
+  async sendEmailVerificationCode(@Body() body: SendEmailVerificationCodeDto) {
+    const res = await this.verificationService.sendEmailVerificationCode(
+      body.email,
+    );
+    if (res === true) {
+      return 'Email verification code was successfully sent';
+    }
+    throw new BadRequestException('Sorry, Can not send verification code');
+  }
+
+  @ApiOperation({ description: `Confirm email verification code` })
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('auth/confirm-email-verification-code')
+  async confirmEmail(@Body() body: ConfirmEmailVerificationCodeDto) {
+    const res = await this.verificationService.confirmEmailVerificationCode(
+      body,
+    );
+    const payload = { email: body.email };
+    const token = await this.jwtService.signAsync(payload);
+    if (res === true) return { emailToken: token };
     throw new BadRequestException('Sorry, Can not confirm phone number');
   }
 
   @ApiOperation({ description: `Send email verification code` })
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/send-email-verification-code-for-forget-password')
-  async sendEmailVerificationCode(@Body() body: SendEmailVerificationCodeDto) {
+  async sendEmailVerificationCodeForForgetPassword(
+    @Body() body: SendEmailVerificationCodeDto,
+  ) {
     const user = await this.userService.findByEmail(body.email);
     if (user == null) throw new BadRequestException('Sorry, Can not find user');
     const res = await this.verificationService.sendEmailVerificationCode(
@@ -121,7 +159,9 @@ export class UserController {
   @ApiOperation({ description: `Confirm email verification code` })
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/confirm-email-verification-code-for-forget-password')
-  async confirmEmail(@Body() body: ConfirmEmailVerificationCodeDto) {
+  async confirmEmailForForgetPassword(
+    @Body() body: ConfirmEmailVerificationCodeDto,
+  ) {
     const res = await this.verificationService.confirmEmailVerificationCode(
       body,
     );

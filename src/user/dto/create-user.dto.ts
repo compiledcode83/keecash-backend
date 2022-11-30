@@ -58,6 +58,26 @@ export class CreateUserDto {
   password: string;
 
   @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+    required: true,
+    maximum: 255,
+    description: 'Token for email',
+  })
+  @IsString()
+  @MinLength(1)
+  emailToken: string;
+
+  @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+    required: true,
+    maximum: 255,
+    description: 'Token for phone Number',
+  })
+  @IsString()
+  @MinLength(1)
+  phoneNumberToken: string;
+
+  @ApiProperty({
     description: 'Language',
     maximum: 255,
     required: true,
