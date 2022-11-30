@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsPhoneNumber } from 'class-validator';
+import { IsEmail } from 'class-validator';
 
 export class SendEmailVerificationCodeDto {
   @ApiProperty({
@@ -8,6 +8,6 @@ export class SendEmailVerificationCodeDto {
     maximum: 255,
     description: 'Email address',
   })
-  @IsPhoneNumber()
+  @IsEmail()
   email: string;
 }

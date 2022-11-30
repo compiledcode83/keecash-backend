@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { CreatePersonProfileDto } from './dto/create-person-profile.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -12,6 +13,7 @@ import { UserRepository } from './user.repository';
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly jwtService: JwtService,
     private readonly personProfileRepository: PersonProfileRepository,
   ) {}
 
