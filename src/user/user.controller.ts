@@ -24,6 +24,8 @@ import { CreatePersonProfileDto } from './dto/create-person-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StorageService } from '@src/storage/storage.service';
 import { v4 as uuid } from 'uuid';
+import { JwtService } from '@nestjs/jwt';
+import { PasswordResetDto } from './dto/password-reset.dto';
 
 @Controller()
 export class UserController {
@@ -31,6 +33,7 @@ export class UserController {
     private readonly userService: UserService,
     private readonly verificationService: VerificationService,
     private readonly storageService: StorageService,
+    private readonly jwtService: JwtService,
   ) {}
 
   @ApiOperation({ description: `Register a new user` })
@@ -102,8 +105,10 @@ export class UserController {
 
   @ApiOperation({ description: `Send email verification code` })
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Post('auth/send-email-verification-code')
+  @Post('auth/send-email-verification-code-for-forget-password')
   async sendEmailVerificationCode(@Body() body: SendEmailVerificationCodeDto) {
+    const user = await this.userService.findByEmail(body.email);
+    if (user == null) throw new BadRequestException('Sorry, Can not find user');
     const res = await this.verificationService.sendEmailVerificationCode(
       body.email,
     );
@@ -115,12 +120,23 @@ export class UserController {
 
   @ApiOperation({ description: `Confirm email verification code` })
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Post('auth/confirm-email-verification-code')
+  @Post('auth/confirm-email-verification-code-for-forget-password')
   async confirmEmail(@Body() body: ConfirmEmailVerificationCodeDto) {
     const res = await this.verificationService.confirmEmailVerificationCode(
       body,
     );
-    if (res === true) return 'Email successfully verified';
+    const payload = { email: body.email };
+    const token = await this.jwtService.signAsync(payload);
+    if (res === true) return { token: token };
     throw new BadRequestException('Sorry, Can not confirm phone number');
+  }
+
+  @ApiOperation({ description: `Confirm email verification code` })
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('auth/password-reset')
+  async passwordReset(@Body() body: PasswordResetDto) {
+    const payload: any = this.jwtService.decode(body.token);
+    await this.userService.passwordReset(payload.email, body.password);
+    return 'Successfully changed';
   }
 }
