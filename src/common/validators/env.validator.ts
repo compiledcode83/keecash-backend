@@ -95,6 +95,22 @@ class EnvironmentVariables {
   TWILIO_ACCOUNT_SID: string;
 
   @IsString()
+  @MinLength(1)
+  keecashv2: string;
+
+  @IsString()
+  @MinLength(1)
+  PRIVATE_KEY: string;
+
+  @IsString()
+  @MinLength(1)
+  CLIENT_EMAIL: string;
+
+  @IsString()
+  @MinLength(1)
+  STORAGE_MEDIA_BUCKET: string;
+
+  @IsString()
   @IsIn(['true', 'false'])
   JWT_REFRESH_TOKEN_COOKIE_SECURE: 'true' | 'false';
 
