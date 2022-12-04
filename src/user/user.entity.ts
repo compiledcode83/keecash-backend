@@ -3,10 +3,8 @@ import { Exclude } from 'class-transformer';
 import {
   CreateDateColumn,
   Column,
-  DeleteDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
   OneToMany,
   JoinColumn,
   OneToOne,
@@ -31,13 +29,13 @@ export class User {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({ description: `Unique uuid`, maximum: 36 })
-  @Column({ type: 'varchar', nullable: false, length: 36 })
-  uuid: string;
+  @ApiProperty({ description: 'Full name', maximum: 128, required: false })
+  @Column({ type: 'varchar', nullable: true, length: 128 })
+  fist_name: string;
 
   @ApiProperty({ description: 'Full name', maximum: 128, required: false })
   @Column({ type: 'varchar', nullable: true, length: 128 })
-  name: string;
+  second_name: string;
 
   @ApiProperty({ description: 'E-mail', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: false, length: 255 })
@@ -72,18 +70,21 @@ export class User {
     required: true,
   })
   @CreateDateColumn()
-  createdAt: Date;
+  registeredAt: Date;
 
   @ApiProperty({
-    description: 'Date when user was updated the last time',
+    description: 'Date when the user was approved',
     required: false,
   })
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @Column({ type: 'timestamptz', nullable: true })
+  approvedAt: Date;
 
-  @Exclude({ toPlainOnly: true })
-  @DeleteDateColumn()
-  deletedAt: Date;
+  @ApiProperty({
+    description: 'Date when user was rejected',
+    required: false,
+  })
+  @Column({ type: 'timestamptz', nullable: true })
+  rejectedAt: Date;
 
   @OneToMany(
     () => AuthRefreshToken,
