@@ -12,6 +12,7 @@ import {
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
 import { PersonProfile } from './person-profile.entity';
 import { Document } from './document.entity';
+import { EnterpriseProfile } from './enterprise-profile.entity';
 
 export enum Language {
   ENGLISH = 'ENGLISH',
@@ -103,4 +104,10 @@ export class User {
     (personProfile: PersonProfile) => personProfile.user,
   )
   personProfile: PersonProfile;
+
+  @OneToOne(
+    () => EnterpriseProfile,
+    (enterpriseProfile: EnterpriseProfile) => enterpriseProfile.user,
+  )
+  enterpriseProfile: EnterpriseProfile;
 }

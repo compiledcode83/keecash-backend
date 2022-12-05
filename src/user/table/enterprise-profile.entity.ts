@@ -10,10 +10,48 @@ import {
 import { User } from '@src/user/table/user.entity';
 import { Country } from './country.entity';
 
-@Entity('person_profile')
-export class PersonProfile {
+export enum Position {
+  SECRETARY = 'SECRETARY',
+  CHAIRPERSON = 'CHAIRPERSON',
+  CFO = 'CFO',
+}
+
+@Entity('enterprise_profile')
+export class EnterpriseProfile {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
+
+  @ApiProperty({
+    description: 'Document Type',
+    maximum: 255,
+    required: true,
+  })
+  @Column({
+    type: 'enum',
+    enum: Position,
+    default: Position.SECRETARY,
+  })
+  type: Position;
+
+  @ApiProperty({ description: 'Entity Type', maximum: 64, required: true })
+  @Column({ type: 'varchar', nullable: false, length: 64 })
+  entityType: string;
+
+  @ApiProperty({ description: 'Company Name', maximum: 64, required: true })
+  @Column({ type: 'varchar', nullable: false, length: 64 })
+  companyName: string;
+
+  @ApiProperty({
+    description: 'Country Registeration Number',
+    maximum: 64,
+    required: true,
+  })
+  @Column({ type: 'varchar', nullable: false, length: 64 })
+  companyRegisterationNumber: string;
+
+  @ApiProperty({ description: 'Vat Number', maximum: 64, required: true })
+  @Column({ type: 'varchar', nullable: false, length: 64 })
+  vatNumber: string;
 
   @ApiProperty({ description: 'Address', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })

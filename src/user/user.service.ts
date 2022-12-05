@@ -45,7 +45,6 @@ export class UserService {
     const savedUser = await this.findOne(res.id);
     const personProfile: Partial<PersonProfile> = {
       ...this.personProfileRepository.create(personProfileEntity),
-      imageLink: imageLink,
       user: savedUser,
     };
     await this.personProfileRepository.save(personProfile);

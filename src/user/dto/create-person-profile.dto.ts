@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsString, MaxLength, MinLength } from 'class-validator';
-import { DocumentType } from '../table/person-profile.entity';
 
 export class CreatePersonProfileDto {
   @ApiProperty({ description: 'Address1', maximum: 64, required: true })
@@ -32,8 +31,4 @@ export class CreatePersonProfileDto {
   @MinLength(1)
   @MaxLength(128)
   countryId: number;
-
-  @ApiProperty({ description: 'documentType', maximum: 64, required: true })
-  @IsEnum(DocumentType)
-  documentType: DocumentType;
 }
