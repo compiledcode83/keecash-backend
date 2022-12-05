@@ -11,6 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
 import { DocumentRepository } from './table/document.repository';
+import { CountryRepository } from './table/country.repository';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { DocumentRepository } from './table/document.repository';
     UserExistsByPhoneNumberValidator,
     PersonProfileRepository,
     DocumentRepository,
+    CountryRepository,
   ],
   exports: [UserService],
 })

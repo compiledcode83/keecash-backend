@@ -4,9 +4,11 @@ import {
   Column,
   PrimaryGeneratedColumn,
   OneToOne,
+  ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { User } from '@src/user/table/user.entity';
+import { Country } from './country.entity';
 
 export enum DocumentType {
   PASSPORT = 'Passport',
@@ -36,9 +38,9 @@ export class PersonProfile {
   @Column({ type: 'varchar', nullable: false, length: 64 })
   city: string;
 
-  @ApiProperty({ description: 'Country', required: true })
-  @Column({ type: 'varchar', nullable: false, length: 64 })
-  country: string;
+  @ApiProperty({ description: 'Country Id', maximum: 64, required: true })
+  @Column({ type: 'int', nullable: false })
+  countryId: number;
 
   @ApiProperty({
     description: 'Language',
@@ -51,6 +53,9 @@ export class PersonProfile {
   @ApiProperty({ description: 'Image link', required: true })
   @Column({ type: 'varchar', nullable: false, length: 255 })
   imageLink: string;
+
+  @ManyToOne(() => Country, (country) => country.personProfile)
+  country: Country;
 
   @OneToOne(() => User)
   @JoinColumn()

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreatePersonProfileDto } from './dto/create-person-profile.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { PersonProfile } from './table/person-profile.entity';
 import { PersonProfileRepository } from './table/person-profile.repository';
 import { User } from './table/user.entity';

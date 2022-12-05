@@ -31,7 +31,7 @@ export class CreatePersonProfileDto {
   @IsString()
   @MinLength(1)
   @MaxLength(128)
-  country: string;
+  countryId: number;
 
   @ApiProperty({ description: 'documentType', maximum: 64, required: true })
   @IsEnum(DocumentType)
