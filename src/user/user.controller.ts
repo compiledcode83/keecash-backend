@@ -13,7 +13,6 @@ import {
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { VerificationService } from '@src/verification/verification.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { ConfirmPhoneNumberVerificationCodeDto } from './dto/confirm-phone-verification.dto';
 import { User } from './table/user.entity';
 import { UserService } from './user.service';
@@ -47,7 +46,7 @@ export class UserController {
       },
     }),
   )
-  @Post('auth/register')
+  @Post('auth/register-person')
   async register(
     @UploadedFile(
       new ParseFilePipe({
@@ -58,16 +57,15 @@ export class UserController {
       }),
     )
     file: Express.Multer.File,
-    @Body() userEntity: CreateUserDto,
-    @Body() personProfileEntity: CreatePersonProfileDto,
+    @Body() body: CreatePersonProfileDto,
   ) {
-    const emailPayload: any = this.jwtService.decode(userEntity.emailToken);
-    if (emailPayload.email != userEntity.email)
+    const emailPayload: any = this.jwtService.decode(body.emailToken);
+    if (emailPayload.email != body.email)
       throw new BadRequestException('Please verify your email');
     const phoneNumberPayload: any = this.jwtService.decode(
-      userEntity.phoneNumberToken,
+      body.phoneNumberToken,
     );
-    if (phoneNumberPayload.phoneNumber != userEntity.phoneNumber)
+    if (phoneNumberPayload.phoneNumber != body.phoneNumber)
       throw new BadRequestException('Please verify your Phone Number');
     const imageName = uuid() + '.jpg';
     await this.storageService.save(
@@ -76,11 +74,7 @@ export class UserController {
       file.buffer,
       [{ mediaId: imageName }],
     );
-    await this.userService.createPersonalUser(
-      userEntity,
-      personProfileEntity,
-      imageName,
-    );
+    await this.userService.createPersonalUser(body, imageName);
     return 'Success';
   }
 

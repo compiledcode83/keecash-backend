@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentRepository } from './table/document.repository';
 import { CountryRepository } from './table/country.repository';
 import { EnterpriseProfileRepository } from './table/enterprise-profile.repository';
+import { CountryExistsByNameValidator } from './validator/country-exists-by-name.validator';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { EnterpriseProfileRepository } from './table/enterprise-profile.reposito
     UserRepository,
     UserExistsByEmailValidator,
     UserExistsByPhoneNumberValidator,
+    CountryExistsByNameValidator,
     PersonProfileRepository,
     EnterpriseProfileRepository,
     DocumentRepository,
