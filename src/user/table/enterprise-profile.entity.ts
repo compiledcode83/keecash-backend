@@ -6,9 +6,11 @@ import {
   OneToOne,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from '@src/user/table/user.entity';
 import { Country } from './country.entity';
+import { Shareholder } from './shareholder.entity';
 
 export enum Position {
   SECRETARY = 'SECRETARY',
@@ -31,7 +33,7 @@ export class EnterpriseProfile {
     enum: Position,
     default: Position.SECRETARY,
   })
-  type: Position;
+  position: Position;
 
   @ApiProperty({ description: 'Entity Type', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
@@ -40,6 +42,10 @@ export class EnterpriseProfile {
   @ApiProperty({ description: 'Company Name', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
   companyName: string;
+
+  @ApiProperty({ description: 'Country Id', maximum: 64, required: true })
+  @Column({ type: 'int', nullable: false })
+  countryId: number;
 
   @ApiProperty({
     description: 'Country Registeration Number',
@@ -69,14 +75,14 @@ export class EnterpriseProfile {
   @Column({ type: 'varchar', nullable: false, length: 64 })
   city: string;
 
-  @ApiProperty({ description: 'Country Id', maximum: 64, required: true })
-  @Column({ type: 'int', nullable: false })
-  countryId: number;
-
   @ManyToOne(() => Country, (country) => country.personProfile)
   country: Country;
 
   @OneToOne(() => User)
   @JoinColumn()
   user: User;
+
+  @OneToMany(() => Shareholder, (shareholder) => shareholder.enterpriseProfile)
+  @JoinColumn({ name: 'id', referencedColumnName: 'enterprise_id' })
+  shareholders: Shareholder[];
 }

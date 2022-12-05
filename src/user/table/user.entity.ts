@@ -25,17 +25,23 @@ export enum AccountType {
   ADMIN = 'ADMIN',
 }
 
+export enum Status {
+  APPROVED = 'Approved',
+  REJECTED = 'Rejected',
+  PENDING = 'Pending',
+}
+
 @Entity('user')
 export class User {
   @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({ description: 'Full name', maximum: 128, required: false })
+  @ApiProperty({ description: 'First name', maximum: 128, required: false })
   @Column({ type: 'varchar', nullable: false, length: 128 })
   firstName: string;
 
-  @ApiProperty({ description: 'Full name', maximum: 128, required: false })
+  @ApiProperty({ description: 'Second name', maximum: 128, required: false })
   @Column({ type: 'varchar', nullable: false, length: 128 })
   secondName: string;
 
@@ -66,6 +72,14 @@ export class User {
   })
   @Column({ type: 'enum', enum: AccountType, default: AccountType.PERSON })
   accountType: AccountType;
+
+  @ApiProperty({
+    description: 'Status',
+    maximum: 255,
+    required: true,
+  })
+  @Column({ type: 'enum', enum: Status, default: Status.PENDING })
+  status: Status;
 
   @ApiProperty({
     description: 'Date when the user was created',

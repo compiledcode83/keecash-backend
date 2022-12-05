@@ -15,7 +15,7 @@ export class PersonProfile {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({ description: 'Address', maximum: 64, required: true })
+  @ApiProperty({ description: 'Address1', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
   address1: string;
 
