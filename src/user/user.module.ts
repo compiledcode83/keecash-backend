@@ -10,6 +10,7 @@ import { UserExistsByPhoneNumberValidator } from './validator/user-exists-by-pho
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
+import { DocumentRepository } from './table/document.repository';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ConfigService } from '@nestjs/config';
     UserExistsByEmailValidator,
     UserExistsByPhoneNumberValidator,
     PersonProfileRepository,
+    DocumentRepository,
   ],
   exports: [UserService],
 })

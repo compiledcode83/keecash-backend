@@ -32,11 +32,11 @@ export class User {
 
   @ApiProperty({ description: 'Full name', maximum: 128, required: false })
   @Column({ type: 'varchar', nullable: false, length: 128 })
-  fist_name: string;
+  firstName: string;
 
   @ApiProperty({ description: 'Full name', maximum: 128, required: false })
   @Column({ type: 'varchar', nullable: false, length: 128 })
-  second_name: string;
+  secondName: string;
 
   @ApiProperty({ description: 'E-mail', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: false, length: 255 })

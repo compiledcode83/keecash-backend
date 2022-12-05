@@ -1,6 +1,7 @@
 export interface AccessTokenInterface {
   id: number;
-  name: string;
+  firstName: string;
+  secondName: string;
   email: string;
   phoneNumber: string;
   accountType: string;

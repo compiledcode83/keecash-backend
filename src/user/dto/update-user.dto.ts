@@ -4,10 +4,8 @@ import {
   IsString,
   MaxLength,
   MinLength,
-  Validate,
   ValidateIf,
 } from 'class-validator';
-import { UserExistsByUuidValidator } from '../validator/user-exists-by-uuid.validator';
 
 export class UpdateUserDto {
   @ApiProperty({
@@ -33,7 +31,4 @@ export class UpdateUserDto {
   @IsEmail()
   @MaxLength(255)
   email: string;
-
-  @Validate(UserExistsByUuidValidator)
-  uuid: string;
 }

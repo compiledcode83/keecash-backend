@@ -50,7 +50,8 @@ export class AuthService {
     if (userByEmail && (await bcrypt.compare(password, userByEmail.password))) {
       return {
         id: userByEmail.id,
-        name: userByEmail.name,
+        firstName: userByEmail.firstName,
+        secondName: userByEmail.secondName,
         email: userByEmail.email,
         phoneNumber: userByEmail.phoneNumber,
         accountType: userByEmail.accountType,
@@ -67,7 +68,8 @@ export class AuthService {
     ) {
       return {
         id: userByPhoneNumber.id,
-        name: userByPhoneNumber.name,
+        firstName: userByPhoneNumber.firstName,
+        secondName: userByPhoneNumber.secondName,
         email: userByPhoneNumber.email,
         phoneNumber: userByPhoneNumber.phoneNumber,
         accountType: userByPhoneNumber.accountType,
@@ -84,7 +86,8 @@ export class AuthService {
   private async createAccessToken(user: User): Promise<string> {
     const payload: AccessTokenInterface = {
       id: user.id,
-      name: user.name,
+      firstName: user.firstName,
+      secondName: user.secondName,
       email: user.email,
       phoneNumber: user.phoneNumber,
       accountType: user.accountType,

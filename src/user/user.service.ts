@@ -15,25 +15,12 @@ export class UserService {
     private readonly personProfileRepository: PersonProfileRepository,
   ) {}
 
-  async findByUuid(uuid: string): Promise<User> {
-    return this.userRepository.findOne({ where: { uuid } });
-  }
-
   async findByEmail(email: string): Promise<User> {
     return this.userRepository.findOne({ where: { email } });
   }
 
   async findByPhoneNumber(phoneNumber: string): Promise<User> {
     return this.userRepository.findOne({ where: { phoneNumber } });
-  }
-
-  async update(uuid: string, body: UpdateUserDto): Promise<User> {
-    await this.userRepository.update(
-      { uuid },
-      this.userRepository.create(body),
-    );
-
-    return this.findByUuid(uuid);
   }
 
   async passwordReset(email: string, password: string): Promise<boolean> {
@@ -56,7 +43,7 @@ export class UserService {
     const res = await this.userRepository.save(user, {
       reload: false,
     });
-    const savedUser = await this.findByUuid(res.uuid);
+    const savedUser = await this.findOne(res.id);
     const personProfile: Partial<PersonProfile> = {
       ...this.personProfileRepository.create(personProfileEntity),
       imageLink: imageLink,
@@ -73,7 +60,7 @@ export class UserService {
     };
     const user = await this.userRepository.save(userEntity, { reload: false });
 
-    return this.findByUuid(user.uuid);
+    return this.findOne(user.id);
   }
 
   async findOne(id: number): Promise<User> {

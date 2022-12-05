@@ -18,8 +18,8 @@ export class Document {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({ description: 'User id', maximum: 128, required: true })
-  @Column({ type: 'int', nullable: false, length: 128 })
+  @ApiProperty({ description: 'User Id', maximum: 64, required: true })
+  @Column({ type: 'int', nullable: false })
   userId: number;
 
   @ApiProperty({
@@ -38,6 +38,6 @@ export class Document {
   @Column({ type: 'varchar', nullable: true, length: 128 })
   imageLink: string;
 
-  @ManyToOne(() => User, (user) => user.refreshTokens)
+  @ManyToOne(() => User, (user) => user.documents)
   user: User;
 }
