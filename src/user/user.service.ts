@@ -3,10 +3,10 @@ import * as bcrypt from 'bcrypt';
 import { CreatePersonProfileDto } from './dto/create-person-profile.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PersonProfile } from './person-profile.entity';
-import { PersonProfileRepository } from './person-profile.repository';
-import { User } from './user.entity';
-import { UserRepository } from './user.repository';
+import { PersonProfile } from './table/person-profile.entity';
+import { PersonProfileRepository } from './table/person-profile.repository';
+import { User } from './table/user.entity';
+import { UserRepository } from './table/user.repository';
 
 @Injectable()
 export class UserService {

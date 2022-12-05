@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { StorageModule } from '@src/storage/storage.module';
 import { VerificationModule } from '@src/verification/verification.module';
-import { PersonProfileRepository } from './person-profile.repository';
+import { PersonProfileRepository } from './table/person-profile.repository';
 import { UserController } from './user.controller';
-import { UserRepository } from './user.repository';
+import { UserRepository } from './table/user.repository';
 import { UserService } from './user.service';
 import { UserExistsByEmailValidator } from './validator/user-exists-by-email.validator';
 import { UserExistsByPhoneNumberValidator } from './validator/user-exists-by-phone-number.validator';

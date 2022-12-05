@@ -6,7 +6,7 @@ import {
   ManyToOne,
   CreateDateColumn,
 } from 'typeorm';
-import { User } from '@src/user/user.entity';
+import { User } from '@src/user/table/user.entity';
 
 @Entity('auth_refresh_token')
 export class AuthRefreshToken {

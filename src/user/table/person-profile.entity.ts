@@ -6,7 +6,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from '@src/user/user.entity';
+import { User } from '@src/user/table/user.entity';
 
 export enum DocumentType {
   PASSPORT = 'Passport',
@@ -25,7 +25,7 @@ export class PersonProfile {
   address1: string;
 
   @ApiProperty({ description: 'Address2', maximum: 64, required: true })
-  @Column({ type: 'varchar', nullable: false, length: 64 })
+  @Column({ type: 'varchar', nullable: true, length: 64 })
   address2: string;
 
   @ApiProperty({ description: 'zipcode', maximum: 64, required: true })

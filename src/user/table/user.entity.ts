@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
 import { PersonProfile } from './person-profile.entity';
+import { Document } from './document.entity';
 
 export enum Language {
   ENGLISH = 'ENGLISH',
@@ -30,11 +31,11 @@ export class User {
   id: number;
 
   @ApiProperty({ description: 'Full name', maximum: 128, required: false })
-  @Column({ type: 'varchar', nullable: true, length: 128 })
+  @Column({ type: 'varchar', nullable: false, length: 128 })
   fist_name: string;
 
   @ApiProperty({ description: 'Full name', maximum: 128, required: false })
-  @Column({ type: 'varchar', nullable: true, length: 128 })
+  @Column({ type: 'varchar', nullable: false, length: 128 })
   second_name: string;
 
   @ApiProperty({ description: 'E-mail', maximum: 255, required: true })
@@ -92,6 +93,10 @@ export class User {
   )
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   refreshTokens: AuthRefreshToken[];
+
+  @OneToMany(() => Document, (document) => document.user)
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
+  documents: Document[];
 
   @OneToOne(
     () => PersonProfile,

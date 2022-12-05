@@ -4,7 +4,7 @@ import {
   InsertEvent,
   UpdateEvent,
 } from 'typeorm';
-import { User } from './user.entity';
+import { User } from './table/user.entity';
 import { v4 as uuid } from 'uuid';
 
 @EventSubscriber()

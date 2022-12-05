@@ -8,7 +8,7 @@ import {
   MinLength,
   Validate,
 } from 'class-validator';
-import { AccountType, Language } from '../user.entity';
+import { AccountType, Language } from '../table/user.entity';
 import { UserExistsByEmailValidator } from '../validator/user-exists-by-email.validator';
 import { UserExistsByPhoneNumberValidator } from '../validator/user-exists-by-phone-number.validator';
 

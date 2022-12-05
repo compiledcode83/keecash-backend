@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { DataSource, Repository } from 'typeorm';
 import { DateTime } from 'luxon';
 import { randomBytes } from 'node:crypto';
-import { User } from '@src/user/user.entity';
+import { User } from '@src/user/table/user.entity';
 import { AuthRefreshToken } from './auth-refresh-token.entity';
 import { RefreshTokenInfo } from '@src/auth/dto/refresh-token-info.dto';
 

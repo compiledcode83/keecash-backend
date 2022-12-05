@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@src/user/user.entity';
+import { User } from '@src/user/table/user.entity';
 import { UserService } from '@src/user/user.service';
 import { AuthRefreshTokenService } from '@src/auth-refresh-token/auth-refresh-token.service';
 import { AccessTokenInterface } from './auth.type';

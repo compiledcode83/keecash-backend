@@ -15,7 +15,7 @@ import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { VerificationService } from '@src/verification/verification.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ConfirmPhoneNumberVerificationCodeDto } from './dto/confirm-phone-verification.dto';
-import { User } from './user.entity';
+import { User } from './table/user.entity';
 import { UserService } from './user.service';
 import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
 import { SendEmailVerificationCodeDto } from './dto/send-email-verification.dto';
