@@ -23,7 +23,7 @@ export class Shareholder {
 
   @ApiProperty({ description: 'Second Name', maximum: 128, required: false })
   @Column({ type: 'varchar', nullable: true, length: 128 })
-  SecondName: string;
+  secondName: string;
 
   @ManyToOne(
     () => EnterpriseProfile,

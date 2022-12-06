@@ -5,10 +5,6 @@ import {
   HttpStatus,
   Post,
   UseInterceptors,
-  UploadedFile,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
@@ -19,12 +15,12 @@ import { UserService } from './user.service';
 import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
 import { SendEmailVerificationCodeDto } from './dto/send-email-verification.dto';
 import { ConfirmEmailVerificationCodeDto } from './dto/confirm-email-verification.dto';
-import { CreatePersonProfileDto } from './dto/create-person-profile.dto';
+import { CreatePersonUserDto } from './dto/create-person-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StorageService } from '@src/storage/storage.service';
-import { v4 as uuid } from 'uuid';
 import { JwtService } from '@nestjs/jwt';
 import { PasswordResetDto } from './dto/password-reset.dto';
+import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 
 @Controller()
 export class UserController {
@@ -38,27 +34,8 @@ export class UserController {
   @ApiOperation({ description: `Register a new user` })
   @ApiResponse(ApiResponseHelper.success(User, HttpStatus.CREATED))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @UseInterceptors(
-    FileInterceptor('file', {
-      limits: {
-        files: 1,
-        fileSize: 1024 * 1024,
-      },
-    }),
-  )
   @Post('auth/register-person')
-  async register(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
-          new FileTypeValidator({ fileType: 'png' }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
-    @Body() body: CreatePersonProfileDto,
-  ) {
+  async registerPerson(@Body() body: CreatePersonUserDto) {
     const emailPayload: any = this.jwtService.decode(body.emailToken);
     if (emailPayload.email != body.email)
       throw new BadRequestException('Please verify your email');
@@ -67,14 +44,27 @@ export class UserController {
     );
     if (phoneNumberPayload.phoneNumber != body.phoneNumber)
       throw new BadRequestException('Please verify your Phone Number');
-    const imageName = uuid() + '.jpg';
-    await this.storageService.save(
-      'media/' + imageName,
-      file.mimetype,
-      file.buffer,
-      [{ mediaId: imageName }],
-    );
-    await this.userService.createPersonalUser(body, imageName);
+    await this.userService.createPersonalUser(body);
+    return 'Success';
+  }
+
+  @ApiOperation({ description: `Register a new user` })
+  @ApiResponse(ApiResponseHelper.success(User, HttpStatus.CREATED))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        files: 1,
+        fileSize: 1024 * 1024,
+      },
+    }),
+  )
+  @Post('auth/register-enterprise')
+  async registerEnterprise(@Body() body: CreateEnterpriseUserDto) {
+    const emailPayload: any = this.jwtService.decode(body.emailToken);
+    if (emailPayload.email != body.email)
+      throw new BadRequestException('Please verify your email');
+    await this.userService.createEnterpriseUser(body);
     return 'Success';
   }
 

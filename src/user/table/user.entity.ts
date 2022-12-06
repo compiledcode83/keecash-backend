@@ -50,7 +50,7 @@ export class User {
   email: string;
 
   @ApiProperty({ description: 'Phone number', maximum: 255, required: true })
-  @Column({ type: 'varchar', nullable: false, length: 255 })
+  @Column({ type: 'varchar', nullable: true, length: 255 })
   phoneNumber: string;
 
   @ApiProperty({ description: 'Password', maximum: 255, required: true })

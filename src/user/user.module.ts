@@ -14,6 +14,7 @@ import { DocumentRepository } from './table/document.repository';
 import { CountryRepository } from './table/country.repository';
 import { EnterpriseProfileRepository } from './table/enterprise-profile.repository';
 import { CountryExistsByNameValidator } from './validator/country-exists-by-name.validator';
+import { ShareholderRepository } from './table/shareholder.repository';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { CountryExistsByNameValidator } from './validator/country-exists-by-name
     CountryExistsByNameValidator,
     PersonProfileRepository,
     EnterpriseProfileRepository,
+    ShareholderRepository,
     DocumentRepository,
     CountryRepository,
   ],

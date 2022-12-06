@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsString,
@@ -6,15 +7,18 @@ import {
   MinLength,
   IsEmail,
   Validate,
-  IsPhoneNumber,
+  IsArray,
+  ArrayMinSize,
+  ValidateNested,
 } from 'class-validator';
 import { DOCUEMNT_TYPE } from '../table/document.entity';
-import { AccountType, Language } from '../table/user.entity';
+import { Position } from '../table/enterprise-profile.entity';
+import { Language } from '../table/user.entity';
 import { CountryExistsByNameValidator } from '../validator/country-exists-by-name.validator';
 import { UserExistsByEmailValidator } from '../validator/user-exists-by-email.validator';
-import { UserExistsByPhoneNumberValidator } from '../validator/user-exists-by-phone-number.validator';
+import { CreateShareholderDto } from './create-shareholder.dto';
 
-export class CreatePersonProfileDto {
+export class CreateEnterpriseUserDto {
   @ApiProperty({
     example: 'John',
     required: true,
@@ -51,16 +55,6 @@ export class CreatePersonProfileDto {
   email: string;
 
   @ApiProperty({
-    example: 'Phone Number',
-    required: true,
-    maximum: 255,
-    description: '+XXXXXXXXXXX',
-  })
-  @IsPhoneNumber()
-  @Validate(UserExistsByPhoneNumberValidator)
-  phoneNumber: string;
-
-  @ApiProperty({
     example: 'password123!@#',
     required: true,
     maximum: 255,
@@ -82,16 +76,6 @@ export class CreatePersonProfileDto {
   emailToken: string;
 
   @ApiProperty({
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
-    required: true,
-    maximum: 255,
-    description: 'Token for phone Number',
-  })
-  @IsString()
-  @MinLength(1)
-  phoneNumberToken: string;
-
-  @ApiProperty({
     description: 'Language',
     maximum: 255,
     required: true,
@@ -100,12 +84,44 @@ export class CreatePersonProfileDto {
   language: Language;
 
   @ApiProperty({
-    description: 'Account Type',
+    description: 'Enterprise user position',
     maximum: 255,
     required: true,
   })
-  @IsEnum(AccountType)
-  accountType: AccountType;
+  @IsEnum(Position)
+  position: Position;
+
+  @ApiProperty({ description: 'Entity Type', maximum: 64, required: true })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  entityType: string;
+
+  @ApiProperty({ description: 'Company name', maximum: 64, required: true })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  companyName: string;
+
+  @ApiProperty({
+    description: 'Company registeration number',
+    maximum: 64,
+    required: true,
+  })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  companyRegisterationNumber: string;
+
+  @ApiProperty({
+    description: 'Company registeration number',
+    maximum: 64,
+    required: true,
+  })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  vatNumber: string;
 
   @ApiProperty({ description: 'Address1', maximum: 64, required: true })
   @IsString()
@@ -137,6 +153,43 @@ export class CreatePersonProfileDto {
   @MaxLength(128)
   @Validate(CountryExistsByNameValidator)
   country: string;
+
+  @ApiProperty({ description: 'country', maximum: 64, required: true })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => CreateShareholderDto)
+  shareholders: CreateShareholderDto[];
+
+  @ApiProperty({
+    description: 'Verification Image Link',
+    maximum: 64,
+    required: true,
+  })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  verificationImageLink: string;
+
+  @ApiProperty({
+    description: 'UBO Image Link',
+    maximum: 64,
+    required: true,
+  })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  uboImageLink: string;
+
+  @ApiProperty({
+    description: 'Company Registeration Image Link',
+    maximum: 64,
+    required: true,
+  })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  companyRegisterationImageLink: string;
 
   @ApiProperty({
     description: 'Document Type',
