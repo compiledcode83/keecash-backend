@@ -15,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
 import { AuthRefreshTokenModule } from './auth-refresh-token/auth-refresh-token.module';
 import { VerificationModule } from './verification/verification.module';
 import { StorageModule } from './storage/storage.module';
+import { CryptoTxModule } from './crypto-tx/crypto-tx.module';
 import verificationConfig from './config/verification.config';
 import storageConfig from './config/storage.config';
 
@@ -51,6 +52,7 @@ EnvHelper.verifyNodeEnv();
     AuthRefreshTokenModule,
     VerificationModule,
     StorageModule,
+    CryptoTxModule,
   ],
   controllers: [AppController],
   providers: [AppService],
