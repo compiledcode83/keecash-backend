@@ -36,14 +36,22 @@ export class UserController {
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/register-person')
   async registerPerson(@Body() body: CreatePersonUserDto) {
-    const emailPayload: any = this.jwtService.decode(body.emailToken);
-    if (emailPayload.email != body.email)
+    try {
+      const emailPayload: any = this.jwtService.verify(body.emailToken);
+      if (emailPayload.email != body.email)
+        throw new BadRequestException('Please verify your email');
+    } catch (err) {
       throw new BadRequestException('Please verify your email');
-    const phoneNumberPayload: any = this.jwtService.decode(
-      body.phoneNumberToken,
-    );
-    if (phoneNumberPayload.phoneNumber != body.phoneNumber)
+    }
+    try {
+      const phoneNumberPayload: any = this.jwtService.verify(
+        body.phoneNumberToken,
+      );
+      if (phoneNumberPayload.phoneNumber != body.phoneNumber)
+        throw new BadRequestException('Please verify your Phone Number');
+    } catch (err) {
       throw new BadRequestException('Please verify your Phone Number');
+    }
     await this.userService.createPersonalUser(body);
     return 'Success';
   }
@@ -61,9 +69,13 @@ export class UserController {
   )
   @Post('auth/register-enterprise')
   async registerEnterprise(@Body() body: CreateEnterpriseUserDto) {
-    const emailPayload: any = this.jwtService.decode(body.emailToken);
-    if (emailPayload.email != body.email)
+    try {
+      const emailPayload: any = this.jwtService.verify(body.emailToken);
+      if (emailPayload.email != body.email)
+        throw new BadRequestException('Please verify your email');
+    } catch (err) {
       throw new BadRequestException('Please verify your email');
+    }
     await this.userService.createEnterpriseUser(body);
     return 'Success';
   }
@@ -159,7 +171,7 @@ export class UserController {
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/password-reset')
   async passwordReset(@Body() body: PasswordResetDto) {
-    const payload: any = this.jwtService.decode(body.token);
+    const payload: any = this.jwtService.verify(body.token);
     await this.userService.passwordReset(payload.email, body.password);
     return 'Successfully changed';
   }
