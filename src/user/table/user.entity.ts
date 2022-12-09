@@ -13,6 +13,7 @@ import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.ent
 import { PersonProfile } from './person-profile.entity';
 import { Document } from './document.entity';
 import { EnterpriseProfile } from './enterprise-profile.entity';
+import { CryptoTx } from '@src/crypto-tx/crypto-tx.entity';
 
 export enum Language {
   ENGLISH = 'ENGLISH',
@@ -124,4 +125,12 @@ export class User {
     (enterpriseProfile: EnterpriseProfile) => enterpriseProfile.user,
   )
   enterpriseProfile: EnterpriseProfile;
+
+  @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.sender)
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_sender_id' })
+  sender: CryptoTx[];
+
+  @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.receiver)
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_receiver_id' })
+  receiver: CryptoTx[];
 }
