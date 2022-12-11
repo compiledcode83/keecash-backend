@@ -111,6 +111,22 @@ class EnvironmentVariables {
   STORAGE_MEDIA_BUCKET: string;
 
   @IsString()
+  @MinLength(1)
+  TRIPLEA_CLIENT_ID: string;
+
+  @IsString()
+  @MinLength(1)
+  TRIPLEA_CLIENT_SECRET: string;
+
+  @IsString()
+  @MinLength(1)
+  TRIPLEA_MERCHANT_KEY: string;
+
+  @IsString()
+  @MinLength(1)
+  TRIPLEA_TEST_API_ID: string;
+
+  @IsString()
   @IsIn(['true', 'false'])
   JWT_REFRESH_TOKEN_COOKIE_SECURE: 'true' | 'false';
 
