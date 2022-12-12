@@ -8,10 +8,16 @@ import {
 } from 'typeorm';
 import { User } from '@src/user/table/user.entity';
 
-export enum CURRENCY_NAME {
+export enum CRYTPO_CURRENCY_NAME {
   BTC = 'BTC',
   ETHER = 'ETHER',
   USDT = 'USDT',
+}
+
+export enum FIAT_CURRENCY_NAME {
+  USD = 'USD',
+  EUR = 'EUR',
+  SGD = 'SGD',
 }
 
 @Entity('crypto-tx')
@@ -37,7 +43,7 @@ export class CryptoTx {
 
   @ApiProperty({ description: 'Transaction Hash', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false })
-  transactionHash: string;
+  paymentReference: string;
 
   @ApiProperty({
     description: 'Crypto currency name',
@@ -46,10 +52,10 @@ export class CryptoTx {
   })
   @Column({
     type: 'enum',
-    enum: CURRENCY_NAME,
-    default: CURRENCY_NAME.USDT,
+    enum: FIAT_CURRENCY_NAME,
+    default: FIAT_CURRENCY_NAME.EUR,
   })
-  currencyName: CURRENCY_NAME;
+  currencyName: FIAT_CURRENCY_NAME;
 
   @ApiProperty({ description: 'Created at date', required: true })
   @CreateDateColumn()
