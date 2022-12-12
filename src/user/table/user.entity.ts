@@ -126,11 +126,11 @@ export class User {
   )
   enterpriseProfile: EnterpriseProfile;
 
-  @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.sender)
+  @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.userSender)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_sender_id' })
   sender: CryptoTx[];
 
-  @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.receiver)
+  @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.userReceiver)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_receiver_id' })
   receiver: CryptoTx[];
 }

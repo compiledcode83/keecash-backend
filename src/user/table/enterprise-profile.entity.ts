@@ -83,6 +83,6 @@ export class EnterpriseProfile {
   user: User;
 
   @OneToMany(() => Shareholder, (shareholder) => shareholder.enterpriseProfile)
-  @JoinColumn({ name: 'id', referencedColumnName: 'enterprise_id' })
+  @JoinColumn({ name: 'id', referencedColumnName: 'enterprise_profile_id' })
   shareholders: Shareholder[];
 }

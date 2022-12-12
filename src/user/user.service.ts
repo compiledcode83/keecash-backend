@@ -121,7 +121,7 @@ export class UserService {
       const shareholder: Partial<Shareholder> = {
         firstName: shareholderItem.firstName,
         secondName: shareholderItem.secondName,
-        enterpriseId: savedEnterpriseProfile.id,
+        enterpriseProfileId: savedEnterpriseProfile.id,
       };
       const shareholderEntity = this.shareholderRepository.create(shareholder);
       await this.shareholderRepository.save(shareholderEntity);

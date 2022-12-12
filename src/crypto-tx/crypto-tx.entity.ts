@@ -66,8 +66,8 @@ export class CryptoTx {
   createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.sender)
-  sender: User;
+  userSender: User;
 
   @ManyToOne(() => User, (user) => user.receiver)
-  receiver: User;
+  userReceiver: User;
 }
