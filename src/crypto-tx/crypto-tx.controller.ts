@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
+import { FIAT_CURRENCY_NAME } from './crypto-tx.entity';
 import { CryptoTxService } from './crypto-tx.service';
 import { CryptoDepositWithdrawDto } from './dto/crypto-deposit.dto';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
@@ -29,12 +30,19 @@ export class CryptoTxController {
   @UseGuards(JwtAuthGuard)
   @Get('balance/:currency')
   async getBalanceByCurrency(
-    @Param('currency') currencyName: string,
+    @Param('currency') currency: string,
     @Request() req,
   ) {
+    const currencyName = currency.toUpperCase();
+    if (
+      !Object.values(FIAT_CURRENCY_NAME).includes(
+        currencyName as FIAT_CURRENCY_NAME,
+      )
+    )
+      throw new BadRequestException('Can not find currency name');
     return this.cryptoTxService.getBalanceByCurrency(
       req.user.id,
-      currencyName.toUpperCase(),
+      currency.toUpperCase(),
     );
   }
 
