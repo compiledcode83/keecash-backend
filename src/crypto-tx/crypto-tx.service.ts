@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CryptoDepositDto } from './dto/crypto-deposit.dto';
+import { CryptoDepositWithdrawDto } from './dto/crypto-deposit.dto';
 import { lastValueFrom, map } from 'rxjs';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
 import { CryptoTxRepository } from './crypto-tx-repository';
@@ -43,6 +43,35 @@ export class CryptoTxService {
     this.getAccessToken();
   }
 
+  async getBalance(userId: number) {
+    const receivedBalances = await this.cryptoTxRepository
+      .createQueryBuilder('crypto_tx')
+      .select(['crypto_tx.currency_name', 'SUM(crypto_tx.amount)'])
+      .where(`crypto_tx.user_receiver_id = ${userId}`)
+      .groupBy('currency_name')
+      .getRawMany();
+
+    const sentBalances = await this.cryptoTxRepository
+      .createQueryBuilder('crypto_tx')
+      .select(['crypto_tx.currency_name', 'SUM(crypto_tx.amount)'])
+      .where(`crypto_tx.user_sender_id = ${userId}`)
+      .groupBy('currency_name')
+      .getRawMany();
+
+    const balances = [];
+    receivedBalances.map((receivedBalance) => {
+      sentBalances.map((sentBalance) => {
+        if (sentBalance.currency_name === receivedBalance.currency_name) {
+          balances.push({
+            currency_name: sentBalance.currency_name,
+            amount: receivedBalance.sum - sentBalance.sum,
+          });
+        }
+      });
+    });
+    return balances;
+  }
+
   async getAccessToken() {
     try {
       const requestBody = {
@@ -50,10 +79,12 @@ export class CryptoTxService {
         client_secret: this.tripleaClientSecret,
         grant_type: GRANT_TYPE,
       };
+
       const requestHeader = {
         'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: `Bearer ${this.tripleaMerchatKey}`,
       };
+
       const res = await lastValueFrom(
         this.httpService
           .post('https://api.triple-a.io/api/v2/oauth/token', requestBody, {
@@ -61,6 +92,7 @@ export class CryptoTxService {
           })
           .pipe(map((res) => res.data?.access_token)),
       );
+
       this.tripleaAccessToken = res;
     } catch (err) {
       throw new BadRequestException('Can not get access token');
@@ -68,7 +100,7 @@ export class CryptoTxService {
   }
 
   async cryptoDeposit(
-    body: CryptoDepositDto,
+    body: CryptoDepositWithdrawDto,
     userEmail: string,
   ): Promise<
     | { hosted_url: string; expires_in: number; payment_reference: string }
@@ -81,9 +113,45 @@ export class CryptoTxService {
         order_currency: body.currency_name,
         order_amount: body.amount,
         payer_id: userEmail,
-        // sandbox: true,
-        // account_api_id: this.tripleaTestApiId,
-        // notify_url: 'https://webhook.site/3aa117e0-a731-4952-800d-303f991ac886',
+        notify_url: `${this.tripleaNotifyUrl}/crypto-tx/payment-notifiy`,
+      };
+      const requestHeader = {
+        Authorization: `Bearer ${this.tripleaAccessToken}`,
+      };
+      const res = await lastValueFrom(
+        this.httpService
+          .post('https://api.triple-a.io/api/v2/payment', requestBody, {
+            headers: requestHeader,
+          })
+          .pipe(map((res) => res.data)),
+      );
+      return {
+        hosted_url: res.hosted_url,
+        expires_in: res.expires_in,
+        payment_reference: res.payment_reference,
+      };
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async cryptoWithdraw(
+    body: CryptoDepositWithdrawDto,
+    userEmail: string,
+  ): Promise<
+    | { hosted_url: string; expires_in: number; payment_reference: string }
+    | boolean
+  > {
+    try {
+      const requestBody = {
+        merchant_key: this.tripleaMerchatKey,
+        email: userEmail,
+        withdraw_currency: body.currency_name,
+        withdraw_amount: body.amount,
+
+        order_currency: body.currency_name,
+        order_amount: body.amount,
+        payer_id: userEmail,
         notify_url: `${this.tripleaNotifyUrl}/crypto-tx/payment-notifiy`,
       };
       const requestHeader = {
@@ -122,8 +190,8 @@ export class CryptoTxService {
       const userSender = await this.userService.findByEmail(res.payer_id);
       const description = `You deposited ${res.crypto_amount} ${res.display_crypto_currency}`;
       const createCryptoTx: Partial<CryptoTx> = {
-        userSenderId: userSender.id,
-        userReceiverId: 1,
+        userSenderId: 1,
+        userReceiverId: userSender.id,
         amount: res.order_amount,
         currencyName: res.payment_currency,
         description: description,

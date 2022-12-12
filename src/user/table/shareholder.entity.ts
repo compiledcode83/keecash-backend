@@ -15,7 +15,7 @@ export class Shareholder {
     required: true,
   })
   @Column({ type: 'int', nullable: false })
-  enterpriseId: number;
+  enterpriseProfileId: number;
 
   @ApiProperty({ description: 'First Name', maximum: 128, required: false })
   @Column({ type: 'varchar', nullable: true, length: 128 })
