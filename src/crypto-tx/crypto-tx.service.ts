@@ -44,6 +44,7 @@ export class CryptoTxService {
   }
 
   async getBalance(userId: number) {
+    console.log(userId);
     const receivedBalances = await this.cryptoTxRepository
       .createQueryBuilder('crypto_tx')
       .select(['crypto_tx.currency_name', 'SUM(crypto_tx.amount)'])
@@ -60,13 +61,28 @@ export class CryptoTxService {
 
     const balances = [];
     receivedBalances.map((receivedBalance) => {
-      sentBalances.map((sentBalance) => {
+      for (const sentBalance of sentBalances) {
         if (sentBalance.currency_name === receivedBalance.currency_name) {
           balances.push({
             currency_name: sentBalance.currency_name,
             amount: receivedBalance.sum - sentBalance.sum,
           });
+          return;
         }
+      }
+      balances.push({
+        currency_name: receivedBalance.currency_name,
+        amount: receivedBalance.sum,
+      });
+    });
+
+    sentBalances.map((sentBalance) => {
+      for (const receivedBalance of receivedBalances) {
+        if (sentBalance.currency_name === receivedBalance.currency_name) return;
+      }
+      balances.push({
+        currency_name: sentBalance.currency_name,
+        amount: -sentBalance.sum,
       });
     });
     return balances;
