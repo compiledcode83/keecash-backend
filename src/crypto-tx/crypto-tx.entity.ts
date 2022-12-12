@@ -41,7 +41,11 @@ export class CryptoTx {
   @Column({ type: 'varchar', nullable: false })
   description: string;
 
-  @ApiProperty({ description: 'Transaction Hash', maximum: 64, required: true })
+  @ApiProperty({
+    description: 'Payment reference',
+    maximum: 64,
+    required: true,
+  })
   @Column({ type: 'varchar', nullable: false })
   paymentReference: string;
 
