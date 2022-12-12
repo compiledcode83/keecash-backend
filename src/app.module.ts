@@ -18,6 +18,7 @@ import { StorageModule } from './storage/storage.module';
 import { CryptoTxModule } from './crypto-tx/crypto-tx.module';
 import verificationConfig from './config/verification.config';
 import storageConfig from './config/storage.config';
+import cryptoConfig from './config/crypto.config';
 
 EnvHelper.verifyNodeEnv();
 
@@ -32,6 +33,7 @@ EnvHelper.verifyNodeEnv();
         jwtConfig,
         verificationConfig,
         storageConfig,
+        cryptoConfig,
       ],
       validate: validate,
     }),

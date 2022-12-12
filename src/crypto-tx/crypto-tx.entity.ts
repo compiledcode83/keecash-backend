@@ -37,18 +37,6 @@ export class CryptoTx {
   @Column({ type: 'float', nullable: false })
   amount: number;
 
-  @ApiProperty({ description: 'Description', maximum: 64, required: true })
-  @Column({ type: 'varchar', nullable: false })
-  description: string;
-
-  @ApiProperty({
-    description: 'Payment reference',
-    maximum: 64,
-    required: true,
-  })
-  @Column({ type: 'varchar', nullable: false })
-  paymentReference: string;
-
   @ApiProperty({
     description: 'Crypto currency name',
     maximum: 255,
@@ -60,6 +48,18 @@ export class CryptoTx {
     default: FIAT_CURRENCY_NAME.EUR,
   })
   currencyName: FIAT_CURRENCY_NAME;
+
+  @ApiProperty({ description: 'Description', maximum: 64, required: true })
+  @Column({ type: 'varchar', nullable: false })
+  description: string;
+
+  @ApiProperty({
+    description: 'Payment reference',
+    maximum: 64,
+    required: true,
+  })
+  @Column({ type: 'varchar', nullable: false })
+  paymentReference: string;
 
   @ApiProperty({ description: 'Created at date', required: true })
   @CreateDateColumn()

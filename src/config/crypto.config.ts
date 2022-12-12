@@ -5,4 +5,5 @@ export default registerAs('cryptoConfig', () => ({
   tripleaClientSecret: process.env.TRIPLEA_CLIENT_SECRET,
   tripleaMerchantKey: process.env.TRIPLEA_MERCHANT_KEY,
   tripleaTestApiId: process.env.TRIPLEA_TEST_API_ID,
+  tripleaNotifyUrl: process.env.TRIPLEA_NOTIFY_URL,
 }));
