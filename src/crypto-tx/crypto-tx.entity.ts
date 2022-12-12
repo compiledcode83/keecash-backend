@@ -20,7 +20,7 @@ export enum FIAT_CURRENCY_NAME {
   SGD = 'SGD',
 }
 
-@Entity('crypto-tx')
+@Entity('crypto_tx')
 export class CryptoTx {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;

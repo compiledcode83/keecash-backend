@@ -70,7 +70,10 @@ export class CryptoTxService {
   async cryptoDeposit(
     body: CryptoDepositDto,
     userEmail: string,
-  ): Promise<{ hosted_url: string; expires_in: number } | boolean> {
+  ): Promise<
+    | { hosted_url: string; expires_in: number; payment_reference: string }
+    | boolean
+  > {
     try {
       const requestBody = {
         type: 'widget',
@@ -93,7 +96,11 @@ export class CryptoTxService {
           })
           .pipe(map((res) => res.data)),
       );
-      return { hosted_url: res.hosted_url, expires_in: res.expires_in };
+      return {
+        hosted_url: res.hosted_url,
+        expires_in: res.expires_in,
+        payment_reference: res.payment_reference,
+      };
     } catch (err) {
       return false;
     }
@@ -122,8 +129,13 @@ export class CryptoTxService {
         description: description,
         paymentReference: res.payment_reference,
       };
+      await this.createCryptoTx(createCryptoTx);
     }
   }
 
-  // async createCryptoTx(body: Partial<CryptoTx>) {}
+  async createCryptoTx(body: Partial<CryptoTx>): Promise<Partial<CryptoTx>> {
+    const cryptoTxEntity = this.cryptoTxRepository.create(body);
+    const res = await this.cryptoTxRepository.save(cryptoTxEntity);
+    return res;
+  }
 }
