@@ -43,8 +43,26 @@ export class CryptoTxService {
     this.getAccessToken();
   }
 
-  async getBalance(userId: number) {
-    console.log(userId);
+  async getBalanceByCurrency(userId: number, currencyName: string) {
+    const receivedBalance = await this.cryptoTxRepository
+      .createQueryBuilder('crypto_tx')
+      .select(['SUM(crypto_tx.amount)'])
+      .where(`crypto_tx.user_receiver_id = ${userId}`)
+      .andWhere(`crypto_tx.currency_name = 'USD'`)
+      .getRawOne();
+    const receivedAmount = receivedBalance.sum ? receivedBalance.sum : 0;
+    const sentBalance = await this.cryptoTxRepository
+      .createQueryBuilder('crypto_tx')
+      .select(['SUM(crypto_tx.amount)'])
+      .where(`crypto_tx.user_sender_id = ${userId}`)
+      .andWhere(`crypto_tx.currency_name = '${currencyName}'`)
+      .getRawOne();
+    const sentAmount = sentBalance.sum ? sentBalance.sum : 0;
+
+    return receivedAmount - sentAmount;
+  }
+
+  async getBalances(userId: number) {
     const receivedBalances = await this.cryptoTxRepository
       .createQueryBuilder('crypto_tx')
       .select(['crypto_tx.currency_name', 'SUM(crypto_tx.amount)'])

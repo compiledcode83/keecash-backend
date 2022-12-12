@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Param,
   UseGuards,
   Request,
   BadRequestException,
@@ -20,8 +21,21 @@ export class CryptoTxController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('balance')
-  async getBalance(@Request() req) {
-    return this.cryptoTxService.getBalance(req.user.id);
+  async getBalances(@Request() req) {
+    return this.cryptoTxService.getBalances(req.user.id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('balance/:currency')
+  async getBalanceByCurrency(
+    @Param('currency') currencyName: string,
+    @Request() req,
+  ) {
+    return this.cryptoTxService.getBalanceByCurrency(
+      req.user.id,
+      currencyName.toUpperCase(),
+    );
   }
 
   @ApiBearerAuth()
