@@ -8,6 +8,7 @@ import { CryptoTxRepository } from './crypto-tx-repository';
 import { CryptoTx } from './crypto-tx.entity';
 import { UserService } from '@src/user/user.service';
 import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
+import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
 
 const GRANT_TYPE = 'client_credentials';
 
@@ -222,6 +223,23 @@ export class CryptoTxService {
       };
     } catch (err) {
       return false;
+    }
+  }
+
+  async cryptoConfirmCancelWithraw(
+    body: CryptoConfirmCancelWithdrawDto,
+  ): Promise<string> {
+    try {
+      await lastValueFrom(
+        this.httpService
+          .put(
+            `https://api.triple-a.io/api/v2/payout/withdraw/${body.payout_reference}/local/crypto/confirm`,
+          )
+          .pipe(map((res) => res.data)),
+      );
+      return 'Success';
+    } catch (err) {
+      throw new BadRequestException('Confirm withdraw error');
     }
   }
 

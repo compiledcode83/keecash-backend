@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { MaxLength, IsString } from 'class-validator';
+import { IsString, MaxLength } from 'class-validator';
 
-export class CryptoPaymentNotifyDto {
+export class CryptoConfirmCancelWithdrawDto {
   @ApiProperty({
     example: 'AGJ-937870-PYT',
     required: true,
@@ -10,5 +10,5 @@ export class CryptoPaymentNotifyDto {
   })
   @IsString()
   @MaxLength(255)
-  payment_reference: string;
+  payout_reference: string;
 }

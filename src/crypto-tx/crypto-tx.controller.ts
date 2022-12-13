@@ -7,11 +7,13 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  Put,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { FIAT_CURRENCY_NAME } from './crypto-tx.entity';
 import { CryptoTxService } from './crypto-tx.service';
+import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
 import { CryptoDepositDto } from './dto/crypto-deposit.dto';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
 import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
@@ -76,6 +78,22 @@ export class CryptoTxController {
       if (res === false) throw new BadRequestException('You can not deposit');
       return res;
     }
+    return res;
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Put('confirm-withdraw')
+  async crytpoConfirmWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
+    const res = await this.cryptoTxService.cryptoConfirmCancelWithraw(body);
+    return res;
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Put('cancel-withdraw')
+  async crytpoCancelWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
+    const res = await this.cryptoTxService.cryptoConfirmCancelWithraw(body);
     return res;
   }
 
