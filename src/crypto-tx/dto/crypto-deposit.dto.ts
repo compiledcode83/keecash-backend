@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumber } from 'class-validator';
 import { FIAT_CURRENCY_NAME } from '../crypto-tx.entity';
 
-export class CryptoDepositWithdrawDto {
+export class CryptoDepositDto {
   @ApiProperty({
     example: '10.0',
     required: true,

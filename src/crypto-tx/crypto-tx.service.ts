@@ -1,12 +1,13 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CryptoDepositWithdrawDto } from './dto/crypto-deposit.dto';
+import { CryptoDepositDto } from './dto/crypto-deposit.dto';
 import { lastValueFrom, map } from 'rxjs';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
 import { CryptoTxRepository } from './crypto-tx-repository';
 import { CryptoTx } from './crypto-tx.entity';
 import { UserService } from '@src/user/user.service';
+import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
 
 const GRANT_TYPE = 'client_credentials';
 
@@ -134,7 +135,7 @@ export class CryptoTxService {
   }
 
   async cryptoDeposit(
-    body: CryptoDepositWithdrawDto,
+    body: CryptoDepositDto,
     userEmail: string,
   ): Promise<
     | { hosted_url: string; expires_in: number; payment_reference: string }
@@ -170,10 +171,18 @@ export class CryptoTxService {
   }
 
   async cryptoWithdraw(
-    body: CryptoDepositWithdrawDto,
+    body: CryptoWithdrawDto,
     userEmail: string,
   ): Promise<
-    | { hosted_url: string; expires_in: number; payment_reference: string }
+    | {
+        crypto_amount: number;
+        exnetwork_fee_crypto_amountpires_in: number;
+        net_crypto_amount: number;
+        payout_reference: string;
+        local_currency: string;
+        crypto_currency: string;
+        exchange_rate: number;
+      }
     | boolean
   > {
     try {
@@ -182,26 +191,34 @@ export class CryptoTxService {
         email: userEmail,
         withdraw_currency: body.currency_name,
         withdraw_amount: body.amount,
-
-        order_currency: body.currency_name,
-        order_amount: body.amount,
-        payer_id: userEmail,
-        notify_url: `${this.tripleaNotifyUrl}/crypto-tx/payment-notifiy`,
+        crypto_currency: body.crypto_currency_name,
+        address: body.address,
+        name: body.name,
+        country: body.country,
+        notify_url: 'https://webhook.site/9e77d15f-001e-421a-9299-35484877450c',
       };
       const requestHeader = {
         Authorization: `Bearer ${this.tripleaAccessToken}`,
       };
       const res = await lastValueFrom(
         this.httpService
-          .post('https://api.triple-a.io/api/v2/payment', requestBody, {
-            headers: requestHeader,
-          })
+          .post(
+            'https://api.triple-a.io/api/v2/payout/withdraw/local/crypto/direct',
+            requestBody,
+            {
+              headers: requestHeader,
+            },
+          )
           .pipe(map((res) => res.data)),
       );
       return {
-        hosted_url: res.hosted_url,
-        expires_in: res.expires_in,
-        payment_reference: res.payment_reference,
+        crypto_amount: res.crypto_amount,
+        exnetwork_fee_crypto_amountpires_in: res.network_fee_crypto_amount,
+        net_crypto_amount: res.net_crypto_amount,
+        payout_reference: res.payout_reference,
+        local_currency: res.local_currency,
+        crypto_currency: res.crypto_currency,
+        exchange_rate: res.exchange_rate,
       };
     } catch (err) {
       return false;
