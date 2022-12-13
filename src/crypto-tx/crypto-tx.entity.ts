@@ -10,8 +10,11 @@ import { User } from '@src/user/table/user.entity';
 
 export enum CRYTPO_CURRENCY_NAME {
   BTC = 'BTC',
-  ETHER = 'ETHER',
-  USDT = 'USDT',
+  LNBC = 'LNBC',
+  ETH_ERC20 = 'ETH (ERC20)',
+  USDT_ERC20 = 'USDT (ERC20)',
+  USDT_TRC20 = 'USDT (TRC20)',
+  USDC_ERC20 = 'USDC (ERC20)',
 }
 
 export enum FIAT_CURRENCY_NAME {

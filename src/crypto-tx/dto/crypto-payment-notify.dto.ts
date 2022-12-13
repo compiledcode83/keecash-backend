@@ -6,7 +6,7 @@ export class CryptoPaymentNotifyDto {
     example: '10.0',
     required: true,
     maximum: 255,
-    description: 'Deposit Amount',
+    description: 'Payment reference',
   })
   @IsString()
   @MaxLength(255)

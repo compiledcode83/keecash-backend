@@ -62,7 +62,7 @@ export class CryptoWithdrawDto {
     example: '10.0',
     required: true,
     maximum: 255,
-    description: 'Merchant  name',
+    description: 'ISO 3166 alpha 2 country code',
   })
   @IsString()
   @MinLength(1)
