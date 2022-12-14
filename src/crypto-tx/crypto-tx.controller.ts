@@ -16,6 +16,7 @@ import { CryptoTxService } from './crypto-tx.service';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
 import { CryptoDepositDto } from './dto/crypto-deposit.dto';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
+import { CryptoTransferDto } from './dto/crypto-transfer.dto';
 import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
 
 @Controller('crypto-tx')
@@ -86,6 +87,14 @@ export class CryptoTxController {
   @Put('confirm-withdraw')
   async crytpoConfirmWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
     const res = await this.cryptoTxService.cryptoConfirmCancelWithraw(body);
+    return res;
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('transfer')
+  async crytpoTransfer(@Request() req, @Body() body: CryptoTransferDto) {
+    const res = await this.cryptoTxService.cryptoTransfer(body, req.user.id);
     return res;
   }
 

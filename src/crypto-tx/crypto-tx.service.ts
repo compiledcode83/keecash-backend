@@ -9,6 +9,7 @@ import { CryptoTx } from './crypto-tx.entity';
 import { UserService } from '@src/user/user.service';
 import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
+import { CryptoTransferDto } from './dto/crypto-transfer.dto';
 
 const GRANT_TYPE = 'client_credentials';
 
@@ -268,6 +269,23 @@ export class CryptoTxService {
       };
       await this.createCryptoTx(createCryptoTx);
     }
+  }
+
+  async cryptoTransfer(body: CryptoTransferDto, userId: number) {
+    const receiver = await this.userService.findByEmailPhonenumber(
+      body.receiver,
+    );
+    if (receiver) {
+      const cryptoTxEntity: Partial<CryptoTx> = {
+        userSenderId: userId,
+        userReceiverId: receiver.id,
+        amount: body.amount,
+        currencyName: body.currency_name,
+        description: body.description,
+      };
+      return this.createCryptoTx(cryptoTxEntity);
+    }
+    throw new BadRequestException('Can not find receiver');
   }
 
   async createCryptoTx(body: Partial<CryptoTx>): Promise<Partial<CryptoTx>> {

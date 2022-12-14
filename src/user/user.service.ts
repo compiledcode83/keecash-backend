@@ -35,6 +35,14 @@ export class UserService {
     return this.userRepository.findOne({ where: { phoneNumber } });
   }
 
+  async findByEmailPhonenumber(userInfo: string): Promise<User | null> {
+    const userByEmail = await this.findByEmail(userInfo);
+    if (userByEmail) return userByEmail;
+    const userByPhonenumber = await this.findByEmailPhonenumber(userInfo);
+    if (userByPhonenumber) return userByPhonenumber;
+    return null;
+  }
+
   async passwordReset(email: string, password: string): Promise<boolean> {
     await this.userRepository.update(
       { email },
