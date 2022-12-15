@@ -52,6 +52,17 @@ export class UserService {
     return null;
   }
 
+  async getReferralUserId(userId: number): Promise<number | null> {
+    const { referralAppliedId } = await this.findOne(userId);
+    const referralUser = await this.userRepository
+      .createQueryBuilder('user')
+      .select('user_id')
+      .where(`referral_id = ${referralAppliedId}`)
+      .getRawOne();
+    if (referralUser) return referralUser.id;
+    return null;
+  }
+
   async passwordReset(email: string, password: string): Promise<boolean> {
     await this.userRepository.update(
       { email },

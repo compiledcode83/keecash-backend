@@ -18,6 +18,7 @@ const OUT_USER_ID = 2;
 const CRYPTO_FEE_FIXED = 0.99;
 const CRYPTO_TRIPLEA_FEE_PERCENT = 1;
 const CRYPTO_PAYMENT_FEE_PERCENT = 1;
+const REFERRAL_DEPOSIT_PERCENT = 5;
 
 @Injectable()
 export class CryptoTxService {
@@ -284,7 +285,47 @@ export class CryptoTxService {
         };
         await this.createCryptoTx(createCryptoTx);
       }
-      {
+      const referralUserId = await this.userService.getReferralUserId(
+        userReceiver.id,
+      );
+      if (referralUserId) {
+        {
+          const description = `Fee`;
+          const receivedAmount =
+            ((res.order_amount * CRYPTO_PAYMENT_FEE_PERCENT) / 100 +
+              CRYPTO_FEE_FIXED) *
+            (100 - REFERRAL_DEPOSIT_PERCENT) *
+            100;
+          const createCryptoTx: Partial<CryptoTx> = {
+            userSenderId: userReceiver.id,
+            userReceiverId: ADMIN_USER_ID,
+            amount: receivedAmount,
+            type: TX_TYPE.TRANSFER,
+            currencyName: res.payment_currency,
+            description: description,
+            paymentReference: res.payment_reference,
+          };
+          await this.createCryptoTx(createCryptoTx);
+        }
+        {
+          const description = `Referral deposit`;
+          const receivedAmount =
+            (((res.order_amount * CRYPTO_PAYMENT_FEE_PERCENT) / 100 +
+              CRYPTO_FEE_FIXED) *
+              REFERRAL_DEPOSIT_PERCENT) /
+            100;
+          const createCryptoTx: Partial<CryptoTx> = {
+            userSenderId: userReceiver.id,
+            userReceiverId: referralUserId,
+            amount: receivedAmount,
+            type: TX_TYPE.TRANSFER,
+            currencyName: res.payment_currency,
+            description: description,
+            paymentReference: res.payment_reference,
+          };
+          await this.createCryptoTx(createCryptoTx);
+        }
+      } else {
         const description = `Fee`;
         const receivedAmount =
           (res.order_amount * CRYPTO_PAYMENT_FEE_PERCENT) / 100 -
