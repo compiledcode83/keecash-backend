@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
 import { Country } from './table/country.entity';
 import { CountryRepository } from './table/country.repository';
 import { DOCUEMNT_TYPE, Document } from './table/document.entity';
@@ -177,16 +176,6 @@ export class UserService {
       await this.documentRepository.save(documentEntity);
     }
     return 'success';
-  }
-
-  async create(body: CreateUserDto): Promise<User> {
-    const userEntity: Partial<User> = {
-      ...this.userRepository.create(body),
-      password: await bcrypt.hash(body.password, 10),
-    };
-    const user = await this.userRepository.save(userEntity, { reload: false });
-
-    return this.findOne(user.id);
   }
 
   async findOne(id: number): Promise<User> {

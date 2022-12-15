@@ -21,6 +21,7 @@ import { StorageService } from '@src/storage/storage.service';
 import { JwtService } from '@nestjs/jwt';
 import { PasswordResetDto } from './dto/password-reset.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
+import { ReferralIdExistsDto } from './dto/referral-id-exists.dto';
 
 @Controller()
 export class UserController {
@@ -174,5 +175,12 @@ export class UserController {
     const payload: any = this.jwtService.verify(body.token);
     await this.userService.passwordReset(payload.email, body.password);
     return 'Successfully changed';
+  }
+
+  @ApiOperation({ description: `Check if referral id exists` })
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('auth/check-referralid')
+  async checkIfReferralIdExists(@Body() body: ReferralIdExistsDto) {
+    return true;
   }
 }
