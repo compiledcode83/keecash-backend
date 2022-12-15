@@ -20,7 +20,12 @@ export enum CRYTPO_CURRENCY_NAME {
 export enum FIAT_CURRENCY_NAME {
   USD = 'USD',
   EUR = 'EUR',
-  SGD = 'SGD',
+}
+
+export enum TX_TYPE {
+  DEPOSIT = 'DEPOSIT',
+  WITHDRAWAL = 'WITHDRAWAL',
+  TRANSFER = 'TRANSFER',
 }
 
 @Entity('crypto_tx')
@@ -51,6 +56,18 @@ export class CryptoTx {
     default: FIAT_CURRENCY_NAME.EUR,
   })
   currencyName: FIAT_CURRENCY_NAME;
+
+  @ApiProperty({
+    description: 'Crypto transaction type',
+    maximum: 255,
+    required: true,
+  })
+  @Column({
+    type: 'enum',
+    enum: TX_TYPE,
+    default: TX_TYPE.DEPOSIT,
+  })
+  type: TX_TYPE;
 
   @ApiProperty({ description: 'Description', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false })

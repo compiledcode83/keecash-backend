@@ -5,13 +5,19 @@ import { CryptoDepositDto } from './dto/crypto-deposit.dto';
 import { lastValueFrom, map } from 'rxjs';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
 import { CryptoTxRepository } from './crypto-tx-repository';
-import { CryptoTx } from './crypto-tx.entity';
+import { CryptoTx, TX_TYPE } from './crypto-tx.entity';
 import { UserService } from '@src/user/user.service';
 import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
 import { CryptoTransferDto } from './dto/crypto-transfer.dto';
 
 const GRANT_TYPE = 'client_credentials';
+const ADMIN_USER_ID = 1;
+const OUT_USER_ID = 2;
+
+const CRYPTO_FEE_FIXED = 0.99;
+const CRYPTO_TRIPLEA_FEE_PERCENT = 1;
+const CRYPTO_PAYMENT_FEE_PERCENT = 1;
 
 @Injectable()
 export class CryptoTxService {
@@ -257,17 +263,43 @@ export class CryptoTxService {
         .pipe(map((res) => res.data)),
     );
     if (res.payment_tier === 'good') {
-      const userSender = await this.userService.findByEmail(res.payer_id);
-      const description = `You deposited ${res.crypto_amount} ${res.display_crypto_currency}`;
-      const createCryptoTx: Partial<CryptoTx> = {
-        userSenderId: 1,
-        userReceiverId: userSender.id,
-        amount: res.order_amount,
-        currencyName: res.payment_currency,
-        description: description,
-        paymentReference: res.payment_reference,
-      };
-      await this.createCryptoTx(createCryptoTx);
+      const userReceiver = await this.userService.findByEmail(res.payer_id);
+      {
+        const description = `Rates: 1${res.payment_currency}: ${res.exchange_rate}${res.display_crypto_currency}.
+        You deposited ${res.order_amount} ${res.payment_currency}.`;
+        const receivedAmount =
+          res.order_amount -
+          (res.order_amount *
+            (CRYPTO_PAYMENT_FEE_PERCENT + CRYPTO_TRIPLEA_FEE_PERCENT)) /
+            100 -
+          CRYPTO_FEE_FIXED;
+        const createCryptoTx: Partial<CryptoTx> = {
+          userSenderId: OUT_USER_ID,
+          userReceiverId: userReceiver.id,
+          amount: receivedAmount,
+          type: TX_TYPE.DEPOSIT,
+          currencyName: res.payment_currency,
+          description: description,
+          paymentReference: res.payment_reference,
+        };
+        await this.createCryptoTx(createCryptoTx);
+      }
+      {
+        const description = `Fee`;
+        const receivedAmount =
+          (res.order_amount * CRYPTO_PAYMENT_FEE_PERCENT) / 100 -
+          CRYPTO_FEE_FIXED;
+        const createCryptoTx: Partial<CryptoTx> = {
+          userSenderId: userReceiver.id,
+          userReceiverId: ADMIN_USER_ID,
+          amount: receivedAmount,
+          type: TX_TYPE.TRANSFER,
+          currencyName: res.payment_currency,
+          description: description,
+          paymentReference: res.payment_reference,
+        };
+        await this.createCryptoTx(createCryptoTx);
+      }
     }
   }
 

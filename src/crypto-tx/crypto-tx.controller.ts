@@ -109,7 +109,7 @@ export class CryptoTxController {
   @ApiBearerAuth()
   @Post('payment-notifiy')
   async paymentNotify(@Body() body: CryptoPaymentNotifyDto) {
-    this.cryptoTxService.paymentNotify(body);
+    await this.cryptoTxService.paymentNotify(body);
     return true;
   }
 }
