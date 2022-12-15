@@ -58,21 +58,21 @@ export class AuthService {
       };
     }
 
-    const userByPhoneNumber = await this.userService.findByPhoneNumber(
+    const userByPhonenumber = await this.userService.findByPhonenumber(
       emailOrPhoneNumber,
     );
 
     if (
-      userByPhoneNumber &&
-      (await bcrypt.compare(password, userByPhoneNumber.password))
+      userByPhonenumber &&
+      (await bcrypt.compare(password, userByPhonenumber.password))
     ) {
       return {
-        id: userByPhoneNumber.id,
-        firstName: userByPhoneNumber.firstName,
-        secondName: userByPhoneNumber.secondName,
-        email: userByPhoneNumber.email,
-        phoneNumber: userByPhoneNumber.phoneNumber,
-        accountType: userByPhoneNumber.accountType,
+        id: userByPhonenumber.id,
+        firstName: userByPhonenumber.firstName,
+        secondName: userByPhonenumber.secondName,
+        email: userByPhonenumber.email,
+        phoneNumber: userByPhonenumber.phoneNumber,
+        accountType: userByPhonenumber.accountType,
       };
     }
 

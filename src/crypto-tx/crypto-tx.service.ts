@@ -272,7 +272,7 @@ export class CryptoTxService {
   }
 
   async cryptoTransfer(body: CryptoTransferDto, userId: number) {
-    const receiver = await this.userService.findByEmailPhonenumber(
+    const receiver = await this.userService.findByEmailPhonenumberReferralId(
       body.receiver,
     );
     if (receiver) {

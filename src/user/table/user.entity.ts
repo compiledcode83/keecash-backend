@@ -38,13 +38,25 @@ export class User {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({ description: 'First name', maximum: 128, required: false })
+  @ApiProperty({ description: 'First name', maximum: 128, required: true })
   @Column({ type: 'varchar', nullable: false, length: 128 })
   firstName: string;
 
-  @ApiProperty({ description: 'Second name', maximum: 128, required: false })
+  @ApiProperty({ description: 'Second name', maximum: 128, required: true })
   @Column({ type: 'varchar', nullable: false, length: 128 })
   secondName: string;
+
+  @ApiProperty({ description: 'Referral id', maximum: 128, required: true })
+  @Column({ type: 'varchar', nullable: false, length: 128 })
+  referralId: string;
+
+  @ApiProperty({
+    description: 'Referral applied id',
+    maximum: 128,
+    required: false,
+  })
+  @Column({ type: 'varchar', nullable: true, length: 128 })
+  referralAppliedId: string;
 
   @ApiProperty({ description: 'E-mail', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: false, length: 255 })

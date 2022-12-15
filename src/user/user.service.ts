@@ -16,6 +16,8 @@ import { ShareholderRepository } from './table/shareholder.repository';
 import { AccountType, User } from './table/user.entity';
 import { UserRepository } from './table/user.repository';
 
+const REFERRAL_ID_LENGTH = 7;
+
 @Injectable()
 export class UserService {
   constructor(
@@ -31,15 +33,23 @@ export class UserService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async findByPhoneNumber(phoneNumber: string): Promise<User> {
+  async findByPhonenumber(phoneNumber: string): Promise<User> {
     return this.userRepository.findOne({ where: { phoneNumber } });
   }
 
-  async findByEmailPhonenumber(userInfo: string): Promise<User | null> {
+  async findByReferralId(referralId: string): Promise<User> {
+    return this.userRepository.findOne({ where: { referralId } });
+  }
+
+  async findByEmailPhonenumberReferralId(
+    userInfo: string,
+  ): Promise<User | null> {
     const userByEmail = await this.findByEmail(userInfo);
     if (userByEmail) return userByEmail;
-    const userByPhonenumber = await this.findByEmailPhonenumber(userInfo);
+    const userByPhonenumber = await this.findByPhonenumber(userInfo);
     if (userByPhonenumber) return userByPhonenumber;
+    const userByReferralId = await this.findByReferralId(userInfo);
+    if (userByReferralId) return userByReferralId;
     return null;
   }
 
@@ -52,9 +62,12 @@ export class UserService {
   }
 
   async createPersonalUser(body: CreatePersonUserDto) {
+    const referralId = await this.generateReferralId();
     const user: Partial<User> = {
       firstName: body.firstName,
       secondName: body.secondName,
+      referralId: referralId,
+      referralAppliedId: body?.referralAppliedId,
       email: body.email,
       phoneNumber: body.phoneNumber,
       language: body.language,
@@ -68,8 +81,7 @@ export class UserService {
     const savedUser = await this.findOne(res.id);
     const country = await this.findOneCountryByName(body.country);
     const personProfile: Partial<PersonProfile> = {
-      address1: body.address1,
-      address2: body.address2,
+      address: body.address,
       zipcode: body.zipcode,
       city: body.city,
       countryId: country.id,
@@ -89,9 +101,12 @@ export class UserService {
   }
 
   async createEnterpriseUser(body: CreateEnterpriseUserDto) {
+    const referralId = await this.generateReferralId();
     const user: Partial<User> = {
       firstName: body.firstName,
       secondName: body.secondName,
+      referralId: referralId,
+      referralAppliedId: body?.referralAppliedId,
       email: body.email,
       language: body.language,
       accountType: AccountType.ENTERPRISE,
@@ -180,5 +195,15 @@ export class UserService {
 
   async findOneCountryByName(name: string): Promise<Country> {
     return this.countryRepository.findOne({ where: { name: name } });
+  }
+
+  async generateReferralId(): Promise<string> {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < REFERRAL_ID_LENGTH; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
   }
 }

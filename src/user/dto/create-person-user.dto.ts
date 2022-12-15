@@ -7,10 +7,12 @@ import {
   IsEmail,
   Validate,
   IsPhoneNumber,
+  IsOptional,
 } from 'class-validator';
 import { DOCUEMNT_TYPE } from '../table/document.entity';
 import { Language } from '../table/user.entity';
 import { CountryExistsByNameValidator } from '../validator/country-exists-by-name.validator';
+import { ReferralIdExistsValidator } from '../validator/referral-id-exists.validator';
 import { UserExistsByEmailValidator } from '../validator/user-exists-by-email.validator';
 import { UserExistsByPhoneNumberValidator } from '../validator/user-exists-by-phone-number.validator';
 
@@ -38,6 +40,20 @@ export class CreatePersonUserDto {
   @MinLength(1)
   @MaxLength(128)
   secondName: string;
+
+  @ApiProperty({
+    example: 'Doe',
+    required: true,
+    minimum: 1,
+    maximum: 128,
+    description: 'Second name',
+  })
+  @IsString()
+  @IsOptional()
+  @Validate(ReferralIdExistsValidator)
+  @MinLength(1)
+  @MaxLength(128)
+  referralAppliedId?: string;
 
   @ApiProperty({
     example: 'user@example.com',
@@ -99,17 +115,11 @@ export class CreatePersonUserDto {
   @IsEnum(Language)
   language: Language;
 
-  @ApiProperty({ description: 'Address1', maximum: 64, required: true })
+  @ApiProperty({ description: 'Address', maximum: 64, required: true })
   @IsString()
   @MinLength(1)
   @MaxLength(128)
-  address1: string;
-
-  @ApiProperty({ description: 'address2', maximum: 64, required: true })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(128)
-  address2: string;
+  address: string;
 
   @ApiProperty({ description: 'zipcode', maximum: 64, required: true })
   @IsString()

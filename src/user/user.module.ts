@@ -15,6 +15,7 @@ import { CountryRepository } from './table/country.repository';
 import { EnterpriseProfileRepository } from './table/enterprise-profile.repository';
 import { CountryExistsByNameValidator } from './validator/country-exists-by-name.validator';
 import { ShareholderRepository } from './table/shareholder.repository';
+import { ReferralIdExistsValidator } from './validator/referral-id-exists.validator';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ShareholderRepository } from './table/shareholder.repository';
     ShareholderRepository,
     DocumentRepository,
     CountryRepository,
+    ReferralIdExistsValidator,
   ],
   exports: [UserService],
 })

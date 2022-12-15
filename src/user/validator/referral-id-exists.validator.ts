@@ -6,21 +6,21 @@ import {
 import { UserService } from '../user.service';
 
 @ValidatorConstraint({ name: 'userExistsByEmailValidator', async: true })
-export class UserExistsByPhoneNumberValidator
-  implements ValidatorConstraintInterface
-{
+export class ReferralIdExistsValidator implements ValidatorConstraintInterface {
   constructor(private readonly userService: UserService) {}
 
   async validate(
-    phoneNumber: string,
+    referralApplieId: string,
     args: ValidationArguments,
   ): Promise<boolean> {
-    const userExists = await this.userService.findByPhonenumber(phoneNumber);
+    const userExists = await this.userService.findByReferralId(
+      referralApplieId,
+    );
 
-    return !Boolean(userExists);
+    return Boolean(userExists);
   }
 
   defaultMessage(args: ValidationArguments) {
-    return `User with phone number '${args.value}' already exists`;
+    return `The referral id '${args.value}' doesn't exist`;
   }
 }
