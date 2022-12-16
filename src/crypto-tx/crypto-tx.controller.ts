@@ -8,6 +8,7 @@ import {
   Request,
   BadRequestException,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
@@ -16,6 +17,7 @@ import { CryptoTxService } from './crypto-tx.service';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
 import { CryptoDepositDto } from './dto/crypto-deposit.dto';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
+import { CryptoTransactionFilterDto } from './dto/crypto-transaction-filter.dto';
 import { CryptoTransferDto } from './dto/crypto-transfer.dto';
 import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
 
@@ -48,6 +50,16 @@ export class CryptoTxController {
       req.user.id,
       currency.toUpperCase(),
     );
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('transactions')
+  async getTransactions(
+    @Query() searchParams: CryptoTransactionFilterDto,
+    @Request() req,
+  ) {
+    return this.cryptoTxService.findAllPaginated(searchParams, req.user.id);
   }
 
   @ApiBearerAuth()

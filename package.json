@@ -49,6 +49,7 @@
     "rxjs": "^7.2.0",
     "twilio": "^3.83.3",
     "typeorm": "^0.3.10",
+    "typeorm-cursor-pagination": "^0.10.0",
     "typeorm-naming-strategies": "^4.1.0"
   },
   "devDependencies": {

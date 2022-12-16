@@ -10,6 +10,10 @@ import { UserService } from '@src/user/user.service';
 import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
 import { CryptoTransferDto } from './dto/crypto-transfer.dto';
+import { CryptoTransactionFilterDto } from './dto/crypto-transaction-filter.dto';
+import { PaginatedResult } from '@src/common/pagination/pagination.types';
+import { LessThan, MoreThan } from 'typeorm';
+import { buildPaginator, PagingResult } from 'typeorm-cursor-pagination';
 
 const GRANT_TYPE = 'client_credentials';
 const ADMIN_USER_ID = 1;
@@ -365,5 +369,58 @@ export class CryptoTxService {
     const cryptoTxEntity = this.cryptoTxRepository.create(body);
     const res = await this.cryptoTxRepository.save(cryptoTxEntity);
     return res;
+  }
+
+  async getPaginatedQueryBuilder(
+    searchParams: CryptoTransactionFilterDto,
+  ): Promise<PaginatedResult<CryptoTx>> {
+    const queryBuilder =
+      this.cryptoTxRepository.createQueryBuilder('crypto_tx');
+
+    if ('userId' in searchParams) {
+      queryBuilder.andWhere({ userSenderId: searchParams.userId });
+      queryBuilder.orWhere({ userReceiverId: searchParams.userId });
+    }
+
+    if ('currencyName' in searchParams) {
+      queryBuilder.andWhere({ currencyName: searchParams.currencyName });
+    }
+
+    if ('type' in searchParams) {
+      queryBuilder.andWhere({ type: searchParams.type });
+    }
+
+    if ('fromDate' in searchParams) {
+      queryBuilder.andWhere({
+        createdAt: MoreThan(searchParams.fromDate),
+      });
+    }
+
+    if ('toDate' in searchParams) {
+      queryBuilder.andWhere({
+        createdAt: LessThan(searchParams.toDate),
+      });
+    }
+
+    const paginator = buildPaginator({
+      entity: CryptoTx,
+      alias: 'crypto_tx',
+      paginationKeys: ['id', searchParams.orderParam],
+      query: {
+        limit: searchParams.limit,
+        order: searchParams.orderType,
+        afterCursor: searchParams.afterCursor,
+        beforeCursor: searchParams.beforeCursor,
+      },
+    });
+
+    return paginator.paginate(queryBuilder);
+  }
+
+  async findAllPaginated(
+    searchParams: CryptoTransactionFilterDto,
+    userId: number,
+  ): Promise<PagingResult<CryptoTx>> {
+    return this.getPaginatedQueryBuilder({ ...searchParams, userId });
   }
 }
