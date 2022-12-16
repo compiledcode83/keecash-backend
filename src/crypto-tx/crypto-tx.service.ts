@@ -294,14 +294,14 @@ export class CryptoTxService {
       );
       if (referralUserId) {
         {
-          const description = `Fee`;
+          const description = `Fee from ${userReceiver.id}'s deposit`;
           const receivedAmount =
             ((res.order_amount * CRYPTO_PAYMENT_FEE_PERCENT) / 100 +
               CRYPTO_FEE_FIXED) *
             (100 - REFERRAL_DEPOSIT_PERCENT) *
             100;
           const createCryptoTx: Partial<CryptoTx> = {
-            userSenderId: userReceiver.id,
+            userSenderId: OUT_USER_ID,
             userReceiverId: ADMIN_USER_ID,
             amount: receivedAmount,
             type: TX_TYPE.TRANSFER,
@@ -330,12 +330,12 @@ export class CryptoTxService {
           await this.createCryptoTx(createCryptoTx);
         }
       } else {
-        const description = `Fee`;
+        const description = `Fee from ${userReceiver.id}'s deposit`;
         const receivedAmount =
           (res.order_amount * CRYPTO_PAYMENT_FEE_PERCENT) / 100 -
           CRYPTO_FEE_FIXED;
         const createCryptoTx: Partial<CryptoTx> = {
-          userSenderId: userReceiver.id,
+          userSenderId: OUT_USER_ID,
           userReceiverId: ADMIN_USER_ID,
           amount: receivedAmount,
           type: TX_TYPE.TRANSFER,
@@ -422,5 +422,15 @@ export class CryptoTxService {
     userId: number,
   ): Promise<PagingResult<CryptoTx>> {
     return this.getPaginatedQueryBuilder({ ...searchParams, userId });
+  }
+
+  async getLastTransaction(userId: number): Promise<CryptoTx> {
+    const lastTransaction: CryptoTx = await this.cryptoTxRepository
+      .createQueryBuilder('crypto_tx')
+      .where({ userSenderId: userId })
+      .orWhere({ userReceiverId: userId })
+      .orderBy('crypto_tx.created_at', 'DESC')
+      .getRawOne();
+    return lastTransaction;
   }
 }

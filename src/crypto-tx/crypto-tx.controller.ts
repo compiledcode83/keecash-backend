@@ -64,6 +64,13 @@ export class CryptoTxController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Get('last-transaction')
+  async getLastTransaction(@Request() req) {
+    return this.cryptoTxService.getLastTransaction(req.user.id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post('deposit')
   async crytpoDeposit(@Request() req, @Body() body: CryptoDepositDto) {
     const res = await this.cryptoTxService.cryptoDeposit(body, req.user.email);
