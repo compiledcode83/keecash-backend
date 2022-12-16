@@ -69,7 +69,7 @@ export class CryptoTx {
   })
   type: TX_TYPE;
 
-  @ApiProperty({ description: 'Description', maximum: 64, required: true })
+  @ApiProperty({ description: 'Description', maximum: 256, required: true })
   @Column({ type: 'varchar', nullable: false })
   description: string;
 
