@@ -14,15 +14,13 @@ import { CryptoTransactionFilterDto } from './dto/crypto-transaction-filter.dto'
 import { PaginatedResult } from '@src/common/pagination/pagination.types';
 import { LessThan, MoreThan } from 'typeorm';
 import { buildPaginator, PagingResult } from 'typeorm-cursor-pagination';
+import { FeeService } from '@src/fee/fee.service';
 
 const GRANT_TYPE = 'client_credentials';
 const ADMIN_USER_ID = 1;
 const OUT_USER_ID = 2;
 
-const CRYPTO_FEE_FIXED = 0.99;
 const CRYPTO_TRIPLEA_FEE_PERCENT = 1;
-const CRYPTO_PAYMENT_FEE_PERCENT = 1;
-const REFERRAL_DEPOSIT_PERCENT = 5;
 
 @Injectable()
 export class CryptoTxService {
@@ -38,6 +36,7 @@ export class CryptoTxService {
     private readonly httpService: HttpService,
     private readonly cryptoTxRepository: CryptoTxRepository,
     private readonly userService: UserService,
+    private readonly feeService: FeeService,
   ) {
     this.tripleaClientId = this.configService.get<string>(
       'cryptoConfig.tripleaClientId',
@@ -256,6 +255,12 @@ export class CryptoTxService {
   }
 
   async paymentNotify(body: CryptoPaymentNotifyDto) {
+    const CRYPTO_DEPOSIT_FEE_PERCENT =
+      await this.feeService.getCryptoDepostiFeePercent();
+    const CRYPTO_DEPOSIT_FEE_FIXED =
+      await this.feeService.getCryptoDepostiFeeFixed();
+    const CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT =
+      await this.feeService.getCryptoDepositReferralFeePercent();
     const requestHeader = {
       Authorization: `Bearer ${this.tripleaAccessToken}`,
     };
@@ -275,9 +280,9 @@ export class CryptoTxService {
         const receivedAmount =
           res.order_amount -
           (res.order_amount *
-            (CRYPTO_PAYMENT_FEE_PERCENT + CRYPTO_TRIPLEA_FEE_PERCENT)) /
+            (CRYPTO_DEPOSIT_FEE_PERCENT + CRYPTO_TRIPLEA_FEE_PERCENT)) /
             100 -
-          CRYPTO_FEE_FIXED;
+          CRYPTO_DEPOSIT_FEE_FIXED;
         const createCryptoTx: Partial<CryptoTx> = {
           userSenderId: OUT_USER_ID,
           userReceiverId: userReceiver.id,
@@ -296,9 +301,9 @@ export class CryptoTxService {
         {
           const description = `Fee from ${userReceiver.id}'s deposit`;
           const receivedAmount =
-            ((res.order_amount * CRYPTO_PAYMENT_FEE_PERCENT) / 100 +
-              CRYPTO_FEE_FIXED) *
-            (100 - REFERRAL_DEPOSIT_PERCENT) *
+            ((res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 +
+              CRYPTO_DEPOSIT_FEE_FIXED) *
+            (100 - CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT) *
             100;
           const createCryptoTx: Partial<CryptoTx> = {
             userSenderId: OUT_USER_ID,
@@ -314,9 +319,9 @@ export class CryptoTxService {
         {
           const description = `Referral deposit`;
           const receivedAmount =
-            (((res.order_amount * CRYPTO_PAYMENT_FEE_PERCENT) / 100 +
-              CRYPTO_FEE_FIXED) *
-              REFERRAL_DEPOSIT_PERCENT) /
+            (((res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 +
+              CRYPTO_DEPOSIT_FEE_FIXED) *
+              CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT) /
             100;
           const createCryptoTx: Partial<CryptoTx> = {
             userSenderId: userReceiver.id,
@@ -332,8 +337,8 @@ export class CryptoTxService {
       } else {
         const description = `Fee from ${userReceiver.id}'s deposit`;
         const receivedAmount =
-          (res.order_amount * CRYPTO_PAYMENT_FEE_PERCENT) / 100 -
-          CRYPTO_FEE_FIXED;
+          (res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 -
+          CRYPTO_DEPOSIT_FEE_FIXED;
         const createCryptoTx: Partial<CryptoTx> = {
           userSenderId: OUT_USER_ID,
           userReceiverId: ADMIN_USER_ID,
