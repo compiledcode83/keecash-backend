@@ -293,8 +293,8 @@ export class CryptoTxService {
         const description = `Rates: 1${res.payment_currency}: ${res.exchange_rate}${res.display_crypto_currency}.
         You deposited ${res.order_amount} ${res.payment_currency}.`;
         const receivedAmount =
-          Number(res.order_amount) -
-          (Number(res.order_amount) *
+          res.order_amount -
+          (res.order_amount *
             (CRYPTO_DEPOSIT_FEE_PERCENT + CRYPTO_TRIPLEA_FEE_PERCENT)) /
             100 -
           CRYPTO_DEPOSIT_FEE_FIXED;
