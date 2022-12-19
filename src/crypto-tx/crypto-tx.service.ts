@@ -152,7 +152,6 @@ export class CryptoTxService {
 
         this.tripleaAccessToken[currencyName] = res;
       } catch (err) {
-        console.log(err);
         throw new BadRequestException('Can not get access token');
       }
     }
@@ -257,7 +256,7 @@ export class CryptoTxService {
     }
   }
 
-  async cryptoConfirmCancelWithraw(
+  async cryptoConfirmWithraw(
     body: CryptoConfirmCancelWithdrawDto,
   ): Promise<string> {
     try {
@@ -265,6 +264,23 @@ export class CryptoTxService {
         this.httpService
           .put(
             `https://api.triple-a.io/api/v2/payout/withdraw/${body.payout_reference}/local/crypto/confirm`,
+          )
+          .pipe(map((res) => res.data)),
+      );
+      return 'Success';
+    } catch (err) {
+      throw new BadRequestException('Confirm withdraw error');
+    }
+  }
+
+  async cryptoCancelWithraw(
+    body: CryptoConfirmCancelWithdrawDto,
+  ): Promise<string> {
+    try {
+      await lastValueFrom(
+        this.httpService
+          .put(
+            `https://api.triple-a.io/api/v2/payout/withdraw/${body.payout_reference}/local/crypto/cancel`,
           )
           .pipe(map((res) => res.data)),
       );

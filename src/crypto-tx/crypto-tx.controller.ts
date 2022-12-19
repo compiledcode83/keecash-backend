@@ -105,7 +105,15 @@ export class CryptoTxController {
   @UseGuards(JwtAuthGuard)
   @Put('confirm-withdraw')
   async crytpoConfirmWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
-    const res = await this.cryptoTxService.cryptoConfirmCancelWithraw(body);
+    const res = await this.cryptoTxService.cryptoConfirmWithraw(body);
+    return res;
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Put('cancel-withdraw')
+  async crytpoCancelWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
+    const res = await this.cryptoTxService.cryptoCancelWithraw(body);
     return res;
   }
 
@@ -114,14 +122,6 @@ export class CryptoTxController {
   @Post('transfer')
   async crytpoTransfer(@Request() req, @Body() body: CryptoTransferDto) {
     const res = await this.cryptoTxService.cryptoTransfer(body, req.user.id);
-    return res;
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Put('cancel-withdraw')
-  async crytpoCancelWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
-    const res = await this.cryptoTxService.cryptoConfirmCancelWithraw(body);
     return res;
   }
 
