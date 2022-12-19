@@ -199,8 +199,9 @@ export class CryptoTxService {
     userEmail: string,
   ): Promise<
     | {
+        fee: number;
         crypto_amount: number;
-        exnetwork_fee_crypto_amountpires_in: number;
+        exnetwork_fee_crypto_amount: number;
         net_crypto_amount: number;
         payout_reference: string;
         local_currency: string;
@@ -209,20 +210,26 @@ export class CryptoTxService {
       }
     | boolean
   > {
+    const CRYPTO_WITHDRAW_FEE_PERCENT =
+      await this.feeService.getCryptoWithdrawFeePercent();
+    const CRYPTO_WITHDRAW_FEE_FIXED =
+      await this.feeService.getCryptoWithdrawFeeFixed();
+    const amount =
+      (body.amount * (100 - CRYPTO_WITHDRAW_FEE_PERCENT)) / 100 -
+      CRYPTO_WITHDRAW_FEE_FIXED;
     try {
       const requestBody = {
-        merchant_key: this.tripleaMerchatKey,
+        merchant_key: this.tripleaMerchatKey[body.currency_name],
         email: userEmail,
         withdraw_currency: body.currency_name,
-        withdraw_amount: body.amount,
+        withdraw_amount: amount,
         crypto_currency: body.crypto_currency_name,
         address: body.address,
         name: body.name,
         country: body.country,
-        notify_url: 'https://webhook.site/9e77d15f-001e-421a-9299-35484877450c',
       };
       const requestHeader = {
-        Authorization: `Bearer ${this.tripleaAccessToken}`,
+        Authorization: `Bearer ${this.tripleaAccessToken[body.currency_name]}`,
       };
       const res = await lastValueFrom(
         this.httpService
@@ -237,7 +244,8 @@ export class CryptoTxService {
       );
       return {
         crypto_amount: res.crypto_amount,
-        exnetwork_fee_crypto_amountpires_in: res.network_fee_crypto_amount,
+        exnetwork_fee_crypto_amount: res.network_fee_crypto_amount,
+        fee: body.amount - amount,
         net_crypto_amount: res.net_crypto_amount,
         payout_reference: res.payout_reference,
         local_currency: res.local_currency,
@@ -298,9 +306,6 @@ export class CryptoTxService {
             (CRYPTO_DEPOSIT_FEE_PERCENT + CRYPTO_TRIPLEA_FEE_PERCENT)) /
             100 -
           CRYPTO_DEPOSIT_FEE_FIXED;
-        console.log('CRYPTO_DEPOSIT_FEE_FIXED', CRYPTO_DEPOSIT_FEE_FIXED);
-        console.log('CRYPTO_DEPOSIT_FEE_FIXED', CRYPTO_DEPOSIT_FEE_FIXED);
-        console.log('receivedAmount', receivedAmount);
         const createCryptoTx: Partial<CryptoTx> = {
           userSenderId: OUT_USER_ID,
           userReceiverId: userReceiver.id,

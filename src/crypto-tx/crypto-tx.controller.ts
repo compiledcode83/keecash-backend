@@ -89,7 +89,7 @@ export class CryptoTxController {
   @UseGuards(JwtAuthGuard)
   @Post('withdraw')
   async crytpoWidthdraw(@Request() req, @Body() body: CryptoWithdrawDto) {
-    const res = await this.cryptoTxService.cryptoDeposit(body, req.user.email);
+    const res = await this.cryptoTxService.cryptoWithdraw(body, req.user.email);
     if (res === false) {
       const res = await this.cryptoTxService.cryptoWithdraw(
         body,

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsString, MaxLength } from 'class-validator';
+import { FIAT_CURRENCY_NAME } from '../crypto-tx.entity';
 
 export class CryptoConfirmCancelWithdrawDto {
   @ApiProperty({
@@ -11,4 +12,13 @@ export class CryptoConfirmCancelWithdrawDto {
   @IsString()
   @MaxLength(255)
   payout_reference: string;
+
+  @ApiProperty({
+    example: 'USD',
+    required: true,
+    maximum: 255,
+    description: 'Currency Name',
+  })
+  @IsEnum(FIAT_CURRENCY_NAME)
+  currency_name: FIAT_CURRENCY_NAME;
 }
