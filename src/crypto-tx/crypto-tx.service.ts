@@ -22,13 +22,17 @@ const OUT_USER_ID = 2;
 
 const CRYPTO_TRIPLEA_FEE_PERCENT = 1;
 
+interface IConfig {
+  USD: string;
+  EUR: string;
+}
+
 @Injectable()
 export class CryptoTxService {
-  private tripleaClientId: string;
-  private tripleaClientSecret: string;
-  private tripleaMerchatKey: string;
-  private tripleaTestApiId: string;
-  private tripleaAccessToken: string;
+  private tripleaClientId: IConfig;
+  private tripleaClientSecret: IConfig;
+  private tripleaMerchatKey: IConfig;
+  private tripleaAccessToken: IConfig;
   private tripleaNotifyUrl: string;
 
   constructor(
@@ -38,21 +42,26 @@ export class CryptoTxService {
     private readonly userService: UserService,
     private readonly feeService: FeeService,
   ) {
-    this.tripleaClientId = this.configService.get<string>(
-      'cryptoConfig.tripleaClientId',
-    );
-    this.tripleaClientSecret = this.configService.get<string>(
-      'cryptoConfig.tripleaClientSecret',
-    );
-    this.tripleaMerchatKey = this.configService.get<string>(
-      'cryptoConfig.tripleaMerchantKey',
-    );
-    this.tripleaTestApiId = this.configService.get<string>(
-      'cryptoConfig.tripleaTestApiId',
-    );
+    this.tripleaClientId = {
+      USD: this.configService.get<string>('cryptoConfig.tripleaUSDClientId'),
+      EUR: this.configService.get<string>('cryptoConfig.tripleaEURClientId'),
+    };
+    this.tripleaClientSecret = {
+      USD: this.configService.get<string>(
+        'cryptoConfig.tripleaUSDClientSecret',
+      ),
+      EUR: this.configService.get<string>(
+        'cryptoConfig.tripleaEURClientSecret',
+      ),
+    };
+    this.tripleaMerchatKey = {
+      USD: this.configService.get<string>('cryptoConfig.tripleaUSDMerchantKey'),
+      EUR: this.configService.get<string>('cryptoConfig.tripleaEURMerchantKey'),
+    };
     this.tripleaNotifyUrl = this.configService.get<string>(
       'cryptoConfig.tripleaNotifyUrl',
     );
+    this.tripleaAccessToken = { USD: '', EUR: '' };
     this.getAccessToken();
   }
 
@@ -120,29 +129,32 @@ export class CryptoTxService {
   }
 
   async getAccessToken() {
-    try {
-      const requestBody = {
-        client_id: this.tripleaClientId,
-        client_secret: this.tripleaClientSecret,
-        grant_type: GRANT_TYPE,
-      };
+    for (const currencyName of Object.keys(this.tripleaClientId)) {
+      try {
+        const requestBody = {
+          client_id: this.tripleaClientId[currencyName],
+          client_secret: this.tripleaClientSecret[currencyName],
+          grant_type: GRANT_TYPE,
+        };
 
-      const requestHeader = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Bearer ${this.tripleaMerchatKey}`,
-      };
+        const requestHeader = {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: `Bearer ${this.tripleaMerchatKey[currencyName]}`,
+        };
 
-      const res = await lastValueFrom(
-        this.httpService
-          .post('https://api.triple-a.io/api/v2/oauth/token', requestBody, {
-            headers: requestHeader,
-          })
-          .pipe(map((res) => res.data?.access_token)),
-      );
+        const res = await lastValueFrom(
+          this.httpService
+            .post('https://api.triple-a.io/api/v2/oauth/token', requestBody, {
+              headers: requestHeader,
+            })
+            .pipe(map((res) => res.data?.access_token)),
+        );
 
-      this.tripleaAccessToken = res;
-    } catch (err) {
-      throw new BadRequestException('Can not get access token');
+        this.tripleaAccessToken[currencyName] = res;
+      } catch (err) {
+        console.log(err);
+        throw new BadRequestException('Can not get access token');
+      }
     }
   }
 
@@ -156,14 +168,14 @@ export class CryptoTxService {
     try {
       const requestBody = {
         type: 'widget',
-        merchant_key: this.tripleaMerchatKey,
+        merchant_key: this.tripleaMerchatKey[body.currency_name],
         order_currency: body.currency_name,
         order_amount: body.amount,
         payer_id: userEmail,
         notify_url: `${this.tripleaNotifyUrl}/crypto-tx/payment-notifiy`,
       };
       const requestHeader = {
-        Authorization: `Bearer ${this.tripleaAccessToken}`,
+        Authorization: `Bearer ${this.tripleaAccessToken[body.currency_name]}`,
       };
       const res = await lastValueFrom(
         this.httpService
@@ -261,9 +273,11 @@ export class CryptoTxService {
       await this.feeService.getCryptoDepostiFeeFixed();
     const CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT =
       await this.feeService.getCryptoDepositReferralFeePercent();
+
     const requestHeader = {
-      Authorization: `Bearer ${this.tripleaAccessToken}`,
+      Authorization: `Bearer ${this.tripleaAccessToken[body.order_currency]}`,
     };
+
     const res = await lastValueFrom(
       this.httpService
         .get(
@@ -272,17 +286,21 @@ export class CryptoTxService {
         )
         .pipe(map((res) => res.data)),
     );
+
     if (res.payment_tier === 'good') {
       const userReceiver = await this.userService.findByEmail(res.payer_id);
       {
         const description = `Rates: 1${res.payment_currency}: ${res.exchange_rate}${res.display_crypto_currency}.
         You deposited ${res.order_amount} ${res.payment_currency}.`;
         const receivedAmount =
-          res.order_amount -
-          (res.order_amount *
+          Number(res.order_amount) -
+          (Number(res.order_amount) *
             (CRYPTO_DEPOSIT_FEE_PERCENT + CRYPTO_TRIPLEA_FEE_PERCENT)) /
             100 -
           CRYPTO_DEPOSIT_FEE_FIXED;
+        console.log('CRYPTO_DEPOSIT_FEE_FIXED', CRYPTO_DEPOSIT_FEE_FIXED);
+        console.log('CRYPTO_DEPOSIT_FEE_FIXED', CRYPTO_DEPOSIT_FEE_FIXED);
+        console.log('receivedAmount', receivedAmount);
         const createCryptoTx: Partial<CryptoTx> = {
           userSenderId: OUT_USER_ID,
           userReceiverId: userReceiver.id,
@@ -294,6 +312,7 @@ export class CryptoTxService {
         };
         await this.createCryptoTx(createCryptoTx);
       }
+
       const referralUserId = await this.userService.getReferralUserId(
         userReceiver.id,
       );
@@ -301,9 +320,9 @@ export class CryptoTxService {
         {
           const description = `Fee from ${userReceiver.id}'s deposit`;
           const receivedAmount =
-            ((res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 +
+            (((res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 +
               CRYPTO_DEPOSIT_FEE_FIXED) *
-            (100 - CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT) *
+              (100 - CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT)) /
             100;
           const createCryptoTx: Partial<CryptoTx> = {
             userSenderId: OUT_USER_ID,
@@ -316,6 +335,7 @@ export class CryptoTxService {
           };
           await this.createCryptoTx(createCryptoTx);
         }
+
         {
           const description = `Referral deposit`;
           const receivedAmount =
@@ -337,7 +357,7 @@ export class CryptoTxService {
       } else {
         const description = `Fee from ${userReceiver.id}'s deposit`;
         const receivedAmount =
-          (res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 -
+          (res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 +
           CRYPTO_DEPOSIT_FEE_FIXED;
         const createCryptoTx: Partial<CryptoTx> = {
           userSenderId: OUT_USER_ID,

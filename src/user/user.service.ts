@@ -56,8 +56,8 @@ export class UserService {
     const { referralAppliedId } = await this.findOne(userId);
     const referralUser = await this.userRepository
       .createQueryBuilder('user')
-      .select('user_id')
-      .where(`referral_id = ${referralAppliedId}`)
+      .select('id')
+      .where(`referral_id = '${referralAppliedId}'`)
       .getRawOne();
     if (referralUser) return referralUser.id;
     return null;

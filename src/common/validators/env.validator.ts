@@ -112,19 +112,27 @@ class EnvironmentVariables {
 
   @IsString()
   @MinLength(1)
-  TRIPLEA_CLIENT_ID: string;
+  TRIPLEA_EUR_CLIENT_ID: string;
 
   @IsString()
   @MinLength(1)
-  TRIPLEA_CLIENT_SECRET: string;
+  TRIPLEA_EUR_CLIENT_SECRET: string;
 
   @IsString()
   @MinLength(1)
-  TRIPLEA_MERCHANT_KEY: string;
+  TRIPLEA_EUR_MERCHANT_KEY: string;
 
   @IsString()
   @MinLength(1)
-  TRIPLEA_TEST_API_ID: string;
+  TRIPLEA_USD_CLIENT_ID: string;
+
+  @IsString()
+  @MinLength(1)
+  TRIPLEA_USD_CLIENT_SECRET: string;
+
+  @IsString()
+  @MinLength(1)
+  TRIPLEA_USD_MERCHANT_KEY: string;
 
   @IsString()
   @IsIn(['true', 'false'])

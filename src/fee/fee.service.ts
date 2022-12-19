@@ -11,7 +11,7 @@ export class FeeService {
       .select('value')
       .where({ name: 'crypto_deposit_fee_percent' })
       .getRawOne();
-    return fee;
+    return fee.value;
   }
 
   async getCryptoDepostiFeeFixed(): Promise<number> {
@@ -20,7 +20,7 @@ export class FeeService {
       .select('value')
       .where({ name: 'crypto_deposit_fee_fixed' })
       .getRawOne();
-    return fee;
+    return fee.value;
   }
 
   async getCryptoWithdrawFeePercent(): Promise<number> {
@@ -29,7 +29,7 @@ export class FeeService {
       .select('value')
       .where({ name: 'crypto_withdraw_fee_percent' })
       .getRawOne();
-    return fee;
+    return fee.value;
   }
 
   async getCryptoWithdrawFeeFixed(): Promise<number> {
@@ -38,7 +38,7 @@ export class FeeService {
       .select('value')
       .where({ name: 'crypto_withdraw_fee_fixed' })
       .getRawOne();
-    return fee;
+    return fee.value;
   }
 
   async getCryptoTransferFeePercent(): Promise<number> {
@@ -47,7 +47,7 @@ export class FeeService {
       .select('value')
       .where({ name: 'crypto_transfer_fee_percent' })
       .getRawOne();
-    return fee;
+    return fee.value;
   }
 
   async getCryptoTransferFeeFixed(): Promise<number> {
@@ -56,7 +56,7 @@ export class FeeService {
       .select('value')
       .where({ name: 'crypto_transfer_fee_fixed' })
       .getRawOne();
-    return fee;
+    return fee.value;
   }
 
   async getCryptoDepositReferralFeePercent(): Promise<number> {
@@ -65,7 +65,7 @@ export class FeeService {
       .select('value')
       .where({ name: 'crypto_deposit_referral_fee_percent' })
       .getRawOne();
-    return fee;
+    return fee.value;
   }
 
   async getCryptoWithdrawReferralFeePercent(): Promise<number> {
@@ -74,7 +74,7 @@ export class FeeService {
       .select('value')
       .where({ name: 'crypto_withdraw_referral_fee_percent' })
       .getRawOne();
-    return fee;
+    return fee.value;
   }
 
   async getCryptoTransferReferralFeePercent(): Promise<number> {
@@ -83,6 +83,6 @@ export class FeeService {
       .select('value')
       .where({ name: 'crypto_transfer_referral_fee_percent' })
       .getRawOne();
-    return fee;
+    return fee.value;
   }
 }
