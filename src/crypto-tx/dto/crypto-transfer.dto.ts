@@ -6,7 +6,7 @@ import {
   IsEnum,
   MinLength,
 } from 'class-validator';
-import { CRYTPO_CURRENCY_NAME, FIAT_CURRENCY_NAME } from '../crypto-tx.entity';
+import { FIAT_CURRENCY_NAME } from '../crypto-tx.entity';
 
 export class CryptoTransferDto {
   @ApiProperty({
@@ -26,15 +26,6 @@ export class CryptoTransferDto {
   })
   @IsEnum(FIAT_CURRENCY_NAME)
   currency_name: FIAT_CURRENCY_NAME;
-
-  @ApiProperty({
-    example: 'BTC',
-    required: true,
-    maximum: 255,
-    description: 'Crypto Currency Name',
-  })
-  @IsEnum(CRYTPO_CURRENCY_NAME)
-  crypto_currency_name: CRYTPO_CURRENCY_NAME;
 
   @ApiProperty({
     example: 'johndoe@example.com',

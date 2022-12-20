@@ -17,6 +17,7 @@ import { CryptoTxService } from './crypto-tx.service';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
 import { CryptoDepositDto } from './dto/crypto-deposit.dto';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
+import { CryptoPayoutNotifyDto } from './dto/crypto-payout-notify.dto';
 import { CryptoTransactionFilterDto } from './dto/crypto-transaction-filter.dto';
 import { CryptoTransferDto } from './dto/crypto-transfer.dto';
 import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
@@ -89,11 +90,16 @@ export class CryptoTxController {
   @UseGuards(JwtAuthGuard)
   @Post('withdraw')
   async crytpoWidthdraw(@Request() req, @Body() body: CryptoWithdrawDto) {
-    const res = await this.cryptoTxService.cryptoWithdraw(body, req.user.email);
+    const res = await this.cryptoTxService.cryptoWithdraw(
+      body,
+      req.user.email,
+      req.user.id,
+    );
     if (res === false) {
       const res = await this.cryptoTxService.cryptoWithdraw(
         body,
         req.user.email,
+        req.user.id,
       );
       if (res === false) throw new BadRequestException('You can not deposit');
       return res;
@@ -125,10 +131,15 @@ export class CryptoTxController {
     return res;
   }
 
-  @ApiBearerAuth()
-  @Post('payment-notifiy')
-  async paymentNotify(@Body() body: CryptoPaymentNotifyDto) {
-    await this.cryptoTxService.paymentNotify(body);
+  @Post('payment-notifiy-deposit')
+  async paymentNotifyDeposit(@Body() body: CryptoPaymentNotifyDto) {
+    await this.cryptoTxService.paymentNotifyDeposit(body);
+    return true;
+  }
+
+  @Post('payment-notifiy-withdraw')
+  async paymentNotifyWithdraw(@Body() body: CryptoPayoutNotifyDto) {
+    await this.cryptoTxService.paymentNotifyWithdraw(body);
     return true;
   }
 }

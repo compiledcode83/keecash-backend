@@ -1,6 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { v4 as uuid } from 'uuid';
 import { CryptoDepositDto } from './dto/crypto-deposit.dto';
 import { lastValueFrom, map } from 'rxjs';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
@@ -15,6 +16,7 @@ import { PaginatedResult } from '@src/common/pagination/pagination.types';
 import { LessThan, MoreThan } from 'typeorm';
 import { buildPaginator, PagingResult } from 'typeorm-cursor-pagination';
 import { FeeService } from '@src/fee/fee.service';
+import { CryptoPayoutNotifyDto } from './dto/crypto-payout-notify.dto';
 
 const GRANT_TYPE = 'client_credentials';
 const ADMIN_USER_ID = 1;
@@ -171,7 +173,7 @@ export class CryptoTxService {
         order_currency: body.currency_name,
         order_amount: body.amount,
         payer_id: userEmail,
-        notify_url: `${this.tripleaNotifyUrl}/crypto-tx/payment-notifiy`,
+        notify_url: `${this.tripleaNotifyUrl}/crypto-tx/payment-notifiy-deposit`,
       };
       const requestHeader = {
         Authorization: `Bearer ${this.tripleaAccessToken[body.currency_name]}`,
@@ -196,6 +198,7 @@ export class CryptoTxService {
   async cryptoWithdraw(
     body: CryptoWithdrawDto,
     userEmail: string,
+    userId: number,
   ): Promise<
     | {
         fee: number;
@@ -226,6 +229,9 @@ export class CryptoTxService {
         address: body.address,
         name: body.name,
         country: body.country,
+        order_id: `${userId}-${uuid()}`,
+        // notify_url: 'https://webhook.site/3aa117e0-a731-4952-800d-303f991ac886',
+        notify_url: `${this.tripleaNotifyUrl}/crypto-tx/payment-notifiy-withdraw`,
       };
       const requestHeader = {
         Authorization: `Bearer ${this.tripleaAccessToken[body.currency_name]}`,
@@ -260,10 +266,15 @@ export class CryptoTxService {
     body: CryptoConfirmCancelWithdrawDto,
   ): Promise<string> {
     try {
+      const requestHeader = {
+        Authorization: `Bearer ${this.tripleaAccessToken[body.currency_name]}`,
+      };
       await lastValueFrom(
         this.httpService
           .put(
             `https://api.triple-a.io/api/v2/payout/withdraw/${body.payout_reference}/local/crypto/confirm`,
+            null,
+            { headers: requestHeader },
           )
           .pipe(map((res) => res.data)),
       );
@@ -277,10 +288,15 @@ export class CryptoTxService {
     body: CryptoConfirmCancelWithdrawDto,
   ): Promise<string> {
     try {
+      const requestHeader = {
+        Authorization: `Bearer ${this.tripleaAccessToken[body.currency_name]}`,
+      };
       await lastValueFrom(
         this.httpService
           .put(
             `https://api.triple-a.io/api/v2/payout/withdraw/${body.payout_reference}/local/crypto/cancel`,
+            null,
+            { headers: requestHeader },
           )
           .pipe(map((res) => res.data)),
       );
@@ -290,7 +306,7 @@ export class CryptoTxService {
     }
   }
 
-  async paymentNotify(body: CryptoPaymentNotifyDto) {
+  async paymentNotifyDeposit(body: CryptoPaymentNotifyDto) {
     const CRYPTO_DEPOSIT_FEE_PERCENT =
       await this.feeService.getCryptoDepostiFeePercent();
     const CRYPTO_DEPOSIT_FEE_FIXED =
@@ -394,15 +410,156 @@ export class CryptoTxService {
     }
   }
 
+  async paymentNotifyWithdraw(body: CryptoPayoutNotifyDto) {
+    const CRYPTO_WITHDRAW_FEE_PERCENT =
+      await this.feeService.getCryptoWithdrawFeePercent();
+    const CRYPTO_WITHDRAW_FEE_FIXED =
+      await this.feeService.getCryptoWithdrawFeeFixed();
+    const CRYPTO_WITHDRAW_REFERRAL_FEE_PERCENT =
+      await this.feeService.getCryptoWithdrawReferralFeePercent();
+
+    const requestHeader = {
+      Authorization: `Bearer ${this.tripleaAccessToken[body.local_currency]}`,
+    };
+
+    const res = await lastValueFrom(
+      this.httpService
+        .get(
+          `https://api.triple-a.io/api/v2/payout/withdraw/order/${body.order_id}`,
+          { headers: requestHeader },
+        )
+        .pipe(map((res) => res.data)),
+    );
+    if (res.status === 'done') {
+      const amount =
+        ((res.local_amount + CRYPTO_WITHDRAW_FEE_FIXED) * 100) /
+        (100 - CRYPTO_WITHDRAW_FEE_PERCENT);
+      const userReceiver = Number(res.order_id.split('-')[0]);
+      {
+        const description = `Rates: 1${res.local_currency}: ${res.exchange_rate}${res.crypto_currency}.
+        You withdrawed ${amount} ${res.local_currency} to ${res.crypto_address}`;
+        const createCryptoTx: Partial<CryptoTx> = {
+          userSenderId: userReceiver,
+          userReceiverId: OUT_USER_ID,
+          amount: amount,
+          type: TX_TYPE.WITHDRAWAL,
+          currencyName: res.local_currency,
+          description: description,
+          paymentReference: res.payout_reference,
+        };
+        await this.createCryptoTx(createCryptoTx);
+      }
+
+      const referralUserId = await this.userService.getReferralUserId(
+        userReceiver,
+      );
+      if (referralUserId) {
+        {
+          const description = `Fee from ${userReceiver}'s Withdraw`;
+          const receivedAmount =
+            ((amount - res.local_amount) *
+              (100 - CRYPTO_WITHDRAW_REFERRAL_FEE_PERCENT)) /
+            100;
+          const createCryptoTx: Partial<CryptoTx> = {
+            userSenderId: OUT_USER_ID,
+            userReceiverId: ADMIN_USER_ID,
+            amount: receivedAmount,
+            type: TX_TYPE.TRANSFER,
+            currencyName: res.local_currency,
+            description: description,
+            paymentReference: res.payout_reference,
+          };
+          await this.createCryptoTx(createCryptoTx);
+        }
+
+        {
+          const description = `Referral Withdraw`;
+          const receivedAmount =
+            ((amount - res.local_amount) *
+              CRYPTO_WITHDRAW_REFERRAL_FEE_PERCENT) /
+            100;
+          const createCryptoTx: Partial<CryptoTx> = {
+            userSenderId: userReceiver,
+            userReceiverId: referralUserId,
+            amount: receivedAmount,
+            type: TX_TYPE.TRANSFER,
+            currencyName: res.local_currency,
+            description: description,
+            paymentReference: res.payout_reference,
+          };
+          await this.createCryptoTx(createCryptoTx);
+        }
+      } else {
+        const description = `Fee from ${userReceiver}'s withdraw`;
+        const receivedAmount = amount - res.local_amount;
+        const createCryptoTx: Partial<CryptoTx> = {
+          userSenderId: OUT_USER_ID,
+          userReceiverId: ADMIN_USER_ID,
+          amount: receivedAmount,
+          type: TX_TYPE.TRANSFER,
+          currencyName: res.local_currency,
+          description: description,
+          paymentReference: res.payout_reference,
+        };
+        await this.createCryptoTx(createCryptoTx);
+      }
+    }
+  }
+
   async cryptoTransfer(body: CryptoTransferDto, userId: number) {
+    const CRYPTO_TRANSFER_FEE_FIXED =
+      await this.feeService.getCryptoTransferFeeFixed();
+    const CRYPTO_TRANSFER_FEE_PERCENT =
+      await this.feeService.getCryptoTransferFeePercent();
+    const CRYPTO_TRANSFER_REFERRAL_FEE_PERCENT =
+      await this.feeService.getCryptoTransferReferralFeePercent();
     const receiver = await this.userService.findByEmailPhonenumberReferralId(
       body.receiver,
     );
     if (receiver) {
+      const referralUserId = await this.userService.getReferralUserId(userId);
+      const fee =
+        (body.amount * CRYPTO_TRANSFER_FEE_PERCENT) / 100 +
+        CRYPTO_TRANSFER_FEE_FIXED;
+      if (referralUserId) {
+        {
+          const cryptoTxEntity: Partial<CryptoTx> = {
+            userSenderId: userId,
+            userReceiverId: ADMIN_USER_ID,
+            paymentReference: '',
+            amount: (fee * (100 - CRYPTO_TRANSFER_REFERRAL_FEE_PERCENT)) / 100,
+            currencyName: body.currency_name,
+            description: body.description,
+          };
+          await this.createCryptoTx(cryptoTxEntity);
+        }
+        {
+          const cryptoTxEntity: Partial<CryptoTx> = {
+            userSenderId: userId,
+            userReceiverId: referralUserId,
+            paymentReference: '',
+            amount: (fee * CRYPTO_TRANSFER_REFERRAL_FEE_PERCENT) / 100,
+            currencyName: body.currency_name,
+            description: body.description,
+          };
+          await this.createCryptoTx(cryptoTxEntity);
+        }
+      } else {
+        const cryptoTxEntity: Partial<CryptoTx> = {
+          userSenderId: userId,
+          userReceiverId: referralUserId,
+          paymentReference: '',
+          amount: fee,
+          currencyName: body.currency_name,
+          description: body.description,
+        };
+        await this.createCryptoTx(cryptoTxEntity);
+      }
       const cryptoTxEntity: Partial<CryptoTx> = {
         userSenderId: userId,
         userReceiverId: receiver.id,
-        amount: body.amount,
+        amount: body.amount - fee,
+        paymentReference: '',
         currencyName: body.currency_name,
         description: body.description,
       };

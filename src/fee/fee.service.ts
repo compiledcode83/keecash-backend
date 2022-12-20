@@ -72,7 +72,7 @@ export class FeeService {
     const fee = await this.feeRepository
       .createQueryBuilder('fee')
       .select('value')
-      .where({ name: 'crypto_withdraw_referral_fee_percent' })
+      .where({ name: 'crypto_withdarw_referral_fee_percent' })
       .getRawOne();
     return fee.value;
   }
