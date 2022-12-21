@@ -63,4 +63,18 @@ export class BeneficiaryService {
 
     return beneficiaryUsers;
   }
+
+  async getBeneficiaryWallets(userId: string): Promise<BeneficiaryWallet[]> {
+    const beneficiaryWallets: BeneficiaryWallet[] =
+      await this.beneficiaryWalletRepository
+        .createQueryBuilder('beneficiary_wallet')
+        .select([
+          'beneficiary_wallet.type',
+          'beneficiary_wallet.name',
+          'beneficiary_wallet.address',
+        ])
+        .where({ userId: userId })
+        .getRawMany();
+    return beneficiaryWallets;
+  }
 }

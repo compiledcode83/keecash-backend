@@ -42,7 +42,14 @@ export class BeneficiaryController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('users')
-  async getBeneficiaryUser(@Request() req) {
+  async getBeneficiaryUsers(@Request() req) {
     return await this.beneficiaryService.getBeneficiaryUsers(req.user.id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('wallets')
+  async getBeneficiaryUser(@Request() req) {
+    return await this.beneficiaryService.getBeneficiaryWallets(req.user.id);
   }
 }
