@@ -14,6 +14,7 @@ import { PersonProfile } from './person-profile.entity';
 import { Document } from './document.entity';
 import { EnterpriseProfile } from './enterprise-profile.entity';
 import { CryptoTx } from '@src/crypto-tx/crypto-tx.entity';
+import { BeneficiaryUser } from '@src/beneficiary/table/beneficiary-user.entity';
 
 export enum Language {
   ENGLISH = 'ENGLISH',
@@ -145,4 +146,15 @@ export class User {
   @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.userReceiver)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_receiver_id' })
   receiver: CryptoTx[];
+
+  @OneToMany(() => BeneficiaryUser, (beneficiary) => beneficiary.user)
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
+  users: BeneficiaryUser[];
+
+  @OneToMany(
+    () => BeneficiaryUser,
+    (beneficiary) => beneficiary.beneficiaryUser,
+  )
+  @JoinColumn({ name: 'id', referencedColumnName: 'beneficiary_user_id' })
+  beneficiary_users: BeneficiaryUser[];
 }
