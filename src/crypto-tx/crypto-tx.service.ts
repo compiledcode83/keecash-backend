@@ -230,7 +230,6 @@ export class CryptoTxService {
         name: body.name,
         country: body.country,
         order_id: `${userId}-${uuid()}`,
-        // notify_url: 'https://webhook.site/3aa117e0-a731-4952-800d-303f991ac886',
         notify_url: `${this.tripleaNotifyUrl}/crypto-tx/payment-notifiy-withdraw`,
       };
       const requestHeader = {
