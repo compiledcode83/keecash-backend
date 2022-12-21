@@ -6,7 +6,7 @@ export class AddBeneficiaryUserDto {
     example: 'jhon.doe@example.com',
     required: true,
     maximum: 255,
-    description: 'Payment reference',
+    description: 'Beneficiary user email, phonenumber or referral id',
   })
   @IsString()
   @MaxLength(255)
