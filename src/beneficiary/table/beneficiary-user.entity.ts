@@ -9,15 +9,12 @@ export class BeneficiaryUser {
 
   @ApiProperty({ description: 'User Id', maximum: 64, required: true })
   @Column({ type: 'int', nullable: false })
-  userId: number;
+  beneficiaryUserId: number;
 
   @ApiProperty({ description: 'User Id', maximum: 64, required: true })
   @Column({ type: 'int', nullable: false })
-  beneficiaryUserId: number;
+  userId: number;
 
-  @ManyToOne(() => User, (user) => user.users)
+  @ManyToOne(() => User, (user) => user.userBeneficiary)
   user: User;
-
-  @ManyToOne(() => User, (user) => user.beneficiary_users)
-  beneficiaryUser: User;
 }

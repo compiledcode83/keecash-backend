@@ -31,6 +31,6 @@ export class BeneficiaryWallet {
   @Column({ type: 'varchar', nullable: false })
   name: string;
 
-  @ManyToOne(() => User, (user) => user.users)
-  user: User;
+  // @ManyToOne(() => User, (user) => user.beneficiary_user)
+  // beneficiaryUser: User;
 }

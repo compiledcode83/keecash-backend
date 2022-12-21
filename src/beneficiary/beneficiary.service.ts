@@ -15,15 +15,18 @@ export class BeneficiaryService {
     private readonly userService: UserService,
   ) {}
 
-  async addBeneficiaryUser(body: AddBeneficiaryUserDto, userId: number) {
+  async addBeneficiaryUser(
+    body: AddBeneficiaryUserDto,
+    userId: number,
+  ): Promise<string> {
     const beneficiaryUser =
       await this.userService.findByEmailPhonenumberReferralId(
         body.beneficiaryUser,
       );
     if (beneficiaryUser) {
       const newBeneficiaryUser: Partial<BeneficiaryUser> = {
-        userId: userId,
-        beneficiaryUserId: beneficiaryUser.id,
+        userId: beneficiaryUser.id,
+        beneficiaryUserId: userId,
       };
       const beneficiaryUserEntity =
         this.beneficiaryUserRepository.create(newBeneficiaryUser);
@@ -33,7 +36,10 @@ export class BeneficiaryService {
     throw new BadRequestException('Can not find beneficiary user');
   }
 
-  async addBeneficiaryWallet(body: AddBeneficiaryWalletDto, userId: number) {
+  async addBeneficiaryWallet(
+    body: AddBeneficiaryWalletDto,
+    userId: number,
+  ): Promise<string> {
     const newBeneficiaryWallet: Partial<BeneficiaryWallet> = {
       userId: userId,
       name: body.name,
@@ -44,5 +50,17 @@ export class BeneficiaryService {
       this.beneficiaryWalletRepository.create(newBeneficiaryWallet);
     await this.beneficiaryWalletRepository.save(beneficiaryWalletEntity);
     return 'Success';
+  }
+
+  async getBeneficiaryUsers(userId: number): Promise<BeneficiaryUser[]> {
+    const beneficiaryUsers: BeneficiaryUser[] =
+      await this.beneficiaryUserRepository
+        .createQueryBuilder('beneficiary_user')
+        .innerJoinAndSelect('beneficiary_user.user', 'user')
+        .select(['user.first_name', 'user.second_name', 'user.id'])
+        .where(`beneficiary_user.beneficiary_user_id = ${userId}`)
+        .getRawMany();
+
+    return beneficiaryUsers;
   }
 }

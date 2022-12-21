@@ -147,14 +147,7 @@ export class User {
   @JoinColumn({ name: 'id', referencedColumnName: 'user_receiver_id' })
   receiver: CryptoTx[];
 
-  @OneToMany(() => BeneficiaryUser, (beneficiary) => beneficiary.user)
+  @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
-  users: BeneficiaryUser[];
-
-  @OneToMany(
-    () => BeneficiaryUser,
-    (beneficiary) => beneficiary.beneficiaryUser,
-  )
-  @JoinColumn({ name: 'id', referencedColumnName: 'beneficiary_user_id' })
-  beneficiary_users: BeneficiaryUser[];
+  userBeneficiary: BeneficiaryUser[];
 }

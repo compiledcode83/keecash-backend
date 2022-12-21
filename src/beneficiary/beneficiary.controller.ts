@@ -1,4 +1,11 @@
-import { Body, Request, Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Request,
+  Controller,
+  Post,
+  UseGuards,
+  Get,
+} from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { BeneficiaryService } from './beneficiary.service';
@@ -30,5 +37,12 @@ export class BeneficiaryController {
       body,
       req.user.id,
     );
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('users')
+  async getBeneficiaryUser(@Request() req) {
+    return await this.beneficiaryService.getBeneficiaryUsers(req.user.id);
   }
 }
