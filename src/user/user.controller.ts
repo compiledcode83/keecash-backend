@@ -2,15 +2,12 @@ import {
   BadRequestException,
   Body,
   Controller,
-  HttpStatus,
   Post,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
+import { ApiOperation } from '@nestjs/swagger';
 import { VerificationService } from '@src/verification/verification.service';
 import { ConfirmPhoneNumberVerificationCodeDto } from './dto/confirm-phone-verification.dto';
-import { User } from './table/user.entity';
 import { UserService } from './user.service';
 import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
 import { SendEmailVerificationCodeDto } from './dto/send-email-verification.dto';
@@ -33,8 +30,6 @@ export class UserController {
   ) {}
 
   @ApiOperation({ description: `Register a new user` })
-  @ApiResponse(ApiResponseHelper.success(User, HttpStatus.CREATED))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/register-person')
   async registerPerson(@Body() body: CreatePersonUserDto) {
     try {
@@ -58,8 +53,6 @@ export class UserController {
   }
 
   @ApiOperation({ description: `Register a new user` })
-  @ApiResponse(ApiResponseHelper.success(User, HttpStatus.CREATED))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
@@ -82,7 +75,6 @@ export class UserController {
   }
 
   @ApiOperation({ description: `Send phone number verification code` })
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/send-phone-verification-code')
   async sendPhoneVerificationCode(
     @Body() body: SendPhoneNumberVerificationCodeDto,
@@ -97,7 +89,6 @@ export class UserController {
   }
 
   @ApiOperation({ description: `Confirm phone number verification code` })
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/confirm-phone-verification-code')
   async confirmPhoneNumber(
     @Body() body: ConfirmPhoneNumberVerificationCodeDto,
@@ -111,7 +102,6 @@ export class UserController {
   }
 
   @ApiOperation({ description: `Send email verification code` })
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/send-email-verification-code')
   async sendEmailVerificationCode(@Body() body: SendEmailVerificationCodeDto) {
     const res = await this.verificationService.sendEmailVerificationCode(
@@ -124,7 +114,6 @@ export class UserController {
   }
 
   @ApiOperation({ description: `Confirm email verification code` })
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/confirm-email-verification-code')
   async confirmEmail(@Body() body: ConfirmEmailVerificationCodeDto) {
     const res = await this.verificationService.confirmEmailVerificationCode(
@@ -133,11 +122,14 @@ export class UserController {
     const payload = { email: body.email };
     const token = await this.jwtService.signAsync(payload);
     if (res === true) return { emailToken: token };
-    throw new BadRequestException('Sorry, Can not confirm phone number');
+    throw new BadRequestException(
+      'Sorry, Can not confirm email verification code',
+    );
   }
 
-  @ApiOperation({ description: `Send email verification code` })
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @ApiOperation({
+    description: `Send email verification code for forget password`,
+  })
   @Post('auth/send-email-verification-code-for-forget-password')
   async sendEmailVerificationCodeForForgetPassword(
     @Body() body: SendEmailVerificationCodeDto,
@@ -154,7 +146,6 @@ export class UserController {
   }
 
   @ApiOperation({ description: `Confirm email verification code` })
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/confirm-email-verification-code-for-forget-password')
   async confirmEmailForForgetPassword(
     @Body() body: ConfirmEmailVerificationCodeDto,
@@ -169,7 +160,6 @@ export class UserController {
   }
 
   @ApiOperation({ description: `Confirm email verification code` })
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/password-reset')
   async passwordReset(@Body() body: PasswordResetDto) {
     const payload: any = this.jwtService.verify(body.token);
@@ -178,7 +168,6 @@ export class UserController {
   }
 
   @ApiOperation({ description: `Check if referral id exists` })
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Post('auth/check-referralid')
   async checkIfReferralIdExists(@Body() body: ReferralIdExistsDto) {
     return true;

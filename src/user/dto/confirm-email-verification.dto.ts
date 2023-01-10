@@ -12,7 +12,7 @@ export class ConfirmEmailVerificationCodeDto {
   email: string;
 
   @ApiProperty({
-    example: '15411',
+    example: '154111',
     required: true,
     maximum: 255,
     description: 'Verification Code',
