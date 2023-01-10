@@ -90,6 +90,12 @@ export class CryptoTxController {
   @UseGuards(JwtAuthGuard)
   @Post('withdraw')
   async crytpoWidthdraw(@Request() req, @Body() body: CryptoWithdrawDto) {
+    const currencyBalance = await this.cryptoTxService.getBalanceByCurrency(
+      req.user.id,
+      body.currency_name.toUpperCase(),
+    );
+    if (currencyBalance < body.amount)
+      throw new BadRequestException('Invalid currency amount');
     const res = await this.cryptoTxService.cryptoWithdraw(
       body,
       req.user.email,
@@ -101,7 +107,7 @@ export class CryptoTxController {
         req.user.email,
         req.user.id,
       );
-      if (res === false) throw new BadRequestException('You can not deposit');
+      if (res === false) throw new BadRequestException('You can not withdraw');
       return res;
     }
     return res;

@@ -14,13 +14,10 @@ import {
 import { AuthService } from '@src/auth/auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiResponse, ApiOperation } from '@nestjs/swagger';
-import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
-import { User } from '@src/user/table/user.entity';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
-import { TokensResponseDto } from './dto/tokens-response.dto';
 import { CookieToBodyInterceptor } from '@src/common/interceptors/cookie-to-body.interceptor';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { RealIP } from 'nestjs-real-ip';
@@ -34,8 +31,6 @@ export class AuthController {
   ) {}
 
   @ApiOperation({ description: `User login` })
-  @ApiResponse(ApiResponseHelper.success(User))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(
@@ -70,7 +65,6 @@ export class AuthController {
     return { accessToken: authData.accessToken };
   }
 
-  @ApiResponse(ApiResponseHelper.success(TokensResponseDto, HttpStatus.OK))
   @UseInterceptors(new CookieToBodyInterceptor('refreshToken', 'refreshToken'))
   @HttpCode(HttpStatus.CREATED)
   @Post('refresh-tokens')
@@ -107,8 +101,6 @@ export class AuthController {
   }
 
   @ApiBearerAuth()
-  @ApiResponse(ApiResponseHelper.success(User))
-  @ApiResponse(ApiResponseHelper.unauthorized())
   @UseGuards(JwtAuthGuard)
   @Get('/profile')
   async success(@Request() req) {

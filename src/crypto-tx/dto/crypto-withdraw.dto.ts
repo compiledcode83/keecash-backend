@@ -48,7 +48,7 @@ export class CryptoWithdrawDto {
   address: string;
 
   @ApiProperty({
-    example: 'The Best Company',
+    example: 'The Keecash Client',
     required: true,
     maximum: 255,
     description: 'Merchant  name',
@@ -59,7 +59,7 @@ export class CryptoWithdrawDto {
   name: string;
 
   @ApiProperty({
-    example: '10.0',
+    example: 'Cameroon',
     required: true,
     maximum: 255,
     description: 'ISO 3166 alpha 2 country code',
