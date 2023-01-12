@@ -7,8 +7,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('Keekash API')
-    .setDescription('The Keekash API documentation')
+    .setTitle('Keecash API')
+    .setDescription('The Keecash API documentation')
     .setVersion('1.0')
     .addBearerAuth()
     .addServer(process.env.SWAGGER_SERVER_URL)
