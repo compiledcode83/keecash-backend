@@ -18,6 +18,7 @@ import { StorageModule } from './storage/storage.module';
 import { CryptoTxModule } from './crypto-tx/crypto-tx.module';
 import { FeeModule } from './fee/fee.module';
 import { BeneficiaryModule } from './beneficiary/beneficiary.module';
+import { AdminModule } from './admin/admin.module';
 import verificationConfig from './config/verification.config';
 import storageConfig from './config/storage.config';
 import cryptoConfig from './config/crypto.config';
@@ -59,6 +60,7 @@ EnvHelper.verifyNodeEnv();
     CryptoTxModule,
     FeeModule,
     BeneficiaryModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
