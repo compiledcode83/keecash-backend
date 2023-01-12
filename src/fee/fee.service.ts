@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { FIAT_CURRENCY_NAME } from '@src/crypto-tx/crypto-tx.entity';
 import { FeeRepository } from './fee.repository';
 
 @Injectable()
@@ -84,5 +85,89 @@ export class FeeService {
       .where({ name: 'crypto_transfer_referral_fee_percent' })
       .getRawOne();
     return fee.value;
+  }
+
+  async getDepositFixedFee(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getDepositFixedFee(countryId, currencyName);
+  }
+
+  async getDepositPercentFee(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getDepositPercentFee(countryId, currencyName);
+  }
+
+  async getDepositMinAmount(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getDepositMinAmount(countryId, currencyName);
+  }
+
+  async getDepositMaxAmount(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getDepositMaxAmount(countryId, currencyName);
+  }
+
+  async getWithdrawFixedFee(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getWithdrawFixedFee(countryId, currencyName);
+  }
+
+  async getWithdrawPercentFee(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getWithdrawPercentFee(countryId, currencyName);
+  }
+
+  async getWithdrawMinAmount(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getWithdrawMinAmount(countryId, currencyName);
+  }
+
+  async getWithdrawMaxAmount(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getWithdrawMaxAmount(countryId, currencyName);
+  }
+
+  async getTransferFixedFee(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getTransferFixedFee(countryId, currencyName);
+  }
+
+  async getTransferPercentFee(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getTransferPercentFee(countryId, currencyName);
+  }
+
+  async getTransferMinAmount(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getTransferMinAmount(countryId, currencyName);
+  }
+
+  async getTransferMaxAmount(
+    countryId: number,
+    currencyName: FIAT_CURRENCY_NAME,
+  ): Promise<number> {
+    return this.feeRepository.getTransferMaxAmount(countryId, currencyName);
   }
 }

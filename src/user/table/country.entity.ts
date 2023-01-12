@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Fee } from '@src/fee/fee.entity';
 import { Exclude } from 'class-transformer';
 import {
   Column,
@@ -22,4 +23,8 @@ export class Country {
   @OneToMany(() => PersonProfile, (personProfile) => personProfile.country)
   @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })
   personProfile: PersonProfile[];
+
+  @OneToMany(() => Fee, (fee) => fee.country)
+  @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })
+  depositFee: Fee[];
 }
