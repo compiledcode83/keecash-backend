@@ -26,6 +26,7 @@ export enum AccountType {
   ENTERPRISE = 'ENTERPRISE',
   SUPER_ADMIN = 'SUPER_ADMIN',
   COUNTRY_MANAGER = 'COUNTRY_MANAGER',
+  CUSTOMER_SUPPORT = 'CUSTOMER_SUPPORT',
 }
 
 export enum Status {

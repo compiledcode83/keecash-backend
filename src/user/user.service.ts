@@ -52,6 +52,15 @@ export class UserService {
     return null;
   }
 
+  async getPersonUserInfo() {
+    const userInfo = await this.personProfileRepository
+      .createQueryBuilder('person_profile')
+      .innerJoinAndSelect('person_profile.user', 'user')
+      .where(`user.email='ryan.kennedy@keecash.com'`)
+      .getRawOne();
+    return userInfo;
+  }
+
   async getReferralUserId(userId: number): Promise<number | null> {
     const { referralAppliedId } = await this.findOne(userId);
     const referralUser = await this.userRepository

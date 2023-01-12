@@ -83,7 +83,7 @@ export class AuthService {
     await this.authRefreshTokenService.deleteByToken(refreshToken);
   }
 
-  private async createAccessToken(user: User): Promise<string> {
+  async createAccessToken(user: User): Promise<string> {
     const payload: AccessTokenInterface = {
       id: user.id,
       firstName: user.firstName,
@@ -96,7 +96,7 @@ export class AuthService {
     return this.jwtService.signAsync(payload);
   }
 
-  private async createRefreshToken(
+  async createRefreshToken(
     user: User,
     refreshTokenInfo: RefreshTokenInfo,
   ): Promise<AuthRefreshToken> {
