@@ -24,7 +24,8 @@ export enum Language {
 export enum AccountType {
   PERSON = 'PERSON',
   ENTERPRISE = 'ENTERPRISE',
-  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  COUNTRY_MANAGER = 'COUNTRY_MANAGER',
 }
 
 export enum Status {
