@@ -64,7 +64,7 @@ export class BeneficiaryService {
     return beneficiaryUsers;
   }
 
-  async getBeneficiaryWallets(userId: string): Promise<BeneficiaryWallet[]> {
+  async getBeneficiaryWallets(userId: number): Promise<BeneficiaryWallet[]> {
     const beneficiaryWallets: BeneficiaryWallet[] =
       await this.beneficiaryWalletRepository
         .createQueryBuilder('beneficiary_wallet')

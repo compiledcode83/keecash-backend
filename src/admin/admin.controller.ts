@@ -16,6 +16,7 @@ import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-ver
 import { AccountType } from '@src/user/table/user.entity';
 import { UserService } from '@src/user/user.service';
 import { AdminService } from './admin.service';
+import { GetBeneficiaryAdminDto } from './dto/get-beneficiary-admin.dto';
 import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 
@@ -88,5 +89,17 @@ export class AdminController {
   @Post('get-crypto-tx')
   async getCryptoTx(@Request() request, @Body() body: GetCryptoTxAdminDto) {
     return await this.adminService.getCryptoTx(body);
+  }
+
+  @ApiOperation({
+    description: `Get beneficiary users and wallets`,
+  })
+  @UseGuards(JwtAdminGuard)
+  @Post('get-beneficiary')
+  async getBeneficiary(
+    @Request() request,
+    @Body() body: GetBeneficiaryAdminDto,
+  ) {
+    return await this.adminService.getBeneficiaries(body);
   }
 }

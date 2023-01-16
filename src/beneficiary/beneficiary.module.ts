@@ -13,5 +13,6 @@ import { BeneficiaryWalletRepository } from './table/beneficiary-wallet.reposito
     BeneficiaryWalletRepository,
   ],
   controllers: [BeneficiaryController],
+  exports: [BeneficiaryService],
 })
 export class BeneficiaryModule {}
