@@ -16,6 +16,7 @@ import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-ver
 import { AccountType } from '@src/user/table/user.entity';
 import { UserService } from '@src/user/user.service';
 import { AdminService } from './admin.service';
+import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 
 @Controller('admin')
@@ -65,8 +66,8 @@ export class AdminController {
       userId,
     );
     if (user) {
-      // if (user.accountType === AccountType.PERSON)
-      return this.userService.getPersonUserInfo(user.email);
+      if (user.accountType === AccountType.PERSON)
+        return this.userService.getPersonUserInfo(user.email);
     }
     return 'Can not find user';
   }
@@ -78,5 +79,14 @@ export class AdminController {
   @Post('update_userinfo')
   async updateUserInfo(@Request() request, @Body() body: UpdateUserInfoDto) {
     return await this.adminService.updateUserInfo(body);
+  }
+
+  @ApiOperation({
+    description: `Get Crypto Transactions`,
+  })
+  @UseGuards(JwtAdminGuard)
+  @Post('get-crypto-tx')
+  async getCryptoTx(@Request() request, @Body() body: GetCryptoTxAdminDto) {
+    return await this.adminService.getCryptoTx(body);
   }
 }
