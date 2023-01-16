@@ -120,6 +120,6 @@ export class Fee {
   @Column({ type: 'float', nullable: false })
   transferMaxAmount: number;
 
-  @ManyToOne(() => Country, (country) => country.depositFee)
+  @ManyToOne(() => Country, (country) => country.fee)
   country: Country;
 }

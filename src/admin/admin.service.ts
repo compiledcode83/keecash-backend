@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-verification.dto';
 import { UserService } from '@src/user/user.service';
 import { VerificationService } from '@src/verification/verification.service';
+import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 
 @Injectable()
 export class AdminService {
@@ -16,5 +17,9 @@ export class AdminService {
 
   async confirmOtp(body: ConfirmEmailVerificationCodeDto): Promise<boolean> {
     return this.verificationService.confirmEmailVerificationCode(body);
+  }
+
+  async updateUserInfo(body: UpdateUserInfoDto) {
+    return this.userService.updatePersonalUser(body);
   }
 }

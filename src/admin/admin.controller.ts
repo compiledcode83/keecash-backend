@@ -5,15 +5,18 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { AuthService } from '@src/auth/auth.service';
+import { JwtAdminGuard } from '@src/auth/guards/jwt-admin.guard';
 import { LocalAuthGuard } from '@src/auth/guards/local-auth.guard';
 import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-verification.dto';
 import { AccountType } from '@src/user/table/user.entity';
 import { UserService } from '@src/user/user.service';
 import { AdminService } from './admin.service';
-import { FindUserInfoDto } from './dto/find-user-info.dto';
+import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -55,15 +58,25 @@ export class AdminController {
   @ApiOperation({
     description: `Get User Info By Filter(email, phone, referral id)`,
   })
-  @Post('find_userinfo')
-  async findUserInfo(@Request() request, @Body() body: FindUserInfoDto) {
+  @UseGuards(JwtAdminGuard)
+  @Get('find_userinfo/:userId')
+  async findUserInfo(@Request() request, @Param('userId') userId: string) {
     const user = await this.userService.findByEmailPhonenumberReferralId(
-      body.userId,
+      userId,
     );
     if (user) {
-      if (user.accountType === AccountType.PERSON)
-        return this.userService.getPersonUserInfo();
+      // if (user.accountType === AccountType.PERSON)
+      return this.userService.getPersonUserInfo(user.email);
     }
     return 'Can not find user';
+  }
+
+  @ApiOperation({
+    description: `Update user info`,
+  })
+  @UseGuards(JwtAdminGuard)
+  @Post('update_userinfo')
+  async updateUserInfo(@Request() request, @Body() body: UpdateUserInfoDto) {
+    return await this.adminService.updateUserInfo(body);
   }
 }

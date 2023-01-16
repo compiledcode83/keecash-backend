@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UpdateUserInfoDto } from '@src/admin/dto/update-user-info.dto';
 import * as bcrypt from 'bcrypt';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
@@ -40,6 +41,13 @@ export class UserService {
     return this.userRepository.findOne({ where: { referralId } });
   }
 
+  async getPersonProfileByUserId(userId: number): Promise<PersonProfile> {
+    const personProfile = await this.personProfileRepository.findOne({
+      where: { user: { id: userId } },
+    });
+    return personProfile;
+  }
+
   async findByEmailPhonenumberReferralId(
     userInfo: string,
   ): Promise<User | null> {
@@ -52,11 +60,11 @@ export class UserService {
     return null;
   }
 
-  async getPersonUserInfo() {
+  async getPersonUserInfo(userId: string) {
     const userInfo = await this.personProfileRepository
       .createQueryBuilder('person_profile')
       .innerJoinAndSelect('person_profile.user', 'user')
-      .where(`user.email='ryan.kennedy@keecash.com'`)
+      .where(`user.email='${userId}'`)
       .getRawOne();
     return userInfo;
   }
@@ -214,5 +222,32 @@ export class UserService {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+  }
+
+  async updatePersonalUser(body: UpdateUserInfoDto) {
+    const user = await this.findByEmail(body.email);
+    {
+      const userInfo: Partial<User> = {};
+      if (body.firstName) userInfo.firstName = body.firstName;
+      if (body.secondName) userInfo.secondName = body.secondName;
+      if (body.accountType) userInfo.accountType = body.accountType;
+      if (body.status) userInfo.status = body.status;
+      if (body.language) userInfo.language = body.language;
+      if (Object.keys(userInfo).length !== 0)
+        await this.userRepository.update(user.id, userInfo);
+    }
+    {
+      const personProfile = await this.getPersonProfileByUserId(user.id);
+      const personalInfo: Partial<PersonProfile> = {};
+      if (body.address) personalInfo.address = body.address;
+      if (body.city) personalInfo.city = body.city;
+      if (body.zipcode) personalInfo.zipcode = body.zipcode;
+      if (Object.keys(personalInfo).length !== 0)
+        await this.personProfileRepository.update(
+          personProfile.id,
+          personalInfo,
+        );
+    }
+    return this.getPersonUserInfo(user.email);
   }
 }

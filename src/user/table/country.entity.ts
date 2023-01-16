@@ -26,5 +26,5 @@ export class Country {
 
   @OneToMany(() => Fee, (fee) => fee.country)
   @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })
-  depositFee: Fee[];
+  fee: Fee[];
 }

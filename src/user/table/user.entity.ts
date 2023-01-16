@@ -82,7 +82,7 @@ export class User {
   language: Language;
 
   @ApiProperty({
-    description: 'Language',
+    description: 'Account type',
     maximum: 255,
     required: true,
   })
