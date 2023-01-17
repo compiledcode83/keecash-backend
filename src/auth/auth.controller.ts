@@ -22,18 +22,22 @@ import { CookieToBodyInterceptor } from '@src/common/interceptors/cookie-to-body
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { RealIP } from 'nestjs-real-ip';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
+import { AdminAuthGuard } from './guards/admin-auth.guard';
+import { LoginAdminDto } from './dto/login-admin.dto';
+import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-verification.dto';
+import { JwtAdminAuthGuard } from './guards/jwt-admin.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
   @ApiOperation({ description: `User login` })
   @UseGuards(LocalAuthGuard)
-  @Post('login')
-  async login(
+  @Post('user-login')
+  async userLogin(
     @Request() request,
     @Req() req,
     @Body() body: LoginUserDto,
@@ -63,6 +67,25 @@ export class AuthController {
     });
 
     return { accessToken: authData.accessToken };
+  }
+
+  @ApiOperation({ description: `Admin login` })
+  @UseGuards(AdminAuthGuard)
+  @Post('admin-login')
+  async adminLogin(@Request() request, @Body() body: LoginAdminDto) {
+    return this.authService.adminLogin(body);
+  }
+
+  @ApiOperation({
+    description: `Confirm OTP for email verification for admin login`,
+  })
+  @Post('confirm-otp')
+  async confirmOtp(
+    @Request() request,
+    @Body() body: ConfirmEmailVerificationCodeDto,
+  ) {
+    const accessToken = await this.authService.confirmOtpForAdmin(body);
+    return { accessToken };
   }
 
   @UseInterceptors(new CookieToBodyInterceptor('refreshToken', 'refreshToken'))
@@ -102,8 +125,15 @@ export class AuthController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get('/profile')
-  async success(@Request() req) {
+  @Get('/user-profile')
+  async successUser(@Request() req) {
     return req.user;
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAdminAuthGuard)
+  @Get('/admin-profile')
+  async successAdmin(@Request() req) {
+    return req.admin;
   }
 }

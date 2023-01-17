@@ -1,21 +1,35 @@
 import * as bcrypt from 'bcrypt';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@src/user/table/user.entity';
 import { UserService } from '@src/user/user.service';
 import { AuthRefreshTokenService } from '@src/auth-refresh-token/auth-refresh-token.service';
-import { AccessTokenInterface } from './auth.type';
+import {
+  AccessTokenInterfaceForUser,
+  AccessTokenInterfaceForAdmin,
+} from './auth.type';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
+import { LoginAdminDto } from './dto/login-admin.dto';
+import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-verification.dto';
+import { VerificationService } from '@src/verification/verification.service';
+import { Admin } from '@src/admin/table/admin.entity';
+import { AdminService } from '@src/admin/admin.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly adminService: AdminService,
     private readonly authRefreshTokenService: AuthRefreshTokenService,
+    private readonly verificationService: VerificationService,
   ) {}
 
   async login(
@@ -32,7 +46,7 @@ export class AuthService {
       await this.authRefreshTokenService.deleteByToken(oldRefreshToken.token);
     }
 
-    const accessToken = await this.createAccessToken(user);
+    const accessToken = await this.createAccessTokenForUser(user);
     const refreshToken = await this.createRefreshToken(user, refreshTokenInfo);
 
     return {
@@ -54,7 +68,7 @@ export class AuthService {
         secondName: userByEmail.secondName,
         email: userByEmail.email,
         phoneNumber: userByEmail.phoneNumber,
-        accountType: userByEmail.accountType,
+        type: userByEmail.type,
       };
     }
 
@@ -72,7 +86,7 @@ export class AuthService {
         secondName: userByPhonenumber.secondName,
         email: userByPhonenumber.email,
         phoneNumber: userByPhonenumber.phoneNumber,
-        accountType: userByPhonenumber.accountType,
+        type: userByPhonenumber.type,
       };
     }
 
@@ -83,14 +97,24 @@ export class AuthService {
     await this.authRefreshTokenService.deleteByToken(refreshToken);
   }
 
-  async createAccessToken(user: User): Promise<string> {
-    const payload: AccessTokenInterface = {
+  async createAccessTokenForUser(user: User): Promise<string> {
+    const payload: AccessTokenInterfaceForUser = {
       id: user.id,
       firstName: user.firstName,
       secondName: user.secondName,
       email: user.email,
       phoneNumber: user.phoneNumber,
-      accountType: user.accountType,
+      type: user.type,
+    };
+
+    return this.jwtService.signAsync(payload);
+  }
+
+  async createAccessTokenForAdmin(admin: Admin): Promise<string> {
+    const payload: AccessTokenInterfaceForAdmin = {
+      id: admin.id,
+      email: admin.email,
+      type: admin.type,
     };
 
     return this.jwtService.signAsync(payload);
@@ -118,12 +142,34 @@ export class AuthService {
     await this.authRefreshTokenService.deleteByToken(params.refreshToken);
     const user = await this.userService.findOne(oldRefreshToken.userId);
 
-    const accessToken = await this.createAccessToken(user);
+    const accessToken = await this.createAccessTokenForUser(user);
     const refreshToken = await this.createRefreshToken(user, refreshTokenInfo);
 
     return {
       accessToken: accessToken,
       refreshToken: refreshToken.token,
     };
+  }
+
+  async adminLogin(body: LoginAdminDto): Promise<string> {
+    const res = await this.verificationService.sendEmailVerificationCode(
+      body.email,
+    );
+    if (res) return 'Security OTP sent your email successfully';
+    throw new BadRequestException('Can not send Security OTP');
+  }
+
+  async confirmOtpForAdmin(
+    body: ConfirmEmailVerificationCodeDto,
+  ): Promise<string> {
+    const res = await this.verificationService.confirmEmailVerificationCode(
+      body,
+    );
+    if (res) {
+      const admin = await this.adminService.findAdminByEmail(body.email);
+      const accessToken = await this.createAccessTokenForAdmin(admin);
+      return accessToken;
+    }
+    throw new BadRequestException('Invalid code');
   }
 }

@@ -2,11 +2,11 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User } from '@src/user/table/user.entity';
-import { AccessTokenInterfaceForUser } from '../auth.type';
+import { AccessTokenInterfaceForAdmin } from '../auth.type';
+import { Admin } from '@src/admin/table/admin.entity';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtAdminStrategy extends PassportStrategy(Strategy, 'jwtAdmin') {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -15,13 +15,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: Partial<User>): Promise<AccessTokenInterfaceForUser> {
+  async validate(
+    payload: Partial<Admin>,
+  ): Promise<AccessTokenInterfaceForAdmin> {
     return {
       id: payload.id,
-      firstName: payload.firstName,
-      secondName: payload.secondName,
       email: payload.email,
-      phoneNumber: payload.phoneNumber,
       type: payload.type,
     };
   }

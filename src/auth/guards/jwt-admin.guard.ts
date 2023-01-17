@@ -6,16 +6,16 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtAdminGuard extends AuthGuard('jwt') {
+export class JwtAdminAuthGuard extends AuthGuard('jwtAdmin') {
   handleRequest(
     err: any,
-    user: any,
+    admin: any,
     info: any,
     context: ExecutionContext,
     status?: any,
   ) {
-    if (user) {
-      return user;
+    if (admin) {
+      return admin;
     }
 
     throw new UnauthorizedException();

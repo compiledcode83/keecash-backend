@@ -24,9 +24,6 @@ export enum Language {
 export enum AccountType {
   PERSON = 'PERSON',
   ENTERPRISE = 'ENTERPRISE',
-  SUPER_ADMIN = 'SUPER_ADMIN',
-  COUNTRY_MANAGER = 'COUNTRY_MANAGER',
-  CUSTOMER_SUPPORT = 'CUSTOMER_SUPPORT',
 }
 
 export enum Status {
@@ -87,7 +84,7 @@ export class User {
     required: true,
   })
   @Column({ type: 'enum', enum: AccountType, default: AccountType.PERSON })
-  accountType: AccountType;
+  type: AccountType;
 
   @ApiProperty({
     description: 'Status',

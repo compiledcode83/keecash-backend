@@ -2,10 +2,14 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { AdminModule } from '@src/admin/admin.module';
 import { AuthRefreshTokenModule } from '@src/auth-refresh-token/auth-refresh-token.module';
 import { UserModule } from '@src/user/user.module';
+import { VerificationModule } from '@src/verification/verification.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AdminStrategy } from './strategies/admin.strategy';
+import { JwtAdminStrategy } from './strategies/jwt-admin.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 
@@ -14,6 +18,8 @@ import { LocalStrategy } from './strategies/local.strategy';
     UserModule,
     PassportModule,
     AuthRefreshTokenModule,
+    VerificationModule,
+    AdminModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,7 +32,13 @@ import { LocalStrategy } from './strategies/local.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    AdminStrategy,
+    JwtAdminStrategy,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

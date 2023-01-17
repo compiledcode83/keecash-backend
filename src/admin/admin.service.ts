@@ -1,29 +1,22 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { BeneficiaryService } from '@src/beneficiary/beneficiary.service';
 import { CryptoTxService } from '@src/crypto-tx/crypto-tx.service';
-import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-verification.dto';
 import { UserService } from '@src/user/user.service';
-import { VerificationService } from '@src/verification/verification.service';
+import { AddAdminDto } from './dto/add-admin.dto';
 import { GetBeneficiaryAdminDto } from './dto/get-beneficiary-admin.dto';
 import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
+import { Admin } from './table/admin.entity';
+import { AdminRepository } from './table/admin.repository';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly userService: UserService,
-    private readonly verificationService: VerificationService,
     private readonly cryptoTxService: CryptoTxService,
     private readonly beneficiaryService: BeneficiaryService,
+    private readonly adminRepository: AdminRepository,
   ) {}
-
-  async sendOTPToEmail(email: string): Promise<boolean> {
-    return this.verificationService.sendEmailVerificationCode(email);
-  }
-
-  async confirmOtp(body: ConfirmEmailVerificationCodeDto): Promise<boolean> {
-    return this.verificationService.confirmEmailVerificationCode(body);
-  }
 
   async updateUserInfo(body: UpdateUserInfoDto) {
     return this.userService.updatePersonalUser(body);
@@ -46,5 +39,20 @@ export class AdminService {
       beneficiaryUsers,
       beneficiaryWallets,
     };
+  }
+
+  async validateAdmin(
+    email: string,
+    password: string,
+  ): Promise<Partial<Admin> | null> {
+    return this.adminRepository.validateAdmin(email, password);
+  }
+
+  async findAdminByEmail(email: string): Promise<Admin> {
+    return this.adminRepository.findOneByEmail(email);
+  }
+
+  async addAdmin(body: AddAdminDto): Promise<Admin> {
+    return this.adminRepository.addAdmin(body);
   }
 }

@@ -98,7 +98,7 @@ export class UserService {
       email: body.email,
       phoneNumber: body.phoneNumber,
       language: body.language,
-      accountType: AccountType.PERSON,
+      type: AccountType.PERSON,
       password: await bcrypt.hash(body.password, 10),
     };
     const userEntity = this.userRepository.create(user);
@@ -136,7 +136,7 @@ export class UserService {
       referralAppliedId: body?.referralAppliedId,
       email: body.email,
       language: body.language,
-      accountType: AccountType.ENTERPRISE,
+      type: AccountType.ENTERPRISE,
       password: await bcrypt.hash(body.password, 10),
     };
     const userEntity = this.userRepository.create(user);
@@ -230,7 +230,7 @@ export class UserService {
       const userInfo: Partial<User> = {};
       if (body.firstName) userInfo.firstName = body.firstName;
       if (body.secondName) userInfo.secondName = body.secondName;
-      if (body.accountType) userInfo.accountType = body.accountType;
+      if (body.accountType) userInfo.type = body.accountType;
       if (body.status) userInfo.status = body.status;
       if (body.language) userInfo.language = body.language;
       if (Object.keys(userInfo).length !== 0)
