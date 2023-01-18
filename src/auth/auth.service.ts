@@ -21,6 +21,7 @@ import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-ver
 import { VerificationService } from '@src/verification/verification.service';
 import { Admin } from '@src/admin/table/admin.entity';
 import { AdminService } from '@src/admin/admin.service';
+import { ConfirmEmailVerificationCodeForAdminDto } from '@src/user/dto/confirm-email-verification-for-admin.dto';
 
 @Injectable()
 export class AuthService {
@@ -160,10 +161,11 @@ export class AuthService {
   }
 
   async confirmOtpForAdmin(
-    body: ConfirmEmailVerificationCodeDto,
+    body: ConfirmEmailVerificationCodeForAdminDto,
   ): Promise<string> {
     const res = await this.verificationService.confirmEmailVerificationCode(
-      body,
+      body.email,
+      body.code,
     );
     if (res) {
       const admin = await this.adminService.findAdminByEmail(body.email);
@@ -171,5 +173,9 @@ export class AuthService {
       return accessToken;
     }
     throw new BadRequestException('Invalid code');
+  }
+
+  async getSumsubAccessToken(userId: number): Promise<string> {
+    return this.verificationService.createSumsubAccessToken(userId);
   }
 }

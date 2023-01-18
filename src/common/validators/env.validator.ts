@@ -135,6 +135,18 @@ class EnvironmentVariables {
   TRIPLEA_USD_MERCHANT_KEY: string;
 
   @IsString()
+  @MinLength(1)
+  SUMSUB_APP_TOKEN: string;
+
+  @IsString()
+  @MinLength(1)
+  SUMSUB_SECRET_KEY: string;
+
+  @IsString()
+  @MinLength(1)
+  SUMSUB_BASE_URL: string;
+
+  @IsString()
   @IsIn(['true', 'false'])
   JWT_REFRESH_TOKEN_COOKIE_SECURE: 'true' | 'false';
 

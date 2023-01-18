@@ -16,6 +16,7 @@ import { AddAdminDto } from './dto/add-admin.dto';
 import { GetBeneficiaryAdminDto } from './dto/get-beneficiary-admin.dto';
 import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
+import { AdminType } from './table/admin.entity';
 
 @Controller('admin')
 export class AdminController {
@@ -76,6 +77,9 @@ export class AdminController {
   @UseGuards(JwtAdminAuthGuard)
   @Post('add-admin')
   async addAdmin(@Request() request, @Body() body: AddAdminDto) {
-    return await this.adminService.addAdmin(body);
+    if (body.type === AdminType.SUPER_ADMIN)
+      return await this.adminService.addAdmin(body);
+    if (body.country) {
+    }
   }
 }

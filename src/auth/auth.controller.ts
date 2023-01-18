@@ -24,8 +24,8 @@ import { RealIP } from 'nestjs-real-ip';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { LoginAdminDto } from './dto/login-admin.dto';
-import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-verification.dto';
 import { JwtAdminAuthGuard } from './guards/jwt-admin.guard';
+import { ConfirmEmailVerificationCodeForAdminDto } from '@src/user/dto/confirm-email-verification-for-admin.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -82,7 +82,7 @@ export class AuthController {
   @Post('confirm-otp')
   async confirmOtp(
     @Request() request,
-    @Body() body: ConfirmEmailVerificationCodeDto,
+    @Body() body: ConfirmEmailVerificationCodeForAdminDto,
   ) {
     const accessToken = await this.authService.confirmOtpForAdmin(body);
     return { accessToken };

@@ -8,6 +8,7 @@ import {
   OneToMany,
   JoinColumn,
   OneToOne,
+  ManyToOne,
 } from 'typeorm';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
 import { PersonProfile } from './person-profile.entity';
@@ -15,6 +16,7 @@ import { Document } from './document.entity';
 import { EnterpriseProfile } from './enterprise-profile.entity';
 import { CryptoTx } from '@src/crypto-tx/crypto-tx.entity';
 import { BeneficiaryUser } from '@src/beneficiary/table/beneficiary-user.entity';
+import { Country } from './country.entity';
 
 export enum Language {
   ENGLISH = 'ENGLISH',
@@ -27,9 +29,14 @@ export enum AccountType {
 }
 
 export enum Status {
-  APPROVED = 'Approved',
-  REJECTED = 'Rejected',
-  PENDING = 'Pending',
+  REGISTERED = 'REGISTERED',
+  EMAIL_VALIDATED = 'EMAIL_VALIDATED',
+  PHONE_VALIDATED = 'PHONE_VALIDATED',
+  KYC_VALIDATED = 'KYC_VALIDATED',
+  KYB_VALIDATED = 'KYB_VALIDATED',
+  REJECTED = 'REJECTED',
+  DISABLED = 'DISABLED',
+  DELETED = 'DELETED',
 }
 
 @Entity('user')
@@ -39,11 +46,11 @@ export class User {
   id: number;
 
   @ApiProperty({ description: 'First name', maximum: 128, required: true })
-  @Column({ type: 'varchar', nullable: false, length: 128 })
+  @Column({ type: 'varchar', nullable: true, length: 128 })
   firstName: string;
 
   @ApiProperty({ description: 'Second name', maximum: 128, required: true })
-  @Column({ type: 'varchar', nullable: false, length: 128 })
+  @Column({ type: 'varchar', nullable: true, length: 128 })
   secondName: string;
 
   @ApiProperty({ description: 'Referral id', maximum: 128, required: true })
@@ -65,6 +72,10 @@ export class User {
   @ApiProperty({ description: 'Phone number', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: true, length: 255 })
   phoneNumber: string;
+
+  @ApiProperty({ description: 'Country Id', maximum: 64, required: true })
+  @Column({ type: 'int', nullable: true })
+  countryId: number;
 
   @ApiProperty({ description: 'Password', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: false, length: 255 })
@@ -91,7 +102,7 @@ export class User {
     maximum: 255,
     required: true,
   })
-  @Column({ type: 'enum', enum: Status, default: Status.PENDING })
+  @Column({ type: 'enum', enum: Status, default: Status.REGISTERED })
   status: Status;
 
   @ApiProperty({
@@ -149,4 +160,7 @@ export class User {
   @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   userBeneficiary: BeneficiaryUser[];
+
+  @ManyToOne(() => Country, (country) => country.user)
+  country: Country;
 }

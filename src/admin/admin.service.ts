@@ -55,4 +55,9 @@ export class AdminService {
   async addAdmin(body: AddAdminDto): Promise<Admin> {
     return this.adminRepository.addAdmin(body);
   }
+
+  async addNormalAdmin(body: AddAdminDto): Promise<Admin> {
+    const admin = await this.addAdmin(body);
+    return admin;
+  }
 }

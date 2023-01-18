@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsPhoneNumber } from 'class-validator';
+import {
+  IsPhoneNumber,
+  IsString,
+  MaxLength,
+  MinLength,
+  Validate,
+} from 'class-validator';
+import { CountryExistsByNameValidator } from '../validator/country-exists-by-name.validator';
 
 export class SendPhoneNumberVerificationCodeDto {
   @ApiProperty({
@@ -10,4 +17,11 @@ export class SendPhoneNumberVerificationCodeDto {
   })
   @IsPhoneNumber()
   phoneNumber: string;
+
+  @ApiProperty({ description: 'country', maximum: 64, required: true })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  @Validate(CountryExistsByNameValidator)
+  country: string;
 }

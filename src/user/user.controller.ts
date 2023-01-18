@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   Post,
+  Request,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
@@ -18,7 +20,9 @@ import { StorageService } from '@src/storage/storage.service';
 import { JwtService } from '@nestjs/jwt';
 import { PasswordResetDto } from './dto/password-reset.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
-import { ReferralIdExistsDto } from './dto/referral-id-exists.dto';
+import { CreateAccountDto } from './dto/create-account.dto';
+import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
+import { ConfirmEmailVerificationCodeForAdminDto } from './dto/confirm-email-verification-for-admin.dto';
 
 @Controller()
 export class UserController {
@@ -75,56 +79,48 @@ export class UserController {
   }
 
   @ApiOperation({ description: `Send phone number verification code` })
+  @UseGuards(JwtAuthGuard)
   @Post('auth/send-phone-verification-code')
   async sendPhoneVerificationCode(
+    @Request() req,
     @Body() body: SendPhoneNumberVerificationCodeDto,
   ) {
-    const res = await this.verificationService.sendPhoneVerificationCode(
-      body.phoneNumber,
-    );
-    if (res === true) {
-      return 'Phone number verification code was successfully sent';
-    }
-    throw new BadRequestException('Sorry, Can not send verification code');
+    return this.userService.sendPhoneOtp(req.user.email, body);
   }
 
   @ApiOperation({ description: `Confirm phone number verification code` })
   @Post('auth/confirm-phone-verification-code')
-  async confirmPhoneNumber(
+  @UseGuards(JwtAuthGuard)
+  async confirmPhoneNumberVerificationCode(
+    @Request() req,
     @Body() body: ConfirmPhoneNumberVerificationCodeDto,
   ) {
-    const res =
-      await this.verificationService.confirmPhoneNumberVerificationCode(body);
-    const payload = { phoneNumber: body.phoneNumber };
-    const token = await this.jwtService.signAsync(payload);
-    if (res === true) return { phoneNumberToken: token };
-    throw new BadRequestException('Sorry, Can not confirm phone number');
+    const updatedUser = await this.userService.confirmPhoneOtp(
+      req.user.email,
+      body.code,
+    );
+    return this.userService.createAccessToken(updatedUser);
   }
 
   @ApiOperation({ description: `Send email verification code` })
+  @UseGuards(JwtAuthGuard)
   @Post('auth/send-email-verification-code')
-  async sendEmailVerificationCode(@Body() body: SendEmailVerificationCodeDto) {
-    const res = await this.verificationService.sendEmailVerificationCode(
-      body.email,
-    );
-    if (res === true) {
-      return 'Email verification code was successfully sent';
-    }
-    throw new BadRequestException('Sorry, Can not send verification code');
+  async sendEmailVerificationCode(@Request() req) {
+    return this.userService.sendEmailOtp(req.user.email);
   }
 
   @ApiOperation({ description: `Confirm email verification code` })
+  @UseGuards(JwtAuthGuard)
   @Post('auth/confirm-email-verification-code')
-  async confirmEmail(@Body() body: ConfirmEmailVerificationCodeDto) {
-    const res = await this.verificationService.confirmEmailVerificationCode(
-      body,
+  async confirmEmailVerificationCode(
+    @Request() req,
+    @Body() body: ConfirmEmailVerificationCodeDto,
+  ) {
+    const updatedUser = await this.userService.confirmEmailOtp(
+      req.user.email,
+      body.code,
     );
-    const payload = { email: body.email };
-    const token = await this.jwtService.signAsync(payload);
-    if (res === true) return { emailToken: token };
-    throw new BadRequestException(
-      'Sorry, Can not confirm email verification code',
-    );
+    return this.userService.createAccessToken(updatedUser);
   }
 
   @ApiOperation({
@@ -148,15 +144,13 @@ export class UserController {
   @ApiOperation({ description: `Confirm email verification code` })
   @Post('auth/confirm-email-verification-code-for-forget-password')
   async confirmEmailForForgetPassword(
-    @Body() body: ConfirmEmailVerificationCodeDto,
+    @Body() body: ConfirmEmailVerificationCodeForAdminDto,
   ) {
-    const res = await this.verificationService.confirmEmailVerificationCode(
-      body,
+    const updatedUser = await this.userService.confirmEmailOtp(
+      body.email,
+      body.code,
     );
-    const payload = { email: body.email };
-    const token = await this.jwtService.signAsync(payload);
-    if (res === true) return { token: token };
-    throw new BadRequestException('Sorry, Can not confirm phone number');
+    return this.userService.createAccessToken(updatedUser);
   }
 
   @ApiOperation({ description: `Confirm email verification code` })
@@ -169,7 +163,17 @@ export class UserController {
 
   @ApiOperation({ description: `Check if referral id exists` })
   @Post('auth/check-referralid')
-  async checkIfReferralIdExists(@Body() body: ReferralIdExistsDto) {
+  async checkIfReferralIdExists() {
     return true;
+  }
+
+  @ApiOperation({ description: `Create account` })
+  @Post('auth/create-account')
+  async createAccount(@Body() body: CreateAccountDto) {
+    const createdAccount = await this.userService.createAccount(body);
+    const accessToken = await this.userService.createAccessToken(
+      createdAccount,
+    );
+    return accessToken;
   }
 }

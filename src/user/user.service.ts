@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { UpdateUserInfoDto } from '@src/admin/dto/update-user-info.dto';
+import { AccessTokenInterfaceForUser } from '@src/auth/auth.type';
+import { VerificationService } from '@src/verification/verification.service';
 import * as bcrypt from 'bcrypt';
+import { CreateAccountDto } from './dto/create-account.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
+import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
 import { Country } from './table/country.entity';
 import { CountryRepository } from './table/country.repository';
 import { DOCUEMNT_TYPE, Document } from './table/document.entity';
@@ -13,7 +18,7 @@ import { PersonProfile } from './table/person-profile.entity';
 import { PersonProfileRepository } from './table/person-profile.repository';
 import { Shareholder } from './table/shareholder.entity';
 import { ShareholderRepository } from './table/shareholder.repository';
-import { AccountType, User } from './table/user.entity';
+import { AccountType, Status, User } from './table/user.entity';
 import { UserRepository } from './table/user.repository';
 
 const REFERRAL_ID_LENGTH = 7;
@@ -27,6 +32,8 @@ export class UserService {
     private readonly documentRepository: DocumentRepository,
     private readonly enterpriseProfileRepository: EnterpriseProfileRepository,
     private readonly shareholderRepository: ShareholderRepository,
+    private readonly jwtService: JwtService,
+    private readonly verificationService: VerificationService,
   ) {}
 
   async findByEmail(email: string): Promise<User> {
@@ -106,12 +113,10 @@ export class UserService {
       reload: false,
     });
     const savedUser = await this.findOne(res.id);
-    const country = await this.findOneCountryByName(body.country);
     const personProfile: Partial<PersonProfile> = {
       address: body.address,
       zipcode: body.zipcode,
       city: body.city,
-      countryId: country.id,
       user: savedUser,
     };
     const personProfileEntity =
@@ -249,5 +254,98 @@ export class UserService {
         );
     }
     return this.getPersonUserInfo(user.email);
+  }
+
+  async createAccount(body: CreateAccountDto) {
+    const referralId = await this.generateReferralId();
+    const user: Partial<User> = {
+      referralId: referralId,
+      referralAppliedId: body?.referralAppliedId,
+      email: body.email,
+      language: body.language,
+      type: AccountType.PERSON,
+      password: await bcrypt.hash(body.password, 10),
+    };
+    const userEntity = this.userRepository.create(user);
+    const res = await this.userRepository.save(userEntity, {
+      reload: false,
+    });
+    const savedUser = await this.findOne(res.id);
+    return savedUser;
+  }
+
+  async createAccessToken(user: User) {
+    const payload: AccessTokenInterfaceForUser = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      secondName: user.secondName,
+      phoneNumber: user.phoneNumber,
+      type: user.type,
+    };
+
+    return { accessToken: await this.jwtService.signAsync(payload) };
+  }
+
+  async sendEmailOtp(email: string): Promise<string> {
+    const res = await this.verificationService.sendEmailVerificationCode(email);
+    if (res === true) {
+      return 'Email verification code was successfully sent';
+    }
+    throw new BadRequestException('Sorry, Can not send verification code');
+  }
+
+  async confirmEmailOtp(email: string, code: string): Promise<User> {
+    const res = await this.verificationService.confirmEmailVerificationCode(
+      email,
+      code,
+    );
+    if (res) {
+      await this.userRepository.update(
+        { email: email },
+        { status: Status.EMAIL_VALIDATED },
+      );
+      return this.findByEmail(email);
+    }
+    throw new BadRequestException(
+      'Sorry, Can not confirm email verification code',
+    );
+  }
+
+  async sendPhoneOtp(
+    email: string,
+    body: SendPhoneNumberVerificationCodeDto,
+  ): Promise<string> {
+    const res = await this.verificationService.sendPhoneVerificationCode(
+      body.phoneNumber,
+    );
+    if (res === true) {
+      const country = await this.countryRepository.findOne({
+        where: { name: body.country },
+      });
+      await this.userRepository.update(
+        { email: email },
+        { phoneNumber: body.phoneNumber, countryId: country.id },
+      );
+      return 'Phone number verification code was successfully sent';
+    }
+    throw new BadRequestException('Sorry, Can not send verification code');
+  }
+
+  async confirmPhoneOtp(email: string, code: string): Promise<User> {
+    const user = await this.findByEmail(email);
+    const res =
+      await this.verificationService.confirmPhoneNumberVerificationCode(
+        user.phoneNumber,
+        code,
+      );
+    if (res) {
+      await this.userRepository.update(
+        { email: email },
+        { status: Status.PHONE_VALIDATED },
+      );
+      return this.findByEmail(email);
+    }
+    throw new BadRequestException('Sorry, Can not confirm phone number');
   }
 }

@@ -75,9 +75,6 @@ export class EnterpriseProfile {
   @Column({ type: 'varchar', nullable: false, length: 64 })
   city: string;
 
-  @ManyToOne(() => Country, (country) => country.personProfile)
-  country: Country;
-
   @OneToOne(() => User)
   @JoinColumn()
   user: User;

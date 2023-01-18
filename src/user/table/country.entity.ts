@@ -8,7 +8,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { PersonProfile } from './person-profile.entity';
+import { User } from './user.entity';
 
 @Entity('country')
 export class Country {
@@ -20,9 +20,9 @@ export class Country {
   @Column({ type: 'varchar', nullable: true, length: 128 })
   name: string;
 
-  @OneToMany(() => PersonProfile, (personProfile) => personProfile.country)
+  @OneToMany(() => User, (user) => user.country)
   @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })
-  personProfile: PersonProfile[];
+  user: User[];
 
   @OneToMany(() => Fee, (fee) => fee.country)
   @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })
