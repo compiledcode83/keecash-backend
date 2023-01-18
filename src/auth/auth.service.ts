@@ -175,7 +175,7 @@ export class AuthService {
     throw new BadRequestException('Invalid code');
   }
 
-  async getSumsubAccessToken(userId: number): Promise<string> {
+  async getSumsubAccessToken(userId: string): Promise<string> {
     return this.verificationService.createSumsubAccessToken(userId);
   }
 }

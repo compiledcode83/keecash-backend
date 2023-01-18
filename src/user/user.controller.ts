@@ -6,6 +6,7 @@ import {
   Request,
   UseGuards,
   UseInterceptors,
+  Get,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { VerificationService } from '@src/verification/verification.service';
@@ -175,5 +176,14 @@ export class UserController {
       createdAccount,
     );
     return accessToken;
+  }
+
+  @ApiOperation({ description: `Get sumsub api access token for development` })
+  @Get('auth/dev-sumsub-access-token')
+  async getSumsubAccessToken() {
+    return {
+      token: await this.userService.getSumsubAccessToken(),
+      userId: 'JamesBond007',
+    };
   }
 }

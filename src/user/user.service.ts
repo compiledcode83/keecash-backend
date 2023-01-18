@@ -348,4 +348,8 @@ export class UserService {
     }
     throw new BadRequestException('Sorry, Can not confirm phone number');
   }
+
+  async getSumsubAccessToken() {
+    return this.verificationService.createSumsubAccessToken('JamesBond007');
+  }
 }

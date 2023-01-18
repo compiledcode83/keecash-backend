@@ -7,7 +7,7 @@ import { lastValueFrom, map } from 'rxjs';
 
 const SMSCHANNEL = 'sms';
 const EMAILCHANNEL = 'email';
-const TTLINSECS = 600;
+const TTLINSECS = 2400;
 const SUMSUB_LEVEL_NAME = 'basic-kyc-level';
 
 @Injectable()
@@ -115,7 +115,7 @@ export class VerificationService {
     return config;
   }
 
-  async createSumsubAccessToken(userId: number) {
+  async createSumsubAccessToken(userId: string) {
     const config = {};
     const url = `/resources/accessTokens?userId=${userId}&ttlInSecs=${TTLINSECS}&levelName=${SUMSUB_LEVEL_NAME}`;
     const headers = {
