@@ -395,4 +395,12 @@ export class UserService {
     }
     throw new BadRequestException('Please complete last steps');
   }
+
+  async getCountryList() {
+    const countryList = await this.countryRepository
+      .createQueryBuilder('country')
+      .select(['name', 'country_code', 'phone_code'])
+      .getRawMany();
+    return countryList;
+  }
 }

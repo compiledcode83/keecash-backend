@@ -149,6 +149,13 @@ export class UserController {
     return this.userService.createAccessToken(updatedUser);
   }
 
+  @ApiOperation({ description: `Get available country list` })
+  @UseGuards(JwtAuthGuard)
+  @Get('auth/get-country-list')
+  async getCountryList() {
+    return this.userService.getCountryList();
+  }
+
   @ApiOperation({ description: `Get sumsub api access token for development` })
   @Get('auth/dev-sumsub-access-token')
   async getSumsubAccessToken() {
