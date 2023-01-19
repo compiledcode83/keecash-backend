@@ -8,7 +8,7 @@ import { lastValueFrom, map } from 'rxjs';
 const SMSCHANNEL = 'sms';
 const EMAILCHANNEL = 'email';
 const TTLINSECS = 2400;
-const SUMSUB_LEVEL_NAME = 'basic-kyc-level';
+const SUMSUB_LEVEL_NAME = 'sumsub-signin-demo-level';
 
 @Injectable()
 export class VerificationService {
