@@ -17,10 +17,6 @@ export class PersonProfile {
   @Column({ type: 'varchar', nullable: false, length: 64 })
   address: string;
 
-  @ApiProperty({ description: 'zipcode', maximum: 64, required: true })
-  @Column({ type: 'varchar', nullable: false, length: 64 })
-  zipcode: string;
-
   @ApiProperty({ description: 'City', required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
   city: string;

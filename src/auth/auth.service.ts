@@ -59,7 +59,7 @@ export class AuthService {
   async validateUser(
     emailOrPhoneNumber: string,
     password: string,
-  ): Promise<Partial<User> | null> {
+  ): Promise<AccessTokenInterfaceForUser | null> {
     const userByEmail = await this.userService.findByEmail(emailOrPhoneNumber);
 
     if (userByEmail && (await bcrypt.compare(password, userByEmail.password))) {
@@ -68,7 +68,7 @@ export class AuthService {
         firstName: userByEmail.firstName,
         secondName: userByEmail.secondName,
         email: userByEmail.email,
-        phoneNumber: userByEmail.phoneNumber,
+        status: userByEmail.status,
         type: userByEmail.type,
       };
     }
@@ -86,7 +86,7 @@ export class AuthService {
         firstName: userByPhonenumber.firstName,
         secondName: userByPhonenumber.secondName,
         email: userByPhonenumber.email,
-        phoneNumber: userByPhonenumber.phoneNumber,
+        status: userByPhonenumber.status,
         type: userByPhonenumber.type,
       };
     }
@@ -104,7 +104,7 @@ export class AuthService {
       firstName: user.firstName,
       secondName: user.secondName,
       email: user.email,
-      phoneNumber: user.phoneNumber,
+      status: user.status,
       type: user.type,
     };
 

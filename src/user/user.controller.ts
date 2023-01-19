@@ -24,6 +24,7 @@ import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { ConfirmEmailVerificationCodeForAdminDto } from './dto/confirm-email-verification-for-admin.dto';
+import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
 
 @Controller()
 export class UserController {
@@ -33,51 +34,6 @@ export class UserController {
     private readonly storageService: StorageService,
     private readonly jwtService: JwtService,
   ) {}
-
-  @ApiOperation({ description: `Register a new user` })
-  @Post('auth/register-person')
-  async registerPerson(@Body() body: CreatePersonUserDto) {
-    try {
-      const emailPayload: any = this.jwtService.verify(body.emailToken);
-      if (emailPayload.email != body.email)
-        throw new BadRequestException('Please verify your email');
-    } catch (err) {
-      throw new BadRequestException('Please verify your email');
-    }
-    try {
-      const phoneNumberPayload: any = this.jwtService.verify(
-        body.phoneNumberToken,
-      );
-      if (phoneNumberPayload.phoneNumber != body.phoneNumber)
-        throw new BadRequestException('Please verify your Phone Number');
-    } catch (err) {
-      throw new BadRequestException('Please verify your Phone Number');
-    }
-    await this.userService.createPersonalUser(body);
-    return 'Success';
-  }
-
-  @ApiOperation({ description: `Register a new user` })
-  @UseInterceptors(
-    FileInterceptor('file', {
-      limits: {
-        files: 1,
-        fileSize: 1024 * 1024,
-      },
-    }),
-  )
-  @Post('auth/register-enterprise')
-  async registerEnterprise(@Body() body: CreateEnterpriseUserDto) {
-    try {
-      const emailPayload: any = this.jwtService.verify(body.emailToken);
-      if (emailPayload.email != body.email)
-        throw new BadRequestException('Please verify your email');
-    } catch (err) {
-      throw new BadRequestException('Please verify your email');
-    }
-    await this.userService.createEnterpriseUser(body);
-    return 'Success';
-  }
 
   @ApiOperation({ description: `Send phone number verification code` })
   @UseGuards(JwtAuthGuard)
@@ -175,7 +131,22 @@ export class UserController {
     const accessToken = await this.userService.createAccessToken(
       createdAccount,
     );
+    await this.userService.sendEmailOtp(body.email);
     return accessToken;
+  }
+
+  @ApiOperation({ description: `Create account` })
+  @UseGuards(JwtAuthGuard)
+  @Post('auth/add-personal-user-info')
+  async addPersonalUserInfo(
+    @Request() req,
+    @Body() body: AddPersonUserInfoDto,
+  ) {
+    const updatedUser = await this.userService.addPersonalUserInfo(
+      req.user.email,
+      body,
+    );
+    return this.userService.createAccessToken(updatedUser);
   }
 
   @ApiOperation({ description: `Get sumsub api access token for development` })

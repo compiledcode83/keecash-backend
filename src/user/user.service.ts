@@ -4,6 +4,7 @@ import { UpdateUserInfoDto } from '@src/admin/dto/update-user-info.dto';
 import { AccessTokenInterfaceForUser } from '@src/auth/auth.type';
 import { VerificationService } from '@src/verification/verification.service';
 import * as bcrypt from 'bcrypt';
+import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
@@ -35,6 +36,13 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly verificationService: VerificationService,
   ) {}
+
+  async findCountryByName(name: string): Promise<Country> {
+    const country = await this.countryRepository.findOne({
+      where: { name },
+    });
+    return country;
+  }
 
   async findByEmail(email: string): Promise<User> {
     return this.userRepository.findOne({ where: { email } });
@@ -115,7 +123,6 @@ export class UserService {
     const savedUser = await this.findOne(res.id);
     const personProfile: Partial<PersonProfile> = {
       address: body.address,
-      zipcode: body.zipcode,
       city: body.city,
       user: savedUser,
     };
@@ -246,7 +253,6 @@ export class UserService {
       const personalInfo: Partial<PersonProfile> = {};
       if (body.address) personalInfo.address = body.address;
       if (body.city) personalInfo.city = body.city;
-      if (body.zipcode) personalInfo.zipcode = body.zipcode;
       if (Object.keys(personalInfo).length !== 0)
         await this.personProfileRepository.update(
           personProfile.id,
@@ -280,7 +286,7 @@ export class UserService {
       email: user.email,
       firstName: user.firstName,
       secondName: user.secondName,
-      phoneNumber: user.phoneNumber,
+      status: user.status,
       type: user.type,
     };
 
@@ -288,9 +294,14 @@ export class UserService {
   }
 
   async sendEmailOtp(email: string): Promise<string> {
-    const res = await this.verificationService.sendEmailVerificationCode(email);
-    if (res === true) {
-      return 'Email verification code was successfully sent';
+    const user = await this.findByEmail(email);
+    if (user.status === Status.REGISTERED) {
+      const res = await this.verificationService.sendEmailVerificationCode(
+        email,
+      );
+      if (res === true) {
+        return 'Email verification code was successfully sent';
+      }
     }
     throw new BadRequestException('Sorry, Can not send verification code');
   }
@@ -316,18 +327,21 @@ export class UserService {
     email: string,
     body: SendPhoneNumberVerificationCodeDto,
   ): Promise<string> {
-    const res = await this.verificationService.sendPhoneVerificationCode(
-      body.phoneNumber,
-    );
-    if (res === true) {
-      const country = await this.countryRepository.findOne({
-        where: { name: body.country },
-      });
-      await this.userRepository.update(
-        { email: email },
-        { phoneNumber: body.phoneNumber, countryId: country.id },
-      );
-      return 'Phone number verification code was successfully sent';
+    const user = await this.findByEmail(email);
+    if (user.status === Status.EMAIL_VALIDATED) {
+      const country = await this.findCountryByName(body.country);
+      if (body.phoneNumber.startsWith(country.phoneCode)) {
+        const res = await this.verificationService.sendPhoneVerificationCode(
+          body.phoneNumber,
+        );
+        if (res === true) {
+          await this.userRepository.update(
+            { email: email },
+            { phoneNumber: body.phoneNumber },
+          );
+          return 'Phone number verification code was successfully sent';
+        }
+      }
     }
     throw new BadRequestException('Sorry, Can not send verification code');
   }
@@ -351,5 +365,34 @@ export class UserService {
 
   async getSumsubAccessToken() {
     return this.verificationService.createSumsubAccessToken('JamesBond007');
+  }
+
+  async addPersonalUserInfo(
+    email: string,
+    body: AddPersonUserInfoDto,
+  ): Promise<User> {
+    const user = await this.findByEmail(email);
+    if (user.status === Status.PHONE_VALIDATED) {
+      const country = await this.findCountryByName(body.country);
+      await this.userRepository.update(
+        { email },
+        {
+          firstName: body.firstName,
+          secondName: body.secondName,
+          countryId: country.id,
+          status: Status.COMPLETED,
+        },
+      );
+      const personProfile: Partial<PersonProfile> = {
+        address: body.address,
+        city: body.city,
+        user: user,
+      };
+      const personProfileEntity =
+        this.personProfileRepository.create(personProfile);
+      await this.personProfileRepository.save(personProfileEntity);
+      return this.findByEmail(email);
+    }
+    throw new BadRequestException('Please complete last steps');
   }
 }
