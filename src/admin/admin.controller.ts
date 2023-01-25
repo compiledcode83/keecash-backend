@@ -6,6 +6,7 @@ import {
   Request,
   Get,
   Param,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { JwtAdminAuthGuard } from '@src/auth/guards/jwt-admin.guard';
@@ -35,10 +36,27 @@ export class AdminController {
       userId,
     );
     if (user) {
-      if (user.type === AccountType.PERSON)
-        return this.userService.getPersonUserInfo(user.email);
+      if (user.type === AccountType.PERSON) {
+        const userInfo = await this.userService.getPersonUserInfo(user.email);
+        if (userInfo) return userInfo;
+        return {
+          id: user.id,
+          firstname: user.firstName,
+          secondname: user.secondName,
+          email: user.email,
+          phonenumber: user.phoneNumber,
+          referralid: user.referralId,
+          referralappliedid: user.referralAppliedId,
+          registeredat: user.registeredAt,
+          approvedat: user.approvedAt,
+          rejectedat: user.rejectedAt,
+          status: user.status,
+          type: user.type,
+          language: user.language,
+        };
+      }
     }
-    return 'Can not find user';
+    throw new BadRequestException('Can not find user');
   }
 
   @ApiOperation({

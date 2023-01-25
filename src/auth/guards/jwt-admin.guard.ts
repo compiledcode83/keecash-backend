@@ -9,13 +9,13 @@ import { AuthGuard } from '@nestjs/passport';
 export class JwtAdminAuthGuard extends AuthGuard('jwtAdmin') {
   handleRequest(
     err: any,
-    admin: any,
+    user: any,
     info: any,
     context: ExecutionContext,
     status?: any,
   ) {
-    if (admin) {
-      return admin;
+    if (user) {
+      return user;
     }
 
     throw new UnauthorizedException();

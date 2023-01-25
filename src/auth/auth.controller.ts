@@ -134,6 +134,6 @@ export class AuthController {
   @UseGuards(JwtAdminAuthGuard)
   @Get('/admin-profile')
   async successAdmin(@Request() req) {
-    return req.admin;
+    return req.user;
   }
 }
