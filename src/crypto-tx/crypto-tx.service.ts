@@ -13,7 +13,7 @@ import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dt
 import { CryptoTransferDto } from './dto/crypto-transfer.dto';
 import { CryptoTransactionFilterDto } from './dto/crypto-transaction-filter.dto';
 import { PaginatedResult } from '@src/common/pagination/pagination.types';
-import { LessThan, MoreThan } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { buildPaginator, PagingResult } from 'typeorm-cursor-pagination';
 import { FeeService } from '@src/fee/fee.service';
 import { CryptoPayoutNotifyDto } from './dto/crypto-payout-notify.dto';
@@ -594,13 +594,13 @@ export class CryptoTxService {
 
     if ('fromDate' in searchParams) {
       queryBuilder.andWhere({
-        createdAt: MoreThan(searchParams.fromDate),
+        createdAt: MoreThanOrEqual(searchParams.fromDate),
       });
     }
 
     if ('toDate' in searchParams) {
       queryBuilder.andWhere({
-        createdAt: LessThan(searchParams.toDate),
+        createdAt: LessThanOrEqual(searchParams.toDate),
       });
     }
 

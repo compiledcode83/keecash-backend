@@ -74,7 +74,7 @@ export class AdminController {
   @UseGuards(JwtAdminAuthGuard)
   @Post('get-crypto-tx')
   async getCryptoTx(@Request() request, @Body() body: GetCryptoTxAdminDto) {
-    return await this.adminService.getCryptoTx(body);
+    return this.adminService.getCryptoTx(body);
   }
 
   @ApiOperation({
@@ -86,7 +86,7 @@ export class AdminController {
     @Request() request,
     @Body() body: GetBeneficiaryAdminDto,
   ) {
-    return await this.adminService.getBeneficiaries(body);
+    return this.adminService.getBeneficiaries(body);
   }
 
   @ApiOperation({
@@ -96,7 +96,7 @@ export class AdminController {
   @Post('add-admin')
   async addAdmin(@Request() request, @Body() body: AddAdminDto) {
     if (body.type === AdminType.SUPER_ADMIN)
-      return await this.adminService.addAdmin(body);
+      return this.adminService.addAdmin(body);
     if (body.country) {
     }
   }

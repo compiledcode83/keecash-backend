@@ -63,6 +63,6 @@ export class CryptoTransactionFilterDto extends CursorFilterDto {
 
   @ApiProperty({ example: 'createdAt', enum: ['createdAt'], required: false })
   @IsOptional()
-  @IsIn(['createdAt'])
+  @IsIn(['createdAt', 'id'])
   orderParam: keyof CryptoTx = 'createdAt';
 }
