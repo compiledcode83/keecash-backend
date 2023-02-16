@@ -20,10 +20,7 @@ export class StorageService {
   }
 
   async delete(path: string) {
-    await this.storage
-      .bucket(this.bucket)
-      .file(path)
-      .delete({ ignoreNotFound: true });
+    await this.storage.bucket(this.bucket).file(path).delete({ ignoreNotFound: true });
   }
 
   async get(path: string): Promise<StorageFile> {
@@ -39,10 +36,7 @@ export class StorageService {
   }
 
   async getWithMetaData(path: string): Promise<StorageFile> {
-    const [metadata] = await this.storage
-      .bucket(this.bucket)
-      .file(path)
-      .getMetadata();
+    const [metadata] = await this.storage.bucket(this.bucket).file(path).getMetadata();
     const fileResponse: DownloadResponse = await this.storage
       .bucket(this.bucket)
       .file(path)
@@ -51,9 +45,7 @@ export class StorageService {
 
     const storageFile = new StorageFile();
     storageFile.buffer = buffer;
-    storageFile.metadata = new Map<string, string>(
-      Object.entries(metadata || {}),
-    );
+    storageFile.metadata = new Map<string, string>(Object.entries(metadata || {}));
     storageFile.contentType = storageFile.metadata.get('contentType');
     return storageFile;
   }

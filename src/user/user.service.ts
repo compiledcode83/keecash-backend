@@ -63,9 +63,7 @@ export class UserService {
     return personProfile;
   }
 
-  async findByEmailPhonenumberReferralId(
-    userInfo: string,
-  ): Promise<User | null> {
+  async findByEmailPhonenumberReferralId(userInfo: string): Promise<User | null> {
     const userByEmail = await this.findByEmail(userInfo);
     if (userByEmail) return userByEmail;
     const userByPhonenumber = await this.findByPhonenumber(userInfo);
@@ -115,10 +113,7 @@ export class UserService {
   }
 
   async passwordReset(email: string, password: string): Promise<boolean> {
-    await this.userRepository.update(
-      { email },
-      { password: await bcrypt.hash(password, 10) },
-    );
+    await this.userRepository.update({ email }, { password: await bcrypt.hash(password, 10) });
     return true;
   }
 
@@ -145,8 +140,7 @@ export class UserService {
       city: body.city,
       user: savedUser,
     };
-    const personProfileEntity =
-      this.personProfileRepository.create(personProfile);
+    const personProfileEntity = this.personProfileRepository.create(personProfile);
     await this.personProfileRepository.save(personProfileEntity);
     const document: Partial<Document> = {
       userId: savedUser.id,
@@ -189,15 +183,13 @@ export class UserService {
       city: body.city,
       user: savedUser,
     };
-    const enterpriseProfileEntity =
-      this.enterpriseProfileRepository.create(enterpriseProfile);
+    const enterpriseProfileEntity = this.enterpriseProfileRepository.create(enterpriseProfile);
     const resEnterpriseProfile = await this.enterpriseProfileRepository.save(
       enterpriseProfileEntity,
     );
-    const savedEnterpriseProfile =
-      await this.enterpriseProfileRepository.findOne({
-        where: { id: resEnterpriseProfile.id },
-      });
+    const savedEnterpriseProfile = await this.enterpriseProfileRepository.findOne({
+      where: { id: resEnterpriseProfile.id },
+    });
     for (const shareholderItem of body.shareholders) {
       const shareholder: Partial<Shareholder> = {
         firstName: shareholderItem.firstName,
@@ -264,8 +256,7 @@ export class UserService {
       if (body.accountType) userInfo.type = body.accountType;
       if (body.status) userInfo.status = body.status;
       if (body.language) userInfo.language = body.language;
-      if (Object.keys(userInfo).length !== 0)
-        await this.userRepository.update(user.id, userInfo);
+      if (Object.keys(userInfo).length !== 0) await this.userRepository.update(user.id, userInfo);
     }
     {
       const personProfile = await this.getPersonProfileByUserId(user.id);
@@ -273,10 +264,7 @@ export class UserService {
       if (body.address) personalInfo.address = body.address;
       if (body.city) personalInfo.city = body.city;
       if (Object.keys(personalInfo).length !== 0)
-        await this.personProfileRepository.update(
-          personProfile.id,
-          personalInfo,
-        );
+        await this.personProfileRepository.update(personProfile.id, personalInfo);
     }
     return this.getPersonUserInfo(user.email);
   }
@@ -315,9 +303,7 @@ export class UserService {
   async sendEmailOtp(email: string): Promise<string> {
     const user = await this.findByEmail(email);
     if (user.status === Status.REGISTERED) {
-      const res = await this.verificationService.sendEmailVerificationCode(
-        email,
-      );
+      const res = await this.verificationService.sendEmailVerificationCode(email);
       if (res === true) {
         return 'Email verification code was successfully sent';
       }
@@ -326,38 +312,22 @@ export class UserService {
   }
 
   async confirmEmailOtp(email: string, code: string): Promise<User> {
-    const res = await this.verificationService.confirmEmailVerificationCode(
-      email,
-      code,
-    );
+    const res = await this.verificationService.confirmEmailVerificationCode(email, code);
     if (res) {
-      await this.userRepository.update(
-        { email: email },
-        { status: Status.EMAIL_VALIDATED },
-      );
+      await this.userRepository.update({ email: email }, { status: Status.EMAIL_VALIDATED });
       return this.findByEmail(email);
     }
-    throw new BadRequestException(
-      'Sorry, Can not confirm email verification code',
-    );
+    throw new BadRequestException('Sorry, Can not confirm email verification code');
   }
 
-  async sendPhoneOtp(
-    email: string,
-    body: SendPhoneNumberVerificationCodeDto,
-  ): Promise<string> {
+  async sendPhoneOtp(email: string, body: SendPhoneNumberVerificationCodeDto): Promise<string> {
     const user = await this.findByEmail(email);
     if (user.status === Status.EMAIL_VALIDATED) {
       const country = await this.findCountryByName(body.country);
       if (body.phoneNumber.startsWith(country.phoneCode)) {
-        const res = await this.verificationService.sendPhoneVerificationCode(
-          body.phoneNumber,
-        );
+        const res = await this.verificationService.sendPhoneVerificationCode(body.phoneNumber);
         if (res === true) {
-          await this.userRepository.update(
-            { email: email },
-            { phoneNumber: body.phoneNumber },
-          );
+          await this.userRepository.update({ email: email }, { phoneNumber: body.phoneNumber });
           return 'Phone number verification code was successfully sent';
         }
       }
@@ -367,16 +337,12 @@ export class UserService {
 
   async confirmPhoneOtp(email: string, code: string): Promise<User> {
     const user = await this.findByEmail(email);
-    const res =
-      await this.verificationService.confirmPhoneNumberVerificationCode(
-        user.phoneNumber,
-        code,
-      );
+    const res = await this.verificationService.confirmPhoneNumberVerificationCode(
+      user.phoneNumber,
+      code,
+    );
     if (res) {
-      await this.userRepository.update(
-        { email: email },
-        { status: Status.PHONE_VALIDATED },
-      );
+      await this.userRepository.update({ email: email }, { status: Status.PHONE_VALIDATED });
       return this.findByEmail(email);
     }
     throw new BadRequestException('Sorry, Can not confirm phone number');
@@ -386,10 +352,7 @@ export class UserService {
     return this.verificationService.createSumsubAccessToken('JamesBond007');
   }
 
-  async addPersonalUserInfo(
-    email: string,
-    body: AddPersonUserInfoDto,
-  ): Promise<User> {
+  async addPersonalUserInfo(email: string, body: AddPersonUserInfoDto): Promise<User> {
     const user = await this.findByEmail(email);
     if (user.status === Status.PHONE_VALIDATED) {
       const country = await this.findCountryByName(body.country);
@@ -407,8 +370,7 @@ export class UserService {
         city: body.city,
         user: user,
       };
-      const personProfileEntity =
-        this.personProfileRepository.create(personProfile);
+      const personProfileEntity = this.personProfileRepository.create(personProfile);
       await this.personProfileRepository.save(personProfileEntity);
       return this.findByEmail(email);
     }

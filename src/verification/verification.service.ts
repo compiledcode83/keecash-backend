@@ -20,22 +20,12 @@ export class VerificationService {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
   ) {
-    const accountSid = this.configService.get<string>(
-      'verificationConfig.twilioAccountSid',
-    );
-    const authToken = this.configService.get<string>(
-      'verificationConfig.twilioAuthToken',
-    );
+    const accountSid = this.configService.get<string>('verificationConfig.twilioAccountSid');
+    const authToken = this.configService.get<string>('verificationConfig.twilioAuthToken');
 
-    this.sumsubAppToken = this.configService.get<string>(
-      'verificationConfig.sumsubAppToken',
-    );
-    this.sumsubSecretKey = this.configService.get<string>(
-      'verificationConfig.sumsubSecretKey',
-    );
-    this.sumsubBaseUrl = this.configService.get<string>(
-      'verificationConfig.sumsubBaseUrl',
-    );
+    this.sumsubAppToken = this.configService.get<string>('verificationConfig.sumsubAppToken');
+    this.sumsubSecretKey = this.configService.get<string>('verificationConfig.sumsubSecretKey');
+    this.sumsubBaseUrl = this.configService.get<string>('verificationConfig.sumsubBaseUrl');
     this.twilioClient = new Twilio(accountSid, authToken);
   }
 
@@ -53,10 +43,7 @@ export class VerificationService {
     return false;
   }
 
-  async confirmPhoneNumberVerificationCode(
-    phonenumber: string,
-    code: string,
-  ): Promise<boolean> {
+  async confirmPhoneNumberVerificationCode(phonenumber: string, code: string): Promise<boolean> {
     const serviceId = this.configService.get<string>(
       'verificationConfig.twilioVerificationServiceSid',
     );
@@ -83,10 +70,7 @@ export class VerificationService {
     return false;
   }
 
-  async confirmEmailVerificationCode(
-    email: string,
-    code: string,
-  ): Promise<boolean> {
+  async confirmEmailVerificationCode(email: string, code: string): Promise<boolean> {
     const serviceId = this.configService.get<string>(
       'verificationConfig.twilioVerificationServiceSid',
     );
@@ -133,13 +117,9 @@ export class VerificationService {
     try {
       const res = await lastValueFrom(
         this.httpService
-          .post(
-            `${this.sumsubBaseUrl}${updatedConfig['url']}`,
-            updatedConfig['data'],
-            {
-              headers: updatedConfig['headers'],
-            },
-          )
+          .post(`${this.sumsubBaseUrl}${updatedConfig['url']}`, updatedConfig['data'], {
+            headers: updatedConfig['headers'],
+          })
           .pipe(map((res) => res.data?.token)),
       );
       return res;

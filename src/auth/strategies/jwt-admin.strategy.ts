@@ -15,9 +15,7 @@ export class JwtAdminStrategy extends PassportStrategy(Strategy, 'jwtAdmin') {
     });
   }
 
-  async validate(
-    payload: Partial<Admin>,
-  ): Promise<AccessTokenInterfaceForAdmin> {
+  async validate(payload: Partial<Admin>): Promise<AccessTokenInterfaceForAdmin> {
     return {
       id: payload.id,
       email: payload.email,

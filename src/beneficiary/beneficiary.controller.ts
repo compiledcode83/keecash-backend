@@ -1,11 +1,4 @@
-import {
-  Body,
-  Request,
-  Controller,
-  Post,
-  UseGuards,
-  Get,
-} from '@nestjs/common';
+import { Body, Request, Controller, Post, UseGuards, Get } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { BeneficiaryService } from './beneficiary.service';
@@ -19,24 +12,15 @@ export class BeneficiaryController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('add-user')
-  async addBeneficiaryUser(
-    @Body() body: AddBeneficiaryUserDto,
-    @Request() req,
-  ) {
+  async addBeneficiaryUser(@Body() body: AddBeneficiaryUserDto, @Request() req) {
     return await this.beneficiaryService.addBeneficiaryUser(body, req.user.id);
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('add-wallet')
-  async addBeneficiaryWallet(
-    @Body() body: AddBeneficiaryWalletDto,
-    @Request() req,
-  ) {
-    return await this.beneficiaryService.addBeneficiaryWallet(
-      body,
-      req.user.id,
-    );
+  async addBeneficiaryWallet(@Body() body: AddBeneficiaryWalletDto, @Request() req) {
+    return await this.beneficiaryService.addBeneficiaryWallet(body, req.user.id);
   }
 
   @ApiBearerAuth()

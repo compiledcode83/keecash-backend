@@ -1,17 +1,10 @@
 import * as bcrypt from 'bcrypt';
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@src/user/table/user.entity';
 import { UserService } from '@src/user/user.service';
 import { AuthRefreshTokenService } from '@src/auth-refresh-token/auth-refresh-token.service';
-import {
-  AccessTokenInterfaceForUser,
-  AccessTokenInterfaceForAdmin,
-} from './auth.type';
+import { AccessTokenInterfaceForUser, AccessTokenInterfaceForAdmin } from './auth.type';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
@@ -33,10 +26,7 @@ export class AuthService {
     private readonly verificationService: VerificationService,
   ) {}
 
-  async login(
-    user: User,
-    refreshTokenInfo: RefreshTokenInfo,
-  ): Promise<TokensResponseDto> {
+  async login(user: User, refreshTokenInfo: RefreshTokenInfo): Promise<TokensResponseDto> {
     const oldRefreshToken = await this.authRefreshTokenService.findOneBy({
       userId: user.id,
       useragent: refreshTokenInfo.useragent,
@@ -73,14 +63,9 @@ export class AuthService {
       };
     }
 
-    const userByPhonenumber = await this.userService.findByPhonenumber(
-      emailOrPhoneNumber,
-    );
+    const userByPhonenumber = await this.userService.findByPhonenumber(emailOrPhoneNumber);
 
-    if (
-      userByPhonenumber &&
-      (await bcrypt.compare(password, userByPhonenumber.password))
-    ) {
+    if (userByPhonenumber && (await bcrypt.compare(password, userByPhonenumber.password))) {
       return {
         id: userByPhonenumber.id,
         firstName: userByPhonenumber.firstName,
@@ -153,20 +138,13 @@ export class AuthService {
   }
 
   async adminLogin(body: LoginAdminDto): Promise<string> {
-    const res = await this.verificationService.sendEmailVerificationCode(
-      body.email,
-    );
+    const res = await this.verificationService.sendEmailVerificationCode(body.email);
     if (res) return 'Security OTP sent your email successfully';
     throw new BadRequestException('Can not send Security OTP');
   }
 
-  async confirmOtpForAdmin(
-    body: ConfirmEmailVerificationCodeForAdminDto,
-  ): Promise<string> {
-    const res = await this.verificationService.confirmEmailVerificationCode(
-      body.email,
-      body.code,
-    );
+  async confirmOtpForAdmin(body: ConfirmEmailVerificationCodeForAdminDto): Promise<string> {
+    const res = await this.verificationService.confirmEmailVerificationCode(body.email, body.code);
     if (res) {
       const admin = await this.adminService.findAdminByEmail(body.email);
       const accessToken = await this.createAccessTokenForAdmin(admin);

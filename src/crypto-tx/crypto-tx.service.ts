@@ -49,20 +49,14 @@ export class CryptoTxService {
       EUR: this.configService.get<string>('cryptoConfig.tripleaEURClientId'),
     };
     this.tripleaClientSecret = {
-      USD: this.configService.get<string>(
-        'cryptoConfig.tripleaUSDClientSecret',
-      ),
-      EUR: this.configService.get<string>(
-        'cryptoConfig.tripleaEURClientSecret',
-      ),
+      USD: this.configService.get<string>('cryptoConfig.tripleaUSDClientSecret'),
+      EUR: this.configService.get<string>('cryptoConfig.tripleaEURClientSecret'),
     };
     this.tripleaMerchatKey = {
       USD: this.configService.get<string>('cryptoConfig.tripleaUSDMerchantKey'),
       EUR: this.configService.get<string>('cryptoConfig.tripleaEURMerchantKey'),
     };
-    this.tripleaNotifyUrl = this.configService.get<string>(
-      'cryptoConfig.tripleaNotifyUrl',
-    );
+    this.tripleaNotifyUrl = this.configService.get<string>('cryptoConfig.tripleaNotifyUrl');
     this.tripleaAccessToken = { USD: '', EUR: '' };
     this.getAccessToken();
   }
@@ -162,10 +156,7 @@ export class CryptoTxService {
   async cryptoDeposit(
     body: CryptoDepositDto,
     userEmail: string,
-  ): Promise<
-    | { hosted_url: string; expires_in: number; payment_reference: string }
-    | boolean
-  > {
+  ): Promise<{ hosted_url: string; expires_in: number; payment_reference: string } | boolean> {
     try {
       const requestBody = {
         type: 'widget',
@@ -212,13 +203,10 @@ export class CryptoTxService {
       }
     | boolean
   > {
-    const CRYPTO_WITHDRAW_FEE_PERCENT =
-      await this.feeService.getCryptoWithdrawFeePercent();
-    const CRYPTO_WITHDRAW_FEE_FIXED =
-      await this.feeService.getCryptoWithdrawFeeFixed();
+    const CRYPTO_WITHDRAW_FEE_PERCENT = await this.feeService.getCryptoWithdrawFeePercent();
+    const CRYPTO_WITHDRAW_FEE_FIXED = await this.feeService.getCryptoWithdrawFeeFixed();
     const amount =
-      (body.amount * (100 - CRYPTO_WITHDRAW_FEE_PERCENT)) / 100 -
-      CRYPTO_WITHDRAW_FEE_FIXED;
+      (body.amount * (100 - CRYPTO_WITHDRAW_FEE_PERCENT)) / 100 - CRYPTO_WITHDRAW_FEE_FIXED;
     try {
       const requestBody = {
         merchant_key: this.tripleaMerchatKey[body.currency_name],
@@ -237,13 +225,9 @@ export class CryptoTxService {
       };
       const res = await lastValueFrom(
         this.httpService
-          .post(
-            'https://api.triple-a.io/api/v2/payout/withdraw/local/crypto/direct',
-            requestBody,
-            {
-              headers: requestHeader,
-            },
-          )
+          .post('https://api.triple-a.io/api/v2/payout/withdraw/local/crypto/direct', requestBody, {
+            headers: requestHeader,
+          })
           .pipe(map((res) => res.data)),
       );
       return {
@@ -261,9 +245,7 @@ export class CryptoTxService {
     }
   }
 
-  async cryptoConfirmWithraw(
-    body: CryptoConfirmCancelWithdrawDto,
-  ): Promise<string> {
+  async cryptoConfirmWithraw(body: CryptoConfirmCancelWithdrawDto): Promise<string> {
     try {
       const requestHeader = {
         Authorization: `Bearer ${this.tripleaAccessToken[body.currency_name]}`,
@@ -283,9 +265,7 @@ export class CryptoTxService {
     }
   }
 
-  async cryptoCancelWithraw(
-    body: CryptoConfirmCancelWithdrawDto,
-  ): Promise<string> {
+  async cryptoCancelWithraw(body: CryptoConfirmCancelWithdrawDto): Promise<string> {
     try {
       const requestHeader = {
         Authorization: `Bearer ${this.tripleaAccessToken[body.currency_name]}`,
@@ -306,10 +286,8 @@ export class CryptoTxService {
   }
 
   async paymentNotifyDeposit(body: CryptoPaymentNotifyDto) {
-    const CRYPTO_DEPOSIT_FEE_PERCENT =
-      await this.feeService.getCryptoDepostiFeePercent();
-    const CRYPTO_DEPOSIT_FEE_FIXED =
-      await this.feeService.getCryptoDepostiFeeFixed();
+    const CRYPTO_DEPOSIT_FEE_PERCENT = await this.feeService.getCryptoDepostiFeePercent();
+    const CRYPTO_DEPOSIT_FEE_FIXED = await this.feeService.getCryptoDepostiFeeFixed();
     const CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT =
       await this.feeService.getCryptoDepositReferralFeePercent();
 
@@ -319,10 +297,9 @@ export class CryptoTxService {
 
     const res = await lastValueFrom(
       this.httpService
-        .get(
-          `https://api.triple-a.io/api/v2/payment/${body.payment_reference}`,
-          { headers: requestHeader },
-        )
+        .get(`https://api.triple-a.io/api/v2/payment/${body.payment_reference}`, {
+          headers: requestHeader,
+        })
         .pipe(map((res) => res.data)),
     );
 
@@ -333,9 +310,7 @@ export class CryptoTxService {
         You deposited ${res.order_amount} ${res.payment_currency}.`;
         const receivedAmount =
           res.order_amount -
-          (res.order_amount *
-            (CRYPTO_DEPOSIT_FEE_PERCENT + CRYPTO_TRIPLEA_FEE_PERCENT)) /
-            100 -
+          (res.order_amount * (CRYPTO_DEPOSIT_FEE_PERCENT + CRYPTO_TRIPLEA_FEE_PERCENT)) / 100 -
           CRYPTO_DEPOSIT_FEE_FIXED;
         const createCryptoTx: Partial<CryptoTx> = {
           userSenderId: OUT_USER_ID,
@@ -349,15 +324,12 @@ export class CryptoTxService {
         await this.createCryptoTx(createCryptoTx);
       }
 
-      const referralUserId = await this.userService.getReferralUserId(
-        userReceiver.id,
-      );
+      const referralUserId = await this.userService.getReferralUserId(userReceiver.id);
       if (referralUserId) {
         {
           const description = `Fee from ${userReceiver.id}'s deposit`;
           const receivedAmount =
-            (((res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 +
-              CRYPTO_DEPOSIT_FEE_FIXED) *
+            (((res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 + CRYPTO_DEPOSIT_FEE_FIXED) *
               (100 - CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT)) /
             100;
           const createCryptoTx: Partial<CryptoTx> = {
@@ -375,8 +347,7 @@ export class CryptoTxService {
         {
           const description = `Referral deposit`;
           const receivedAmount =
-            (((res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 +
-              CRYPTO_DEPOSIT_FEE_FIXED) *
+            (((res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 + CRYPTO_DEPOSIT_FEE_FIXED) *
               CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT) /
             100;
           const createCryptoTx: Partial<CryptoTx> = {
@@ -393,8 +364,7 @@ export class CryptoTxService {
       } else {
         const description = `Fee from ${userReceiver.id}'s deposit`;
         const receivedAmount =
-          (res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 +
-          CRYPTO_DEPOSIT_FEE_FIXED;
+          (res.order_amount * CRYPTO_DEPOSIT_FEE_PERCENT) / 100 + CRYPTO_DEPOSIT_FEE_FIXED;
         const createCryptoTx: Partial<CryptoTx> = {
           userSenderId: OUT_USER_ID,
           userReceiverId: ADMIN_USER_ID,
@@ -410,10 +380,8 @@ export class CryptoTxService {
   }
 
   async paymentNotifyWithdraw(body: CryptoPayoutNotifyDto) {
-    const CRYPTO_WITHDRAW_FEE_PERCENT =
-      await this.feeService.getCryptoWithdrawFeePercent();
-    const CRYPTO_WITHDRAW_FEE_FIXED =
-      await this.feeService.getCryptoWithdrawFeeFixed();
+    const CRYPTO_WITHDRAW_FEE_PERCENT = await this.feeService.getCryptoWithdrawFeePercent();
+    const CRYPTO_WITHDRAW_FEE_FIXED = await this.feeService.getCryptoWithdrawFeeFixed();
     const CRYPTO_WITHDRAW_REFERRAL_FEE_PERCENT =
       await this.feeService.getCryptoWithdrawReferralFeePercent();
 
@@ -423,10 +391,9 @@ export class CryptoTxService {
 
     const res = await lastValueFrom(
       this.httpService
-        .get(
-          `https://api.triple-a.io/api/v2/payout/withdraw/order/${body.order_id}`,
-          { headers: requestHeader },
-        )
+        .get(`https://api.triple-a.io/api/v2/payout/withdraw/order/${body.order_id}`, {
+          headers: requestHeader,
+        })
         .pipe(map((res) => res.data)),
     );
     if (res.status === 'done') {
@@ -449,16 +416,12 @@ export class CryptoTxService {
         await this.createCryptoTx(createCryptoTx);
       }
 
-      const referralUserId = await this.userService.getReferralUserId(
-        userReceiver,
-      );
+      const referralUserId = await this.userService.getReferralUserId(userReceiver);
       if (referralUserId) {
         {
           const description = `Fee from ${userReceiver}'s Withdraw`;
           const receivedAmount =
-            ((amount - res.local_amount) *
-              (100 - CRYPTO_WITHDRAW_REFERRAL_FEE_PERCENT)) /
-            100;
+            ((amount - res.local_amount) * (100 - CRYPTO_WITHDRAW_REFERRAL_FEE_PERCENT)) / 100;
           const createCryptoTx: Partial<CryptoTx> = {
             userSenderId: OUT_USER_ID,
             userReceiverId: ADMIN_USER_ID,
@@ -474,9 +437,7 @@ export class CryptoTxService {
         {
           const description = `Referral Withdraw`;
           const receivedAmount =
-            ((amount - res.local_amount) *
-              CRYPTO_WITHDRAW_REFERRAL_FEE_PERCENT) /
-            100;
+            ((amount - res.local_amount) * CRYPTO_WITHDRAW_REFERRAL_FEE_PERCENT) / 100;
           const createCryptoTx: Partial<CryptoTx> = {
             userSenderId: userReceiver,
             userReceiverId: referralUserId,
@@ -506,20 +467,14 @@ export class CryptoTxService {
   }
 
   async cryptoTransfer(body: CryptoTransferDto, userId: number) {
-    const CRYPTO_TRANSFER_FEE_FIXED =
-      await this.feeService.getCryptoTransferFeeFixed();
-    const CRYPTO_TRANSFER_FEE_PERCENT =
-      await this.feeService.getCryptoTransferFeePercent();
+    const CRYPTO_TRANSFER_FEE_FIXED = await this.feeService.getCryptoTransferFeeFixed();
+    const CRYPTO_TRANSFER_FEE_PERCENT = await this.feeService.getCryptoTransferFeePercent();
     const CRYPTO_TRANSFER_REFERRAL_FEE_PERCENT =
       await this.feeService.getCryptoTransferReferralFeePercent();
-    const receiver = await this.userService.findByEmailPhonenumberReferralId(
-      body.receiver,
-    );
+    const receiver = await this.userService.findByEmailPhonenumberReferralId(body.receiver);
     if (receiver) {
       const referralUserId = await this.userService.getReferralUserId(userId);
-      const fee =
-        (body.amount * CRYPTO_TRANSFER_FEE_PERCENT) / 100 +
-        CRYPTO_TRANSFER_FEE_FIXED;
+      const fee = (body.amount * CRYPTO_TRANSFER_FEE_PERCENT) / 100 + CRYPTO_TRANSFER_FEE_FIXED;
       if (referralUserId) {
         {
           const cryptoTxEntity: Partial<CryptoTx> = {
@@ -576,8 +531,7 @@ export class CryptoTxService {
   async getPaginatedQueryBuilder(
     searchParams: CryptoTransactionFilterDto,
   ): Promise<PaginatedResult<CryptoTx>> {
-    const queryBuilder =
-      this.cryptoTxRepository.createQueryBuilder('crypto_tx');
+    const queryBuilder = this.cryptoTxRepository.createQueryBuilder('crypto_tx');
 
     if ('userId' in searchParams) {
       queryBuilder.andWhere({ userSenderId: searchParams.userId });

@@ -6,15 +6,10 @@ import {
 import { UserService } from '../user.service';
 
 @ValidatorConstraint({ name: 'userExistsByEmailValidator', async: true })
-export class UserExistsByPhoneNumberValidator
-  implements ValidatorConstraintInterface
-{
+export class UserExistsByPhoneNumberValidator implements ValidatorConstraintInterface {
   constructor(private readonly userService: UserService) {}
 
-  async validate(
-    phoneNumber: string,
-    args: ValidationArguments,
-  ): Promise<boolean> {
+  async validate(phoneNumber: string, args: ValidationArguments): Promise<boolean> {
     const userExists = await this.userService.findByPhonenumber(phoneNumber);
 
     return !Boolean(userExists);

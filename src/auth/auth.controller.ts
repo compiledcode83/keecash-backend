@@ -24,7 +24,7 @@ import { RealIP } from 'nestjs-real-ip';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { LoginAdminDto } from './dto/login-admin.dto';
-import { JwtAdminAuthGuard } from './guards/jwt-admin.guard';
+import { JwtAdminAuthGuard } from './guards/jwt-admin-auth.guard';
 import { ConfirmEmailVerificationCodeForAdminDto } from '@src/user/dto/confirm-email-verification-for-admin.dto';
 
 @Controller('auth')
@@ -49,20 +49,12 @@ export class AuthController {
       ipaddress: ip,
     };
 
-    const authData = await this.authService.login(
-      request.user,
-      refreshTokenInfo,
-    );
+    const authData = await this.authService.login(request.user, refreshTokenInfo);
 
     res.cookie('refreshToken', authData.refreshToken, {
       httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
       secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
-      maxAge:
-        this.configService.get('jwtConfig.refreshTokenDurationDays') *
-        1000 *
-        60 *
-        60 *
-        24,
+      maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
       domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
     });
 
@@ -80,10 +72,7 @@ export class AuthController {
     description: `Confirm OTP for email verification for admin login`,
   })
   @Post('confirm-otp')
-  async confirmOtp(
-    @Request() request,
-    @Body() body: ConfirmEmailVerificationCodeForAdminDto,
-  ) {
+  async confirmOtp(@Request() request, @Body() body: ConfirmEmailVerificationCodeForAdminDto) {
     const accessToken = await this.authService.confirmOtpForAdmin(body);
     return { accessToken };
   }
@@ -101,20 +90,12 @@ export class AuthController {
       useragent: req.headers['user-agent'],
       ipaddress: ip,
     };
-    const authData = await this.authService.refreshTokens(
-      params,
-      refreshTokenInfo,
-    );
+    const authData = await this.authService.refreshTokens(params, refreshTokenInfo);
 
     res.cookie('refreshToken', authData.refreshToken, {
       httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
       secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
-      maxAge:
-        this.configService.get('jwtConfig.refreshTokenDurationDays') *
-        1000 *
-        60 *
-        60 *
-        24,
+      maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
       domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
     });
 

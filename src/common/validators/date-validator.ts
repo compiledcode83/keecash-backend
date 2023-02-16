@@ -1,7 +1,4 @@
-import {
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
-} from 'class-validator';
+import { ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator';
 import { DateTime } from 'luxon';
 
 @ValidatorConstraint({ name: 'DateValidator', async: true })

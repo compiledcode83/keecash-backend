@@ -25,9 +25,6 @@ export class Shareholder {
   @Column({ type: 'varchar', nullable: true, length: 128 })
   secondName: string;
 
-  @ManyToOne(
-    () => EnterpriseProfile,
-    (enterpriseProfile) => enterpriseProfile.shareholders,
-  )
+  @ManyToOne(() => EnterpriseProfile, (enterpriseProfile) => enterpriseProfile.shareholders)
   enterpriseProfile: EnterpriseProfile;
 }

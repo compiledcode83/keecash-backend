@@ -1,19 +1,9 @@
-import {
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class JwtAdminAuthGuard extends AuthGuard('jwtAdmin') {
-  handleRequest(
-    err: any,
-    user: any,
-    info: any,
-    context: ExecutionContext,
-    status?: any,
-  ) {
+  handleRequest(err: any, user: any, info: any, context: ExecutionContext, status?: any) {
     if (user) {
       return user;
     }

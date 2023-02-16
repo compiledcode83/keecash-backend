@@ -14,10 +14,7 @@ export class AdminRepository extends Repository<Admin> {
     return this.findOne({ where: { email: email } });
   }
 
-  async validateAdmin(
-    email: string,
-    password: string,
-  ): Promise<Partial<Admin> | null> {
+  async validateAdmin(email: string, password: string): Promise<Partial<Admin> | null> {
     const admin = await this.findOneByEmail(email);
 
     if (admin && (await bcrypt.compare(password, admin.password))) {

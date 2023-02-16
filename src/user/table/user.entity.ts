@@ -127,10 +127,7 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   rejectedAt: Date;
 
-  @OneToMany(
-    () => AuthRefreshToken,
-    (authRefreshToken) => authRefreshToken.user,
-  )
+  @OneToMany(() => AuthRefreshToken, (authRefreshToken) => authRefreshToken.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   refreshTokens: AuthRefreshToken[];
 
@@ -138,10 +135,7 @@ export class User {
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   documents: Document[];
 
-  @OneToOne(
-    () => PersonProfile,
-    (personProfile: PersonProfile) => personProfile.user,
-  )
+  @OneToOne(() => PersonProfile, (personProfile: PersonProfile) => personProfile.user)
   personProfile: PersonProfile;
 
   @OneToOne(

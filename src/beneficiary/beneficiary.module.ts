@@ -7,11 +7,7 @@ import { BeneficiaryWalletRepository } from './table/beneficiary-wallet.reposito
 
 @Module({
   imports: [UserModule],
-  providers: [
-    BeneficiaryService,
-    BeneficiaryUserRepository,
-    BeneficiaryWalletRepository,
-  ],
+  providers: [BeneficiaryService, BeneficiaryUserRepository, BeneficiaryWalletRepository],
   controllers: [BeneficiaryController],
   exports: [BeneficiaryService],
 })

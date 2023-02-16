@@ -9,13 +9,8 @@ import { UserService } from '../user.service';
 export class ReferralIdExistsValidator implements ValidatorConstraintInterface {
   constructor(private readonly userService: UserService) {}
 
-  async validate(
-    referralApplieId: string,
-    args: ValidationArguments,
-  ): Promise<boolean> {
-    const userExists = await this.userService.findByReferralId(
-      referralApplieId,
-    );
+  async validate(referralApplieId: string, args: ValidationArguments): Promise<boolean> {
+    const userExists = await this.userService.findByReferralId(referralApplieId);
 
     return Boolean(userExists);
   }

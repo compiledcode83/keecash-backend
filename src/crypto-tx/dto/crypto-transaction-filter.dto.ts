@@ -1,13 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsEnum,
-  IsIn,
-  IsInt,
-  IsOptional,
-  Validate,
-  ValidateIf,
-} from 'class-validator';
+import { IsEnum, IsIn, IsInt, IsOptional, Validate, ValidateIf } from 'class-validator';
 import { DateValidator } from '../../common/validators/date-validator';
 import { CryptoTx, FIAT_CURRENCY_NAME, TX_TYPE } from '../crypto-tx.entity';
 import { CursorFilterDto } from '../../common/pagination/cursor-filter.dto';

@@ -52,10 +52,7 @@ export class UserController {
     @Request() req,
     @Body() body: ConfirmPhoneNumberVerificationCodeDto,
   ) {
-    const updatedUser = await this.userService.confirmPhoneOtp(
-      req.user.email,
-      body.code,
-    );
+    const updatedUser = await this.userService.confirmPhoneOtp(req.user.email, body.code);
     return this.userService.createAccessToken(updatedUser);
   }
 
@@ -73,10 +70,7 @@ export class UserController {
     @Request() req,
     @Body() body: ConfirmEmailVerificationCodeDto,
   ) {
-    const updatedUser = await this.userService.confirmEmailOtp(
-      req.user.email,
-      body.code,
-    );
+    const updatedUser = await this.userService.confirmEmailOtp(req.user.email, body.code);
     return this.userService.createAccessToken(updatedUser);
   }
 
@@ -84,14 +78,10 @@ export class UserController {
     description: `Send email verification code for forget password`,
   })
   @Post('auth/send-email-verification-code-for-forget-password')
-  async sendEmailVerificationCodeForForgetPassword(
-    @Body() body: SendEmailVerificationCodeDto,
-  ) {
+  async sendEmailVerificationCodeForForgetPassword(@Body() body: SendEmailVerificationCodeDto) {
     const user = await this.userService.findByEmail(body.email);
     if (user == null) throw new BadRequestException('Sorry, Can not find user');
-    const res = await this.verificationService.sendEmailVerificationCode(
-      body.email,
-    );
+    const res = await this.verificationService.sendEmailVerificationCode(body.email);
     if (res === true) {
       return 'Email verification code was successfully sent';
     }
@@ -100,13 +90,8 @@ export class UserController {
 
   @ApiOperation({ description: `Confirm email verification code` })
   @Post('auth/confirm-email-verification-code-for-forget-password')
-  async confirmEmailForForgetPassword(
-    @Body() body: ConfirmEmailVerificationCodeForAdminDto,
-  ) {
-    const updatedUser = await this.userService.confirmEmailOtp(
-      body.email,
-      body.code,
-    );
+  async confirmEmailForForgetPassword(@Body() body: ConfirmEmailVerificationCodeForAdminDto) {
+    const updatedUser = await this.userService.confirmEmailOtp(body.email, body.code);
     return this.userService.createAccessToken(updatedUser);
   }
 
@@ -128,9 +113,7 @@ export class UserController {
   @Post('auth/create-account')
   async createAccount(@Body() body: CreateAccountDto) {
     const createdAccount = await this.userService.createAccount(body);
-    const accessToken = await this.userService.createAccessToken(
-      createdAccount,
-    );
+    const accessToken = await this.userService.createAccessToken(createdAccount);
     await this.userService.sendEmailOtp(body.email);
     return accessToken;
   }
@@ -138,14 +121,8 @@ export class UserController {
   @ApiOperation({ description: `Create account` })
   @UseGuards(JwtAuthGuard)
   @Post('auth/add-personal-user-info')
-  async addPersonalUserInfo(
-    @Request() req,
-    @Body() body: AddPersonUserInfoDto,
-  ) {
-    const updatedUser = await this.userService.addPersonalUserInfo(
-      req.user.email,
-      body,
-    );
+  async addPersonalUserInfo(@Request() req, @Body() body: AddPersonUserInfoDto) {
+    const updatedUser = await this.userService.addPersonalUserInfo(req.user.email, body);
     return this.userService.createAccessToken(updatedUser);
   }
 

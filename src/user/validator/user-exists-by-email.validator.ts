@@ -6,9 +6,7 @@ import {
 import { UserService } from '../user.service';
 
 @ValidatorConstraint({ name: 'userExistsByEmailValidator', async: true })
-export class UserExistsByEmailValidator
-  implements ValidatorConstraintInterface
-{
+export class UserExistsByEmailValidator implements ValidatorConstraintInterface {
   constructor(private readonly userService: UserService) {}
 
   async validate(email: string, args: ValidationArguments): Promise<boolean> {

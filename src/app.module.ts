@@ -30,14 +30,7 @@ EnvHelper.verifyNodeEnv();
     ConfigModule.forRoot({
       envFilePath: EnvHelper.getEnvFilePath(),
       isGlobal: true,
-      load: [
-        appConfig,
-        databaseConfig,
-        jwtConfig,
-        verificationConfig,
-        storageConfig,
-        cryptoConfig,
-      ],
+      load: [appConfig, databaseConfig, jwtConfig, verificationConfig, storageConfig, cryptoConfig],
       validate: validate,
     }),
     TypeOrmModule.forRootAsync({

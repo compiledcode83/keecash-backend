@@ -6,13 +6,9 @@ import { AuthRefreshTokenRepository } from './auth-refresh-token.repository';
 
 @Injectable()
 export class AuthRefreshTokenService {
-  constructor(
-    private readonly authRefreshTokenRepo: AuthRefreshTokenRepository,
-  ) {}
+  constructor(private readonly authRefreshTokenRepo: AuthRefreshTokenRepository) {}
 
-  async findOneBy(
-    params: Partial<AuthRefreshToken>,
-  ): Promise<AuthRefreshToken> {
+  async findOneBy(params: Partial<AuthRefreshToken>): Promise<AuthRefreshToken> {
     return this.authRefreshTokenRepo.findOneBy({ ...params });
   }
 
@@ -22,10 +18,7 @@ export class AuthRefreshTokenService {
     return deleteResult.affected === 1;
   }
 
-  async create(
-    user: User,
-    refreshTokenInfo: RefreshTokenInfo,
-  ): Promise<AuthRefreshToken> {
+  async create(user: User, refreshTokenInfo: RefreshTokenInfo): Promise<AuthRefreshToken> {
     return this.authRefreshTokenRepo.createRefreshToken(user, refreshTokenInfo);
   }
 }

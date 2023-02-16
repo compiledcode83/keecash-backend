@@ -36,12 +36,9 @@ export class StorageController {
     file: Express.Multer.File,
   ) {
     const imageName = uuid() + '.jpg';
-    await this.storageService.save(
-      'media/' + imageName,
-      file.mimetype,
-      file.buffer,
-      [{ mediaId: imageName }],
-    );
+    await this.storageService.save('media/' + imageName, file.mimetype, file.buffer, [
+      { mediaId: imageName },
+    ]);
     return imageName;
   }
 }

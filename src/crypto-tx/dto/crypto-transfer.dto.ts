@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  MaxLength,
-  IsString,
-  IsNumber,
-  IsEnum,
-  MinLength,
-} from 'class-validator';
+import { MaxLength, IsString, IsNumber, IsEnum, MinLength } from 'class-validator';
 import { FIAT_CURRENCY_NAME } from '../crypto-tx.entity';
 
 export class CryptoTransferDto {

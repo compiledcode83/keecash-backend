@@ -10,10 +10,7 @@ export class ApiResponseHelper {
     return { status: httpCode, type, description: 'Successful operation' };
   }
 
-  static successWithExample(
-    example: any,
-    httpCode: number = HttpStatus.OK,
-  ): ApiResponseOptions {
+  static successWithExample(example: any, httpCode: number = HttpStatus.OK): ApiResponseOptions {
     return {
       status: httpCode,
       schema: { example },
@@ -21,9 +18,7 @@ export class ApiResponseHelper {
     };
   }
 
-  static created(
-    type: Type<unknown> | Function | [Function] | string = '',
-  ): ApiResponseOptions {
+  static created(type: Type<unknown> | Function | [Function] | string = ''): ApiResponseOptions {
     return {
       status: HttpStatus.CREATED,
       type,
