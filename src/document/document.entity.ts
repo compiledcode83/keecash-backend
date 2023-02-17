@@ -2,15 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { User } from '../user/user.entity';
-
-export enum DOCUEMNT_TYPE {
-  PASSPORT = 'PASSPORT',
-  DRIVE_LICENSING = 'DRIVE_LICENSING',
-  ID = 'ID',
-  RESIDENT_PERMIT = 'RESIDENT_PERMIT',
-  UBO = 'UBO',
-  PROOF_COMPANY_REGISTERATION = 'PROOF_COMPANY_REGISTERATION',
-}
+import { DocumentTypeEnum } from './document.types';
 
 @Entity('document')
 export class Document {
@@ -29,10 +21,10 @@ export class Document {
   })
   @Column({
     type: 'enum',
-    enum: DOCUEMNT_TYPE,
-    default: DOCUEMNT_TYPE.PASSPORT,
+    enum: DocumentTypeEnum,
+    default: DocumentTypeEnum.Passport,
   })
-  type: DOCUEMNT_TYPE;
+  type: DocumentTypeEnum;
 
   @ApiProperty({ description: 'Image Link', maximum: 128, required: false })
   @Column({ type: 'varchar', nullable: true, length: 128 })

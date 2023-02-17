@@ -10,12 +10,12 @@ import { UserExistsByPhoneNumberValidator } from './validator/user-exists-by-pho
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
-import { DocumentRepository } from './table/document.repository';
 import { EnterpriseProfileRepository } from './table/enterprise-profile.repository';
 import { CountryExistsByNameValidator } from './validator/country-exists-by-name.validator';
 import { ShareholderRepository } from './table/shareholder.repository';
 import { ReferralIdExistsValidator } from './validator/referral-id-exists.validator';
 import { CountryModule } from '@src/country/country.module';
+import { DocumentModule } from '@src/document/document.module';
 
 @Module({
   imports: [
@@ -32,6 +32,7 @@ import { CountryModule } from '@src/country/country.module';
       },
     }),
     CountryModule,
+    DocumentModule,
   ],
   controllers: [UserController],
   providers: [
@@ -43,7 +44,6 @@ import { CountryModule } from '@src/country/country.module';
     PersonProfileRepository,
     EnterpriseProfileRepository,
     ShareholderRepository,
-    DocumentRepository,
     ReferralIdExistsValidator,
   ],
   exports: [UserService],

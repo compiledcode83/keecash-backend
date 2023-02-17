@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { UpdateUserInfoDto } from '@src/admin/dto/update-user-info.dto';
 import { AccessTokenInterfaceForUser } from '@src/auth/auth.type';
 import { CountryService } from '@src/country/country.service';
+import { DocumentService } from '@src/document/document.service';
+import { DocumentTypeEnum } from '@src/document/document.types';
 import { VerificationService } from '@src/verification/verification.service';
 import * as bcrypt from 'bcrypt';
 import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
@@ -29,10 +31,10 @@ const REFERRAL_ID_LENGTH = 7;
 export class UserService {
   constructor(
     private readonly countryService: CountryService,
+    private readonly documentService: DocumentService,
     private readonly userRepository: UserRepository,
     private readonly personProfileRepository: PersonProfileRepository,
     private readonly countryRepository: CountryRepository,
-    private readonly documentRepository: DocumentRepository,
     private readonly enterpriseProfileRepository: EnterpriseProfileRepository,
     private readonly shareholderRepository: ShareholderRepository,
     private readonly jwtService: JwtService,
@@ -136,14 +138,17 @@ export class UserService {
       user: savedUser,
     };
     const personProfileEntity = this.personProfileRepository.create(personProfile);
+
     await this.personProfileRepository.save(personProfileEntity);
+
     const document: Partial<Document> = {
       userId: savedUser.id,
       type: body.documentType,
       imageLink: body.verificationImageLink,
     };
-    const documentEntity = this.documentRepository.create(document);
-    await this.documentRepository.save(documentEntity);
+
+    await this.documentService.save(document);
+
     return 'success';
   }
 
@@ -195,31 +200,25 @@ export class UserService {
       await this.shareholderRepository.save(shareholderEntity);
     }
     {
-      const document: Partial<Document> = {
+      await this.documentService.save({
         userId: savedUser.id,
         type: body.documentType,
         imageLink: body.verificationImageLink,
-      };
-      const documentEntity = this.documentRepository.create(document);
-      await this.documentRepository.save(documentEntity);
+      });
     }
     {
-      const document: Partial<Document> = {
+      await this.documentService.save({
         userId: savedUser.id,
-        type: DOCUEMNT_TYPE.UBO,
+        type: DocumentTypeEnum.UBO,
         imageLink: body.uboImageLink,
-      };
-      const documentEntity = this.documentRepository.create(document);
-      await this.documentRepository.save(documentEntity);
+      });
     }
     {
-      const document: Partial<Document> = {
+      await this.documentService.save({
         userId: savedUser.id,
-        type: DOCUEMNT_TYPE.PROOF_COMPANY_REGISTERATION,
+        type: DocumentTypeEnum.ProofCompanyRegistration,
         imageLink: body.companyRegisterationImageLink,
-      };
-      const documentEntity = this.documentRepository.create(document);
-      await this.documentRepository.save(documentEntity);
+      });
     }
     return 'success';
   }
