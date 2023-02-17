@@ -12,4 +12,13 @@ export class CountryService {
     });
     return country;
   }
+
+  async getCountryList(): Promise<Country[]> {
+    const countryList = await this.countryRepository
+      .createQueryBuilder('country')
+      .select(['name', 'country_code', 'phone_code'])
+      .getRawMany();
+
+    return countryList;
+  }
 }

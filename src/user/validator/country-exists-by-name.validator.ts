@@ -3,14 +3,14 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { UserService } from '../user.service';
+import { CountryService } from '@src/country/country.service';
 
 @ValidatorConstraint({ name: 'userExistsByEmailValidator', async: true })
 export class CountryExistsByNameValidator implements ValidatorConstraintInterface {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly countryService: CountryService) {}
 
   async validate(country: string, args: ValidationArguments): Promise<boolean> {
-    const countryExists = await this.userService.findOneCountryByName(country);
+    const countryExists = await this.countryService.findCountryByName(country);
 
     return Boolean(countryExists);
   }

@@ -19,12 +19,14 @@ import { GetBeneficiariesDto } from './dto/get-beneficiary-admin.dto';
 import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 import { AdminTypeEnum } from './admin.types';
+import { PersonProfileService } from '@src/person-profile/person-profile.service';
 
 @Controller('admin')
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly userService: UserService,
+    private readonly personProfileService: PersonProfileService,
   ) {}
 
   @ApiOperation({ description: `Get User Info By Filter(email, phone, referral id)` })
@@ -33,9 +35,11 @@ export class AdminController {
   async findUserInfo(@Request() request, @Query('userId') userId: string) {
     const user = await this.userService.findByEmailPhonenumberReferralId(userId);
     if (user) {
-      if (user.type === AccountType.PERSON) {
-        const userInfo = await this.userService.getPersonUserInfo(user.email);
+      if (user.type === AccountType.Person) {
+        const userInfo = await this.personProfileService.getPersonUserInfo(user.email);
+
         if (userInfo) return userInfo;
+
         return {
           id: user.id,
           firstname: user.firstName,

@@ -9,8 +9,8 @@ import {
   IsPhoneNumber,
   IsOptional,
 } from 'class-validator';
-import { DOCUEMNT_TYPE } from '../table/document.entity';
-import { Language } from '../table/user.entity';
+import { DocumentTypeEnum } from '../../document/document.types';
+import { Language } from '../user.types';
 import { CountryExistsByNameValidator } from '../validator/country-exists-by-name.validator';
 import { ReferralIdExistsValidator } from '../validator/referral-id-exists.validator';
 import { UserExistsByEmailValidator } from '../validator/user-exists-by-email.validator';
@@ -155,6 +155,6 @@ export class CreatePersonUserDto {
     maximum: 255,
     required: true,
   })
-  @IsEnum(DOCUEMNT_TYPE)
-  documentType: DOCUEMNT_TYPE;
+  @IsEnum(DocumentTypeEnum)
+  documentType: DocumentTypeEnum;
 }

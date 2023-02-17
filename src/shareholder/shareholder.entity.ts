@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { EnterpriseProfile } from './enterprise-profile.entity';
+import { EnterpriseProfile } from '../enterprise-profile/enterprise-profile.entity';
 
 @Entity('shareholder')
 export class Shareholder {

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AccountType, Language, Status } from '@src/user/user.types';
+import { AccountType, Language, UserStatus } from '@src/user/user.types';
 import { IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateUserInfoDto {
@@ -74,8 +74,8 @@ export class UpdateUserInfoDto {
     required: true,
   })
   @IsOptional()
-  @IsEnum(Status)
-  status: Status;
+  @IsEnum(UserStatus)
+  status: UserStatus;
 
   @ApiProperty({
     description: 'Language',

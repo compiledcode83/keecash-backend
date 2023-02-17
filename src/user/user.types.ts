@@ -1,21 +1,21 @@
 export enum Language {
-  ENGLISH = 'ENGLISH',
-  FRANCH = 'FRANCH',
+  English = 'ENGLISH',
+  French = 'FRENCH',
 }
 
 export enum AccountType {
-  PERSON = 'PERSON',
-  ENTERPRISE = 'ENTERPRISE',
+  Person = 'PERSON',
+  Enterprise = 'ENTERPRISE',
 }
 
-export enum Status {
-  REGISTERED = 'REGISTERED',
-  EMAIL_VALIDATED = 'EMAIL_VALIDATED',
-  PHONE_VALIDATED = 'PHONE_VALIDATED',
-  COMPLETED = 'COMPLETED',
-  KYC_VALIDATED = 'KYC_VALIDATED',
-  KYB_VALIDATED = 'KYB_VALIDATED',
-  REJECTED = 'REJECTED',
-  DISABLED = 'DISABLED',
-  DELETED = 'DELETED',
+export enum UserStatus {
+  Registered = 'REGISTERED',
+  EmailValidated = 'EMAIL_VALIDATED',
+  PhoneValidated = 'PHONE_VALIDATED',
+  Completed = 'COMPLETED',
+  KycValidated = 'KYC_VALIDATED',
+  KybValidated = 'KYB_VALIDATED',
+  Rejected = 'REJECTED',
+  Disabled = 'DISABLED',
+  Deleted = 'DELETED',
 }

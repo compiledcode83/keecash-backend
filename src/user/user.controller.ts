@@ -15,12 +15,8 @@ import { UserService } from './user.service';
 import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
 import { SendEmailVerificationCodeDto } from './dto/send-email-verification.dto';
 import { ConfirmEmailVerificationCodeDto } from './dto/confirm-email-verification.dto';
-import { CreatePersonUserDto } from './dto/create-person-user.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { StorageService } from '@src/storage/storage.service';
 import { JwtService } from '@nestjs/jwt';
 import { PasswordResetDto } from './dto/password-reset.dto';
-import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { ConfirmEmailVerificationCodeForAdminDto } from './dto/confirm-email-verification-for-admin.dto';
@@ -31,7 +27,6 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly verificationService: VerificationService,
-    private readonly storageService: StorageService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -124,13 +119,6 @@ export class UserController {
   async addPersonalUserInfo(@Request() req, @Body() body: AddPersonUserInfoDto) {
     const updatedUser = await this.userService.addPersonalUserInfo(req.user.email, body);
     return this.userService.createAccessToken(updatedUser);
-  }
-
-  @ApiOperation({ description: `Get available country list` })
-  @UseGuards(JwtAuthGuard)
-  @Get('auth/get-country-list')
-  async getCountryList() {
-    return this.userService.getCountryList();
   }
 
   @ApiOperation({ description: `Get sumsub api access token for development` })

@@ -8,7 +8,7 @@ import {
   Validate,
   IsOptional,
 } from 'class-validator';
-import { Language } from '../table/user.entity';
+import { Language } from '../user.types';
 import { ReferralIdExistsValidator } from '../validator/referral-id-exists.validator';
 import { UserExistsByEmailValidator } from '../validator/user-exists-by-email.validator';
 

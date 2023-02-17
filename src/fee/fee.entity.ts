@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { FiatCurrencyEnum } from '@src/crypto-tx/crypto-tx.types';
-import { Country } from '@src/user/table/country.entity';
+import { Country } from '@src/country/country.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('fee')

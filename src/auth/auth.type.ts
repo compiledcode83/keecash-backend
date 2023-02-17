@@ -1,12 +1,12 @@
 import { AdminTypeEnum } from '@src/admin/admin.types';
-import { Status } from '@src/user/user.types';
+import { UserStatus } from '@src/user/user.types';
 
 export interface AccessTokenInterfaceForUser {
   id: number;
   firstName: string;
   secondName: string;
   email: string;
-  status: Status;
+  status: UserStatus;
   type: string;
 }
 

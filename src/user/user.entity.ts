@@ -17,7 +17,7 @@ import { EnterpriseProfile } from '../enterprise-profile/enterprise-profile.enti
 import { CryptoTx } from '@src/crypto-tx/crypto-tx.entity';
 import { BeneficiaryUser } from '@src/beneficiary/table/beneficiary-user.entity';
 import { Country } from '../country/country.entity';
-import { AccountType, Language, Status } from './user.types';
+import { AccountType, Language, UserStatus } from './user.types';
 
 @Entity('user')
 export class User {
@@ -66,7 +66,7 @@ export class User {
     maximum: 255,
     required: true,
   })
-  @Column({ type: 'enum', enum: Language, default: Language.ENGLISH })
+  @Column({ type: 'enum', enum: Language, default: Language.English })
   language: Language;
 
   @ApiProperty({
@@ -74,7 +74,7 @@ export class User {
     maximum: 255,
     required: true,
   })
-  @Column({ type: 'enum', enum: AccountType, default: AccountType.PERSON })
+  @Column({ type: 'enum', enum: AccountType, default: AccountType.Person })
   type: AccountType;
 
   @ApiProperty({
@@ -82,8 +82,8 @@ export class User {
     maximum: 255,
     required: true,
   })
-  @Column({ type: 'enum', enum: Status, default: Status.REGISTERED })
-  status: Status;
+  @Column({ type: 'enum', enum: UserStatus, default: UserStatus.Registered })
+  status: UserStatus;
 
   @ApiProperty({
     description: 'Date when the user was created',
