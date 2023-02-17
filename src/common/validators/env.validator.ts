@@ -47,6 +47,10 @@ class EnvironmentVariables {
   @MinLength(1)
   TYPEORM_LOGGING: string;
 
+  @IsString()
+  @MinLength(1)
+  TYPEORM_SYNCHRONIZE: string;
+
   @IsInt()
   @Min(10)
   TYPEORM_POOL_SIZE: number;
@@ -73,6 +77,14 @@ class EnvironmentVariables {
   @IsString()
   @MinLength(1)
   JWT_ACCESS_TOKEN_DURATION_MINUTES: string;
+
+  @IsString()
+  @IsIn(['true', 'false'])
+  JWT_REFRESH_TOKEN_COOKIE_SECURE: 'true' | 'false';
+
+  @IsString()
+  @IsIn(['true', 'false'])
+  JWT_REFRESH_TOKEN_COOKIE_HTTPONLY: 'true' | 'false';
 
   @IsString()
   @MinLength(1)
@@ -139,12 +151,16 @@ class EnvironmentVariables {
   SUMSUB_BASE_URL: string;
 
   @IsString()
-  @IsIn(['true', 'false'])
-  JWT_REFRESH_TOKEN_COOKIE_SECURE: 'true' | 'false';
+  @MinLength(1)
+  BRIDGECARD_AUTH_TOKEN
 
   @IsString()
-  @IsIn(['true', 'false'])
-  JWT_REFRESH_TOKEN_COOKIE_HTTPONLY: 'true' | 'false';
+  @MinLength(1)
+  BRIDGECARD_SECRET_KEY
+
+  @IsString()
+  @MinLength(1)
+  BRIDGECARD_ISSUING_ID
 }
 
 export function validate(config: Record<string, unknown>) {

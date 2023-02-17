@@ -3,8 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { EnvHelper } from './common/helpers/env.helper';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
@@ -55,7 +53,5 @@ EnvHelper.verifyNodeEnv();
     BeneficiaryModule,
     AdminModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

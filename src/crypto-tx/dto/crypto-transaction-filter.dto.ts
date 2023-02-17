@@ -2,7 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsIn, IsInt, IsOptional, Validate, ValidateIf } from 'class-validator';
 import { DateValidator } from '../../common/validators/date-validator';
-import { CryptoTx, FIAT_CURRENCY_NAME, TX_TYPE } from '../crypto-tx.entity';
+import { CryptoTx } from '../crypto-tx.entity';
+import { FiatCurrencyEnum, TxTypeEnum } from '../crypto-tx.types';
 import { CursorFilterDto } from '../../common/pagination/cursor-filter.dto';
 
 export class CryptoTransactionFilterDto extends CursorFilterDto {
@@ -32,8 +33,8 @@ export class CryptoTransactionFilterDto extends CursorFilterDto {
     required: false,
   })
   @IsOptional()
-  @IsEnum(FIAT_CURRENCY_NAME)
-  currencyName: FIAT_CURRENCY_NAME;
+  @IsEnum(FiatCurrencyEnum)
+  currencyName: FiatCurrencyEnum;
 
   @ApiProperty({
     description: 'Currency id to get data filtered by currency',
@@ -41,8 +42,8 @@ export class CryptoTransactionFilterDto extends CursorFilterDto {
     required: false,
   })
   @IsOptional()
-  @IsEnum(TX_TYPE)
-  type: TX_TYPE;
+  @IsEnum(TxTypeEnum)
+  type: TxTypeEnum;
 
   @ApiProperty({
     description: 'User id to get data filtered by user',

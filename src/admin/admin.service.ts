@@ -3,7 +3,6 @@ import { BeneficiaryService } from '@src/beneficiary/beneficiary.service';
 import { CryptoTxService } from '@src/crypto-tx/crypto-tx.service';
 import { UserService } from '@src/user/user.service';
 import { AddAdminDto } from './dto/add-admin.dto';
-import { GetBeneficiariesDto } from './dto/get-beneficiary-admin.dto';
 import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 import { Admin } from './table/admin.entity';
@@ -24,8 +23,9 @@ export class AdminService {
 
   async getCryptoTx(body: GetCryptoTxAdminDto) {
     const user = await this.userService.findByEmail(body.email);
-    if (user) return this.cryptoTxService.findAllPaginated(body, user.id);
-    throw new BadRequestException('Can not find user');
+    if (!user) throw new BadRequestException('Cannot find user');
+
+    return this.cryptoTxService.findAllPaginated(body, user.id);
   }
 
   async getBeneficiaries(email: string) {

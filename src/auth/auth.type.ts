@@ -1,3 +1,4 @@
+import { AdminTypeEnum } from '@src/admin/admin.types';
 import { Status } from '@src/user/table/user.entity';
 
 export interface AccessTokenInterfaceForUser {
@@ -12,5 +13,5 @@ export interface AccessTokenInterfaceForUser {
 export interface AccessTokenInterfaceForAdmin {
   id: number;
   email: string;
-  type: string;
+  type: AdminTypeEnum;
 }

@@ -7,6 +7,7 @@ import {
   Get,
   BadRequestException,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { JwtAdminAuthGuard } from '@src/auth/guards/jwt-admin-auth.guard';
@@ -17,7 +18,7 @@ import { AddAdminDto } from './dto/add-admin.dto';
 import { GetBeneficiariesDto } from './dto/get-beneficiary-admin.dto';
 import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
-import { AdminType } from './table/admin.entity';
+import { AdminTypeEnum } from './admin.types';
 
 @Controller('admin')
 export class AdminController {
@@ -26,13 +27,10 @@ export class AdminController {
     private readonly userService: UserService,
   ) {}
 
-  @ApiOperation({
-    description: `Get User Info By Filter(email, phone, referral id)`,
-  })
+  @ApiOperation({ description: `Get User Info By Filter(email, phone, referral id)` })
   @UseGuards(JwtAdminAuthGuard)
   @Get('user')
   async findUserInfo(@Request() request, @Query('userId') userId: string) {
-    console.log('userId:', userId);
     const user = await this.userService.findByEmailPhonenumberReferralId(userId);
     if (user) {
       if (user.type === AccountType.PERSON) {
@@ -62,9 +60,9 @@ export class AdminController {
     description: `Update user info`,
   })
   @UseGuards(JwtAdminAuthGuard)
-  @Post('update_userinfo')
+  @Patch('user')
   async updateUserInfo(@Request() request, @Body() body: UpdateUserInfoDto) {
-    return await this.adminService.updateUserInfo(body);
+    return this.adminService.updateUserInfo(body);
   }
 
   @ApiOperation({
@@ -91,8 +89,15 @@ export class AdminController {
   @UseGuards(JwtAdminAuthGuard)
   @Post('admin')
   async addAdmin(@Request() request, @Body() body: AddAdminDto) {
-    if (body.type === AdminType.SUPER_ADMIN) return this.adminService.addAdmin(body);
-    if (body.country) {
+    switch (body.type) {
+      case AdminTypeEnum.SuperAdmin:
+        return this.adminService.addAdmin(body);
+      case AdminTypeEnum.CountryManager:
+        break;
+      case AdminTypeEnum.CustomerSupport:
+        break;
+      default:
+        break;
     }
   }
 }

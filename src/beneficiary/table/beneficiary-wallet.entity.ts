@@ -1,7 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CRYTPO_CURRENCY_NAME } from '@src/crypto-tx/crypto-tx.entity';
+import { CryptoCurrencyEnum } from '@src/crypto-tx/crypto-tx.types';
 import { User } from '@src/user/table/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('beneficiary_wallet')
 export class BeneficiaryWallet {
@@ -12,17 +19,6 @@ export class BeneficiaryWallet {
   @Column({ type: 'int', nullable: false })
   userId: number;
 
-  @ApiProperty({
-    description: 'Crypto transaction type',
-    maximum: 255,
-    required: true,
-  })
-  @Column({
-    type: 'enum',
-    enum: CRYTPO_CURRENCY_NAME,
-  })
-  type: CRYTPO_CURRENCY_NAME;
-
   @ApiProperty({ description: 'Address', maximum: 256, required: true })
   @Column({ type: 'varchar', nullable: false })
   address: string;
@@ -30,6 +26,29 @@ export class BeneficiaryWallet {
   @ApiProperty({ description: 'name', maximum: 256, required: true })
   @Column({ type: 'varchar', nullable: false })
   name: string;
+
+  @ApiProperty({
+    description: 'Crypto transaction type',
+    maximum: 255,
+    required: true,
+  })
+  @Column({
+    type: 'enum',
+    enum: CryptoCurrencyEnum,
+  })
+  type: CryptoCurrencyEnum;
+
+  @ApiProperty({ description: 'Created at date' })
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @ApiProperty({ description: 'Updated at date' })
+  @Column({ type: 'timestamp', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
+
+  @ApiProperty({ description: 'Deleted at date' })
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  deletedAt: Date;
 
   // @ManyToOne(() => User, (user) => user.beneficiary_user)
   // beneficiaryUser: User;

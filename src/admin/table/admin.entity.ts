@@ -1,12 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { AdminTypeEnum } from '../admin.types';
 
-export enum AdminType {
-  SUPER_ADMIN = 'SUPER_ADMIN',
-  COUNTRY_MANAGER = 'COUNTRY_MANAGER',
-  CUSTOMER_SUPPORT = 'CUSTOMER_SUPPORT',
-}
 @Entity('admin')
 export class Admin {
   @Exclude({ toPlainOnly: true })
@@ -26,6 +28,18 @@ export class Admin {
     maximum: 255,
     required: true,
   })
-  @Column({ type: 'enum', enum: AdminType, default: AdminType.COUNTRY_MANAGER })
-  type: AdminType;
+  @Column({ type: 'enum', enum: AdminTypeEnum, default: AdminTypeEnum.CountryManager })
+  type: AdminTypeEnum;
+
+  @ApiProperty({ description: 'Created at date' })
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @ApiProperty({ description: 'Updated at date' })
+  @Column({ type: 'timestamp', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
+
+  @ApiProperty({ description: 'Deleted at date' })
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  deletedAt: Date;
 }

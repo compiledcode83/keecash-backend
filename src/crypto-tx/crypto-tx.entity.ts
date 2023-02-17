@@ -1,26 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
 import { User } from '@src/user/table/user.entity';
-
-export enum CRYTPO_CURRENCY_NAME {
-  BTC = 'BTC',
-  LNBC = 'LNBC',
-  ETH_ERC20 = 'ETH',
-  USDT_ERC20 = 'USDT',
-  USDT_TRC20 = 'USDT_TRC20',
-  USDC_ERC20 = 'USDC',
-}
-
-export enum FIAT_CURRENCY_NAME {
-  USD = 'USD',
-  EUR = 'EUR',
-}
-
-export enum TX_TYPE {
-  DEPOSIT = 'DEPOSIT',
-  WITHDRAWAL = 'WITHDRAWAL',
-  TRANSFER = 'TRANSFER',
-}
+import { FiatCurrencyEnum, TxTypeEnum } from './crypto-tx.types';
 
 @Entity('crypto_tx')
 export class CryptoTx {
@@ -46,10 +27,10 @@ export class CryptoTx {
   })
   @Column({
     type: 'enum',
-    enum: FIAT_CURRENCY_NAME,
-    default: FIAT_CURRENCY_NAME.EUR,
+    enum: FiatCurrencyEnum,
+    default: FiatCurrencyEnum.EUR,
   })
-  currencyName: FIAT_CURRENCY_NAME;
+  currencyName: FiatCurrencyEnum;
 
   @ApiProperty({
     description: 'Crypto transaction type',
@@ -58,10 +39,10 @@ export class CryptoTx {
   })
   @Column({
     type: 'enum',
-    enum: TX_TYPE,
-    default: TX_TYPE.DEPOSIT,
+    enum: TxTypeEnum,
+    default: TxTypeEnum.Deposit,
   })
-  type: TX_TYPE;
+  type: TxTypeEnum;
 
   @ApiProperty({ description: 'Description', maximum: 256, required: true })
   @Column({ type: 'varchar', nullable: false })

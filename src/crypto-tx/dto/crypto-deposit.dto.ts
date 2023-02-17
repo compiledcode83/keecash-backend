@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumber } from 'class-validator';
-import { FIAT_CURRENCY_NAME } from '../crypto-tx.entity';
+import { FiatCurrencyEnum } from '../crypto-tx.types';
 
 export class CryptoDepositDto {
   @ApiProperty({
@@ -18,6 +18,6 @@ export class CryptoDepositDto {
     maximum: 255,
     description: 'Currency Name',
   })
-  @IsEnum(FIAT_CURRENCY_NAME)
-  currency_name: FIAT_CURRENCY_NAME;
+  @IsEnum(FiatCurrencyEnum)
+  currency_name: FiatCurrencyEnum;
 }

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumber, IsString, MaxLength, MinLength } from 'class-validator';
-import { CRYTPO_CURRENCY_NAME, FIAT_CURRENCY_NAME } from '../crypto-tx.entity';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '../crypto-tx.types';
 
 export class CryptoWithdrawDto {
   @ApiProperty({
@@ -18,8 +18,8 @@ export class CryptoWithdrawDto {
     maximum: 255,
     description: 'Fiat Currency Name',
   })
-  @IsEnum(FIAT_CURRENCY_NAME)
-  currency_name: FIAT_CURRENCY_NAME;
+  @IsEnum(FiatCurrencyEnum)
+  currency_name: FiatCurrencyEnum;
 
   @ApiProperty({
     example: 'BTC',
@@ -27,8 +27,8 @@ export class CryptoWithdrawDto {
     maximum: 255,
     description: 'Crypto Currency Name',
   })
-  @IsEnum(CRYTPO_CURRENCY_NAME)
-  crypto_currency_name: CRYTPO_CURRENCY_NAME;
+  @IsEnum(CryptoCurrencyEnum)
+  crypto_currency_name: CryptoCurrencyEnum;
 
   @ApiProperty({
     example: 'mtzozh***************xZ18Ggc00hbf',

@@ -6,7 +6,8 @@ import { CryptoDepositDto } from './dto/crypto-deposit.dto';
 import { lastValueFrom, map } from 'rxjs';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
 import { CryptoTxRepository } from './crypto-tx-repository';
-import { CryptoTx, TX_TYPE } from './crypto-tx.entity';
+import { CryptoTx } from './crypto-tx.entity';
+import { FiatCurrencyEnum, TxTypeEnum } from './crypto-tx.types';
 import { UserService } from '@src/user/user.service';
 import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
@@ -61,7 +62,7 @@ export class CryptoTxService {
     this.getAccessToken();
   }
 
-  async getBalanceByCurrency(userId: number, currencyName: string) {
+  async getBalanceByCurrency(userId: number, currencyName: FiatCurrencyEnum | string) {
     const receivedBalance = await this.cryptoTxRepository
       .createQueryBuilder('crypto_tx')
       .select(['SUM(crypto_tx.amount)'])
@@ -316,7 +317,7 @@ export class CryptoTxService {
           userSenderId: OUT_USER_ID,
           userReceiverId: userReceiver.id,
           amount: receivedAmount,
-          type: TX_TYPE.DEPOSIT,
+          type: TxTypeEnum.Deposit,
           currencyName: res.payment_currency,
           description: description,
           paymentReference: res.payment_reference,
@@ -336,7 +337,7 @@ export class CryptoTxService {
             userSenderId: OUT_USER_ID,
             userReceiverId: ADMIN_USER_ID,
             amount: receivedAmount,
-            type: TX_TYPE.TRANSFER,
+            type: TxTypeEnum.Transfer,
             currencyName: res.payment_currency,
             description: description,
             paymentReference: res.payment_reference,
@@ -354,7 +355,7 @@ export class CryptoTxService {
             userSenderId: userReceiver.id,
             userReceiverId: referralUserId,
             amount: receivedAmount,
-            type: TX_TYPE.TRANSFER,
+            type: TxTypeEnum.Transfer,
             currencyName: res.payment_currency,
             description: description,
             paymentReference: res.payment_reference,
@@ -369,7 +370,7 @@ export class CryptoTxService {
           userSenderId: OUT_USER_ID,
           userReceiverId: ADMIN_USER_ID,
           amount: receivedAmount,
-          type: TX_TYPE.TRANSFER,
+          type: TxTypeEnum.Transfer,
           currencyName: res.payment_currency,
           description: description,
           paymentReference: res.payment_reference,
@@ -408,7 +409,7 @@ export class CryptoTxService {
           userSenderId: userReceiver,
           userReceiverId: OUT_USER_ID,
           amount: amount,
-          type: TX_TYPE.WITHDRAWAL,
+          type: TxTypeEnum.Withdrawal,
           currencyName: res.local_currency,
           description: description,
           paymentReference: res.payout_reference,
@@ -426,7 +427,7 @@ export class CryptoTxService {
             userSenderId: OUT_USER_ID,
             userReceiverId: ADMIN_USER_ID,
             amount: receivedAmount,
-            type: TX_TYPE.TRANSFER,
+            type: TxTypeEnum.Transfer,
             currencyName: res.local_currency,
             description: description,
             paymentReference: res.payout_reference,
@@ -442,7 +443,7 @@ export class CryptoTxService {
             userSenderId: userReceiver,
             userReceiverId: referralUserId,
             amount: receivedAmount,
-            type: TX_TYPE.TRANSFER,
+            type: TxTypeEnum.Transfer,
             currencyName: res.local_currency,
             description: description,
             paymentReference: res.payout_reference,
@@ -456,7 +457,7 @@ export class CryptoTxService {
           userSenderId: OUT_USER_ID,
           userReceiverId: ADMIN_USER_ID,
           amount: receivedAmount,
-          type: TX_TYPE.TRANSFER,
+          type: TxTypeEnum.Transfer,
           currencyName: res.local_currency,
           description: description,
           paymentReference: res.payout_reference,

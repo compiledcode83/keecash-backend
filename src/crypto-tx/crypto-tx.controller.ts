@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
-import { FIAT_CURRENCY_NAME } from './crypto-tx.entity';
+import { FiatCurrencyEnum } from './crypto-tx.types';
 import { CryptoTxService } from './crypto-tx.service';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
 import { CryptoDepositDto } from './dto/crypto-deposit.dto';
@@ -38,8 +38,9 @@ export class CryptoTxController {
   @Get('balance/:currency')
   async getBalanceByCurrency(@Param('currency') currency: string, @Request() req) {
     const currencyName = currency.toUpperCase();
-    if (!Object.values(FIAT_CURRENCY_NAME).includes(currencyName as FIAT_CURRENCY_NAME))
+    if (!Object.keys(FiatCurrencyEnum).includes(currencyName))
       throw new BadRequestException('Can not find currency name');
+
     return this.cryptoTxService.getBalanceByCurrency(req.user.id, currency.toUpperCase());
   }
 
@@ -60,7 +61,7 @@ export class CryptoTxController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('deposit')
-  async crytpoDeposit(@Request() req, @Body() body: CryptoDepositDto) {
+  async cryptoDeposit(@Request() req, @Body() body: CryptoDepositDto) {
     const res = await this.cryptoTxService.cryptoDeposit(body, req.user.email);
     if (res === false) {
       const res = await this.cryptoTxService.cryptoDeposit(body, req.user.email);
@@ -73,10 +74,10 @@ export class CryptoTxController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('withdraw')
-  async crytpoWidthdraw(@Request() req, @Body() body: CryptoWithdrawDto) {
+  async cryptoWidthdraw(@Request() req, @Body() body: CryptoWithdrawDto) {
     const currencyBalance = await this.cryptoTxService.getBalanceByCurrency(
       req.user.id,
-      body.currency_name.toUpperCase(),
+      body.currency_name,
     );
     if (currencyBalance < body.amount) throw new BadRequestException('Invalid currency amount');
     const res = await this.cryptoTxService.cryptoWithdraw(body, req.user.email, req.user.id);
@@ -91,7 +92,7 @@ export class CryptoTxController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Put('confirm-withdraw')
-  async crytpoConfirmWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
+  async cryptoConfirmWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
     const res = await this.cryptoTxService.cryptoConfirmWithraw(body);
     return res;
   }
@@ -99,7 +100,7 @@ export class CryptoTxController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Put('cancel-withdraw')
-  async crytpoCancelWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
+  async cryptoCancelWidthdraw(@Body() body: CryptoConfirmCancelWithdrawDto) {
     const res = await this.cryptoTxService.cryptoCancelWithraw(body);
     return res;
   }
@@ -107,7 +108,7 @@ export class CryptoTxController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('transfer')
-  async crytpoTransfer(@Request() req, @Body() body: CryptoTransferDto) {
+  async cryptoTransfer(@Request() req, @Body() body: CryptoTransferDto) {
     const res = await this.cryptoTxService.cryptoTransfer(body, req.user.id);
     return res;
   }

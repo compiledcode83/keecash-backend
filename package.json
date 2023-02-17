@@ -6,7 +6,6 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prepare": "husky install",
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -19,7 +18,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "migration:run": "NODE_ENV=development npx typeorm-ts-node-commonjs migration:run --dataSource ./src/config/datasource.ts",
+    "migration:revert": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:revert",
+    "migration:generate": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:generate --",
+    "migration:create": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:create --"
   },
   "dependencies": {
     "@google-cloud/storage": "^6.7.0",
@@ -62,6 +65,7 @@
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "dotenv": "^16.0.3",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",

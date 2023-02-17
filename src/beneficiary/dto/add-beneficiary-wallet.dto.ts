@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CRYTPO_CURRENCY_NAME } from '@src/crypto-tx/crypto-tx.entity';
+import { CryptoCurrencyEnum } from '@src/crypto-tx/crypto-tx.types';
 import { IsEnum, IsString, MaxLength } from 'class-validator';
 
 export class AddBeneficiaryWalletDto {
@@ -29,6 +29,6 @@ export class AddBeneficiaryWalletDto {
     maximum: 255,
     description: 'Cryto currency Name',
   })
-  @IsEnum(CRYTPO_CURRENCY_NAME)
-  type: CRYTPO_CURRENCY_NAME;
+  @IsEnum(CryptoCurrencyEnum)
+  type: CryptoCurrencyEnum;
 }

@@ -9,7 +9,7 @@ import {
   MinLength,
   Validate,
 } from 'class-validator';
-import { AdminType } from '../table/admin.entity';
+import { AdminTypeEnum } from '../admin.types';
 
 export class AddAdminDto {
   @ApiProperty({
@@ -39,8 +39,8 @@ export class AddAdminDto {
     maximum: 255,
     description: 'Password',
   })
-  @IsEnum(AdminType)
-  type: AdminType;
+  @IsEnum(AdminTypeEnum)
+  type: AdminTypeEnum;
 
   @ApiProperty({ description: 'country', maximum: 64, required: true })
   @IsString()

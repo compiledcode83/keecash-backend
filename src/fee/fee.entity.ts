@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FIAT_CURRENCY_NAME } from '@src/crypto-tx/crypto-tx.entity';
+import { FiatCurrencyEnum } from '@src/crypto-tx/crypto-tx.types';
 import { Country } from '@src/user/table/country.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -19,10 +19,10 @@ export class Fee {
   })
   @Column({
     type: 'enum',
-    enum: FIAT_CURRENCY_NAME,
-    default: FIAT_CURRENCY_NAME.EUR,
+    enum: FiatCurrencyEnum,
+    default: FiatCurrencyEnum.EUR,
   })
-  currencyName: FIAT_CURRENCY_NAME;
+  currencyName: FiatCurrencyEnum;
 
   @ApiProperty({
     description: 'deposit fixed fee ',
