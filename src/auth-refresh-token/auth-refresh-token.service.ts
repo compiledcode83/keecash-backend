@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RefreshTokenInfo } from '@src/auth/dto/refresh-token-info.dto';
-import { User } from '@src/user/table/user.entity';
+import { User } from '@src/user/user.entity';
 import { AuthRefreshToken } from './auth-refresh-token.entity';
 import { AuthRefreshTokenRepository } from './auth-refresh-token.repository';
 

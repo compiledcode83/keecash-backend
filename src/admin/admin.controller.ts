@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { JwtAdminAuthGuard } from '@src/auth/guards/jwt-admin-auth.guard';
-import { AccountType } from '@src/user/table/user.entity';
+import { AccountType } from '@src/user/user.types';
 import { UserService } from '@src/user/user.service';
 import { AdminService } from './admin.service';
 import { AddAdminDto } from './dto/add-admin.dto';

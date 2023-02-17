@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CryptoCurrencyEnum } from '@src/crypto-tx/crypto-tx.types';
-import { User } from '@src/user/table/user.entity';
+import { User } from '@src/user/user.entity';
 import {
   Column,
   CreateDateColumn,

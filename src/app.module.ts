@@ -17,6 +17,11 @@ import { CryptoTxModule } from './crypto-tx/crypto-tx.module';
 import { FeeModule } from './fee/fee.module';
 import { BeneficiaryModule } from './beneficiary/beneficiary.module';
 import { AdminModule } from './admin/admin.module';
+import { CountryModule } from './country/country.module';
+import { DocumentModule } from './document/document.module';
+import { EnterpriseProfileModule } from './enterprise-profile/enterprise-profile.module';
+import { PersonProfileModule } from './person-profile/person-profile.module';
+import { ShareholderModule } from './shareholder/shareholder.module';
 import verificationConfig from './config/verification.config';
 import storageConfig from './config/storage.config';
 import cryptoConfig from './config/crypto.config';
@@ -52,6 +57,11 @@ EnvHelper.verifyNodeEnv();
     FeeModule,
     BeneficiaryModule,
     AdminModule,
+    CountryModule,
+    DocumentModule,
+    EnterpriseProfileModule,
+    PersonProfileModule,
+    ShareholderModule,
   ],
 })
 export class AppModule {}

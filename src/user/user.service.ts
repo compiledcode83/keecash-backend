@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateUserInfoDto } from '@src/admin/dto/update-user-info.dto';
 import { AccessTokenInterfaceForUser } from '@src/auth/auth.type';
+import { CountryService } from '@src/country/country.service';
 import { VerificationService } from '@src/verification/verification.service';
 import * as bcrypt from 'bcrypt';
 import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
@@ -27,6 +28,7 @@ const REFERRAL_ID_LENGTH = 7;
 @Injectable()
 export class UserService {
   constructor(
+    private readonly countryService: CountryService,
     private readonly userRepository: UserRepository,
     private readonly personProfileRepository: PersonProfileRepository,
     private readonly countryRepository: CountryRepository,
@@ -36,13 +38,6 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly verificationService: VerificationService,
   ) {}
-
-  async findCountryByName(name: string): Promise<Country> {
-    const country = await this.countryRepository.findOne({
-      where: { name },
-    });
-    return country;
-  }
 
   async findByEmail(email: string): Promise<User> {
     return this.userRepository.findOne({ where: { email } });
@@ -169,7 +164,7 @@ export class UserService {
       reload: false,
     });
     const savedUser = await this.findOne(resUser.id);
-    const country = await this.findOneCountryByName(body.country);
+    const country = await this.countryService.findCountryByName(body.country);
     const enterpriseProfile: Partial<EnterpriseProfile> = {
       position: body.position,
       entityType: body.entityType,
@@ -231,10 +226,6 @@ export class UserService {
 
   async findOne(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } });
-  }
-
-  async findOneCountryByName(name: string): Promise<Country> {
-    return this.countryRepository.findOne({ where: { name: name } });
   }
 
   async generateReferralId(): Promise<string> {
@@ -323,7 +314,7 @@ export class UserService {
   async sendPhoneOtp(email: string, body: SendPhoneNumberVerificationCodeDto): Promise<string> {
     const user = await this.findByEmail(email);
     if (user.status === Status.EMAIL_VALIDATED) {
-      const country = await this.findCountryByName(body.country);
+      const country = await this.countryService.findCountryByName(body.country);
       if (body.phoneNumber.startsWith(country.phoneCode)) {
         const res = await this.verificationService.sendPhoneVerificationCode(body.phoneNumber);
         if (res === true) {
@@ -355,7 +346,7 @@ export class UserService {
   async addPersonalUserInfo(email: string, body: AddPersonUserInfoDto): Promise<User> {
     const user = await this.findByEmail(email);
     if (user.status === Status.PHONE_VALIDATED) {
-      const country = await this.findCountryByName(body.country);
+      const country = await this.countryService.findCountryByName(body.country);
       await this.userRepository.update(
         { email },
         {

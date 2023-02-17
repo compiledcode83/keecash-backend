@@ -11,11 +11,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
 import { DocumentRepository } from './table/document.repository';
-import { CountryRepository } from './table/country.repository';
 import { EnterpriseProfileRepository } from './table/enterprise-profile.repository';
 import { CountryExistsByNameValidator } from './validator/country-exists-by-name.validator';
 import { ShareholderRepository } from './table/shareholder.repository';
 import { ReferralIdExistsValidator } from './validator/referral-id-exists.validator';
+import { CountryModule } from '@src/country/country.module';
 
 @Module({
   imports: [
@@ -31,6 +31,7 @@ import { ReferralIdExistsValidator } from './validator/referral-id-exists.valida
         };
       },
     }),
+    CountryModule,
   ],
   controllers: [UserController],
   providers: [
@@ -43,7 +44,6 @@ import { ReferralIdExistsValidator } from './validator/referral-id-exists.valida
     EnterpriseProfileRepository,
     ShareholderRepository,
     DocumentRepository,
-    CountryRepository,
     ReferralIdExistsValidator,
   ],
   exports: [UserService],

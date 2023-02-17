@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AccountType, Language, Status } from '@src/user/table/user.entity';
+import { AccountType, Language, Status } from '@src/user/user.types';
 import { IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateUserInfoDto {

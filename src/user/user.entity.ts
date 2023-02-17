@@ -11,34 +11,13 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
-import { PersonProfile } from './person-profile.entity';
-import { Document } from './document.entity';
-import { EnterpriseProfile } from './enterprise-profile.entity';
+import { PersonProfile } from '../person-profile/person-profile.entity';
+import { Document } from '../document/document.entity';
+import { EnterpriseProfile } from '../enterprise-profile/enterprise-profile.entity';
 import { CryptoTx } from '@src/crypto-tx/crypto-tx.entity';
 import { BeneficiaryUser } from '@src/beneficiary/table/beneficiary-user.entity';
-import { Country } from './country.entity';
-
-export enum Language {
-  ENGLISH = 'ENGLISH',
-  FRANCH = 'FRANCH',
-}
-
-export enum AccountType {
-  PERSON = 'PERSON',
-  ENTERPRISE = 'ENTERPRISE',
-}
-
-export enum Status {
-  REGISTERED = 'REGISTERED',
-  EMAIL_VALIDATED = 'EMAIL_VALIDATED',
-  PHONE_VALIDATED = 'PHONE_VALIDATED',
-  COMPLETED = 'COMPLETED',
-  KYC_VALIDATED = 'KYC_VALIDATED',
-  KYB_VALIDATED = 'KYB_VALIDATED',
-  REJECTED = 'REJECTED',
-  DISABLED = 'DISABLED',
-  DELETED = 'DELETED',
-}
+import { Country } from '../country/country.entity';
+import { AccountType, Language, Status } from './user.types';
 
 @Entity('user')
 export class User {
