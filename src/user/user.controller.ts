@@ -48,6 +48,7 @@ export class UserController {
     @Body() body: ConfirmPhoneNumberVerificationCodeDto,
   ) {
     const updatedUser = await this.userService.confirmPhoneOtp(req.user.email, body.code);
+
     return this.userService.createAccessToken(updatedUser);
   }
 
@@ -66,6 +67,7 @@ export class UserController {
     @Body() body: ConfirmEmailVerificationCodeDto,
   ) {
     const updatedUser = await this.userService.confirmEmailOtp(req.user.email, body.code);
+
     return this.userService.createAccessToken(updatedUser);
   }
 
@@ -87,6 +89,7 @@ export class UserController {
   @Post('auth/confirm-email-verification-code-for-forget-password')
   async confirmEmailForForgetPassword(@Body() body: ConfirmEmailVerificationCodeForAdminDto) {
     const updatedUser = await this.userService.confirmEmailOtp(body.email, body.code);
+
     return this.userService.createAccessToken(updatedUser);
   }
 
@@ -95,6 +98,7 @@ export class UserController {
   async passwordReset(@Body() body: PasswordResetDto) {
     const payload: any = this.jwtService.verify(body.token);
     await this.userService.passwordReset(payload.email, body.password);
+
     return 'Successfully changed';
   }
 
@@ -110,6 +114,7 @@ export class UserController {
     const createdAccount = await this.userService.createAccount(body);
     const accessToken = await this.userService.createAccessToken(createdAccount);
     await this.userService.sendEmailOtp(body.email);
+
     return accessToken;
   }
 
@@ -118,6 +123,7 @@ export class UserController {
   @Post('auth/add-personal-user-info')
   async addPersonalUserInfo(@Request() req, @Body() body: AddPersonUserInfoDto) {
     const updatedUser = await this.userService.addPersonalUserInfo(req.user.email, body);
+
     return this.userService.createAccessToken(updatedUser);
   }
 

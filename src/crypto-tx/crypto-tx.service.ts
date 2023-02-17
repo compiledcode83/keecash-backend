@@ -104,6 +104,7 @@ export class CryptoTxService {
             currency_name: sentBalance.currency_name,
             amount: receivedBalance.sum - sentBalance.sum,
           });
+
           return;
         }
       }
@@ -122,6 +123,7 @@ export class CryptoTxService {
         amount: -sentBalance.sum,
       });
     });
+
     return balances;
   }
 
@@ -177,6 +179,7 @@ export class CryptoTxService {
           })
           .pipe(map((res) => res.data)),
       );
+
       return {
         hosted_url: res.hosted_url,
         expires_in: res.expires_in,
@@ -231,6 +234,7 @@ export class CryptoTxService {
           })
           .pipe(map((res) => res.data)),
       );
+
       return {
         crypto_amount: res.crypto_amount,
         exnetwork_fee_crypto_amount: res.network_fee_crypto_amount,
@@ -260,6 +264,7 @@ export class CryptoTxService {
           )
           .pipe(map((res) => res.data)),
       );
+
       return 'Success';
     } catch (err) {
       throw new BadRequestException('Confirm withdraw error');
@@ -280,6 +285,7 @@ export class CryptoTxService {
           )
           .pipe(map((res) => res.data)),
       );
+
       return 'Success';
     } catch (err) {
       throw new BadRequestException('Confirm withdraw error');
@@ -518,6 +524,7 @@ export class CryptoTxService {
         currencyName: body.currency_name,
         description: body.description,
       };
+
       return this.createCryptoTx(cryptoTxEntity);
     }
     throw new BadRequestException('Can not find receiver');
@@ -526,6 +533,7 @@ export class CryptoTxService {
   async createCryptoTx(body: Partial<CryptoTx>): Promise<Partial<CryptoTx>> {
     const cryptoTxEntity = this.cryptoTxRepository.create(body);
     const res = await this.cryptoTxRepository.save(cryptoTxEntity);
+
     return res;
   }
 
@@ -588,6 +596,7 @@ export class CryptoTxService {
       .orWhere({ userReceiverId: userId })
       .orderBy('crypto_tx.created_at', 'DESC')
       .getRawOne();
+
     return lastTransaction;
   }
 }

@@ -14,7 +14,7 @@ import {
 import { AuthService } from '@src/auth/auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
@@ -26,6 +26,9 @@ import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { LoginAdminDto } from './dto/login-admin.dto';
 import { JwtAdminAuthGuard } from './guards/jwt-admin-auth.guard';
 import { ConfirmEmailVerificationCodeForAdminDto } from '@src/user/dto/confirm-email-verification-for-admin.dto';
+import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
+import { User } from '@src/user/user.entity';
+import { Admin } from '@src/admin/table/admin.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -35,6 +38,8 @@ export class AuthController {
   ) {}
 
   @ApiOperation({ description: `User login` })
+  @ApiResponse(ApiResponseHelper.success(User))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @UseGuards(LocalAuthGuard)
   @Post('user-login')
   async userLogin(
@@ -62,6 +67,8 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Admin login` })
+  @ApiResponse(ApiResponseHelper.success(Admin))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @UseGuards(AdminAuthGuard)
   @Post('admin-login')
   async adminLogin(@Request() request, @Body() body: LoginAdminDto) {
@@ -74,6 +81,7 @@ export class AuthController {
   @Post('confirm-otp')
   async confirmOtp(@Request() request, @Body() body: ConfirmEmailVerificationCodeForAdminDto) {
     const accessToken = await this.authService.confirmOtpForAdmin(body);
+
     return { accessToken };
   }
 

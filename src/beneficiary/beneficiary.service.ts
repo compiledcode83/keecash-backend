@@ -26,6 +26,7 @@ export class BeneficiaryService {
       };
       const beneficiaryUserEntity = this.beneficiaryUserRepository.create(newBeneficiaryUser);
       await this.beneficiaryUserRepository.save(beneficiaryUserEntity);
+
       return 'Success';
     }
     throw new BadRequestException('Can not find beneficiary user');
@@ -40,6 +41,7 @@ export class BeneficiaryService {
     };
     const beneficiaryWalletEntity = this.beneficiaryWalletRepository.create(newBeneficiaryWallet);
     await this.beneficiaryWalletRepository.save(beneficiaryWalletEntity);
+
     return 'Success';
   }
 
@@ -60,6 +62,7 @@ export class BeneficiaryService {
       .select(['beneficiary_wallet.type', 'beneficiary_wallet.name', 'beneficiary_wallet.address'])
       .where({ userId: userId })
       .getRawMany();
+
     return beneficiaryWallets;
   }
 }

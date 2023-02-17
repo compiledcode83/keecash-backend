@@ -152,15 +152,15 @@ class EnvironmentVariables {
 
   @IsString()
   @MinLength(1)
-  BRIDGECARD_AUTH_TOKEN
+  BRIDGECARD_AUTH_TOKEN;
 
   @IsString()
   @MinLength(1)
-  BRIDGECARD_SECRET_KEY
+  BRIDGECARD_SECRET_KEY;
 
   @IsString()
   @MinLength(1)
-  BRIDGECARD_ISSUING_ID
+  BRIDGECARD_ISSUING_ID;
 }
 
 export function validate(config: Record<string, unknown>) {

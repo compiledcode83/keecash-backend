@@ -34,6 +34,7 @@ export class AdminRepository extends Repository<Admin> {
     };
     const adminEntity = this.create(admin);
     const res = await this.save(adminEntity);
+
     return this.findOne({ where: { id: res.id } });
   }
 }

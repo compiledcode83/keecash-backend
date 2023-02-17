@@ -40,6 +40,7 @@ EnvHelper.verifyNodeEnv();
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         const config = configService.get('databaseConfig');
+
         return {
           ...config,
           namingStrategy: new SnakeNamingStrategy(),

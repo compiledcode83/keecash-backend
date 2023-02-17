@@ -148,6 +148,7 @@ export class AuthService {
     if (res) {
       const admin = await this.adminService.findAdminByEmail(body.email);
       const accessToken = await this.createAccessTokenForAdmin(admin);
+
       return accessToken;
     }
     throw new BadRequestException('Invalid code');

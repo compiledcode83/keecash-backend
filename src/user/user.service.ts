@@ -54,6 +54,7 @@ export class UserService {
     if (userByPhonenumber) return userByPhonenumber;
     const userByReferralId = await this.findByReferralId(userInfo);
     if (userByReferralId) return userByReferralId;
+
     return null;
   }
 
@@ -65,11 +66,13 @@ export class UserService {
       .where(`referral_id = '${referralAppliedId}'`)
       .getRawOne();
     if (referralUser) return referralUser.id;
+
     return null;
   }
 
   async passwordReset(email: string, password: string): Promise<boolean> {
     await this.userRepository.update({ email }, { password: await bcrypt.hash(password, 10) });
+
     return true;
   }
 
@@ -168,6 +171,7 @@ export class UserService {
         imageLink: body.companyRegisterationImageLink,
       });
     }
+
     return 'success';
   }
 
@@ -182,6 +186,7 @@ export class UserService {
     for (let i = 0; i < REFERRAL_ID_LENGTH; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
+
     return result;
   }
 
@@ -223,6 +228,7 @@ export class UserService {
       reload: false,
     });
     const savedUser = await this.findOne(res.id);
+
     return savedUser;
   }
 
@@ -254,6 +260,7 @@ export class UserService {
     const res = await this.verificationService.confirmEmailVerificationCode(email, code);
     if (res) {
       await this.userRepository.update({ email: email }, { status: UserStatus.EmailValidated });
+
       return this.findByEmail(email);
     }
     throw new BadRequestException('Sorry, Can not confirm email verification code');
@@ -267,6 +274,7 @@ export class UserService {
         const res = await this.verificationService.sendPhoneVerificationCode(body.phoneNumber);
         if (res === true) {
           await this.userRepository.update({ email: email }, { phoneNumber: body.phoneNumber });
+
           return 'Phone number verification code was successfully sent';
         }
       }
@@ -282,6 +290,7 @@ export class UserService {
     );
     if (res) {
       await this.userRepository.update({ email: email }, { status: UserStatus.PhoneValidated });
+
       return this.findByEmail(email);
     }
     throw new BadRequestException('Sorry, Can not confirm phone number');

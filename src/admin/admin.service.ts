@@ -53,6 +53,7 @@ export class AdminService {
 
   async addNormalAdmin(body: AddAdminDto): Promise<Admin> {
     const admin = await this.addAdmin(body);
+
     return admin;
   }
 }

@@ -14,6 +14,7 @@ export class AdminStrategy extends PassportStrategy(Strategy, 'admin') {
     if (!admin) {
       throw new UnauthorizedException();
     }
+
     return admin;
   }
 }

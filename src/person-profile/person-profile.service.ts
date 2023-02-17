@@ -20,6 +20,7 @@ export class PersonProfileService {
     const personProfile = await this.personProfileRepository.findOne({
       where: { user: { id: userId } },
     });
+
     return personProfile;
   }
 

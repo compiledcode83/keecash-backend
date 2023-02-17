@@ -10,6 +10,7 @@ export class CountryService {
     const country = await this.countryRepository.findOne({
       where: { name },
     });
+
     return country;
   }
 

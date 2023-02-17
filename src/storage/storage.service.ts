@@ -32,6 +32,7 @@ export class StorageService {
     const storageFile = new StorageFile();
     storageFile.buffer = buffer;
     storageFile.metadata = new Map<string, string>();
+
     return storageFile;
   }
 
@@ -47,6 +48,7 @@ export class StorageService {
     storageFile.buffer = buffer;
     storageFile.metadata = new Map<string, string>(Object.entries(metadata || {}));
     storageFile.contentType = storageFile.metadata.get('contentType');
+
     return storageFile;
   }
 

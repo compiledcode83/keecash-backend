@@ -39,6 +39,7 @@ export class StorageController {
     await this.storageService.save('media/' + imageName, file.mimetype, file.buffer, [
       { mediaId: imageName },
     ]);
+
     return imageName;
   }
 }

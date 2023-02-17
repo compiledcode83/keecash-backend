@@ -40,6 +40,7 @@ export class VerificationService {
     if (res.status === 'pending') {
       return true;
     }
+
     return false;
   }
 
@@ -53,6 +54,7 @@ export class VerificationService {
     if (!result.valid || result.status !== 'approved') {
       return false;
     }
+
     return true;
   }
 
@@ -67,6 +69,7 @@ export class VerificationService {
     if (res.status === 'pending') {
       return true;
     }
+
     return false;
   }
 
@@ -80,6 +83,7 @@ export class VerificationService {
     if (!result.valid || result.status !== 'approved') {
       return false;
     }
+
     return true;
   }
 
@@ -96,6 +100,7 @@ export class VerificationService {
 
     config.headers['X-App-Access-Ts'] = ts;
     config.headers['X-App-Access-Sig'] = signature.digest('hex');
+
     return config;
   }
 
@@ -122,6 +127,7 @@ export class VerificationService {
           })
           .pipe(map((res) => res.data?.token)),
       );
+
       return res;
     } catch (err) {
       throw new BadRequestException('Can not get access token');
