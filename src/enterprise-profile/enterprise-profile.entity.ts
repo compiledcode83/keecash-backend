@@ -8,9 +8,9 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { User } from '@src/user/table/user.entity';
-import { Country } from './country.entity';
-import { Shareholder } from './shareholder.entity';
+import { User } from '@src/user/user.entity';
+import { Country } from '../country/country.entity';
+import { Shareholder } from '../shareholder/shareholder.entity';
 
 export enum Position {
   SECRETARY = 'SECRETARY',

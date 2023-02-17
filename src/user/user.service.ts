@@ -5,6 +5,7 @@ import { AccessTokenInterfaceForUser } from '@src/auth/auth.type';
 import { CountryService } from '@src/country/country.service';
 import { DocumentService } from '@src/document/document.service';
 import { DocumentTypeEnum } from '@src/document/document.types';
+import { EnterpriseProfileService } from '@src/enterprise-profile/enterprise-profile.service';
 import { VerificationService } from '@src/verification/verification.service';
 import * as bcrypt from 'bcrypt';
 import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
@@ -32,10 +33,10 @@ export class UserService {
   constructor(
     private readonly countryService: CountryService,
     private readonly documentService: DocumentService,
+    private readonly enterpriseProfileService: EnterpriseProfileService,
     private readonly userRepository: UserRepository,
     private readonly personProfileRepository: PersonProfileRepository,
     private readonly countryRepository: CountryRepository,
-    private readonly enterpriseProfileRepository: EnterpriseProfileRepository,
     private readonly shareholderRepository: ShareholderRepository,
     private readonly jwtService: JwtService,
     private readonly verificationService: VerificationService,
@@ -170,7 +171,8 @@ export class UserService {
     });
     const savedUser = await this.findOne(resUser.id);
     const country = await this.countryService.findCountryByName(body.country);
-    const enterpriseProfile: Partial<EnterpriseProfile> = {
+
+    const enterpriseProfile = await this.enterpriseProfileService.save({
       position: body.position,
       entityType: body.entityType,
       companyName: body.companyName,
@@ -182,19 +184,13 @@ export class UserService {
       zipcode: body.zipcode,
       city: body.city,
       user: savedUser,
-    };
-    const enterpriseProfileEntity = this.enterpriseProfileRepository.create(enterpriseProfile);
-    const resEnterpriseProfile = await this.enterpriseProfileRepository.save(
-      enterpriseProfileEntity,
-    );
-    const savedEnterpriseProfile = await this.enterpriseProfileRepository.findOne({
-      where: { id: resEnterpriseProfile.id },
     });
+
     for (const shareholderItem of body.shareholders) {
       const shareholder: Partial<Shareholder> = {
         firstName: shareholderItem.firstName,
         secondName: shareholderItem.secondName,
-        enterpriseProfileId: savedEnterpriseProfile.id,
+        enterpriseProfileId: enterpriseProfile.id,
       };
       const shareholderEntity = this.shareholderRepository.create(shareholder);
       await this.shareholderRepository.save(shareholderEntity);
@@ -372,6 +368,7 @@ export class UserService {
       .createQueryBuilder('country')
       .select(['name', 'country_code', 'phone_code'])
       .getRawMany();
+
     return countryList;
   }
 }
