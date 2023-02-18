@@ -115,11 +115,17 @@ export class CreatePersonUserDto {
   @IsEnum(Language)
   language: Language;
 
-  @ApiProperty({ description: 'Address', maximum: 64, required: true })
+  @ApiProperty({ description: 'Address 1', maximum: 64, required: true })
   @IsString()
   @MinLength(1)
   @MaxLength(128)
-  address: string;
+  address1: string;
+
+  @ApiProperty({ description: 'address2', maximum: 64, required: true })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  address2: string;
 
   @ApiProperty({ description: 'zipcode', maximum: 64, required: true })
   @IsString()

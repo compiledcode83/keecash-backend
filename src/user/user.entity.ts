@@ -8,7 +8,6 @@ import {
   OneToMany,
   JoinColumn,
   OneToOne,
-  ManyToOne,
 } from 'typeorm';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
 import { PersonProfile } from '../person-profile/person-profile.entity';
@@ -16,7 +15,6 @@ import { Document } from '../document/document.entity';
 import { EnterpriseProfile } from '../enterprise-profile/enterprise-profile.entity';
 import { CryptoTx } from '@src/crypto-tx/crypto-tx.entity';
 import { BeneficiaryUser } from '@src/beneficiary/table/beneficiary-user.entity';
-import { Country } from '../country/country.entity';
 import { AccountType, Language, UserStatus } from './user.types';
 
 @Entity('user')
@@ -52,10 +50,6 @@ export class User {
   @ApiProperty({ description: 'Phone number', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: true, length: 255 })
   phoneNumber: string;
-
-  @ApiProperty({ description: 'Country Id', maximum: 64, required: true })
-  @Column({ type: 'int', nullable: true })
-  countryId: number;
 
   @ApiProperty({ description: 'Password', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: false, length: 255 })
@@ -134,7 +128,4 @@ export class User {
   @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   userBeneficiary: BeneficiaryUser[];
-
-  @ManyToOne(() => Country, (country) => country.user)
-  country: Country;
 }

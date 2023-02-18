@@ -43,7 +43,14 @@ export class UpdateUserInfoDto {
   @IsString()
   @MinLength(1)
   @MaxLength(128)
-  address: string;
+  address_primary: string;
+
+  @ApiProperty({ description: 'Address', maximum: 64, required: true })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(128)
+  address_secondary: string;
 
   @ApiProperty({ description: 'zipcode', maximum: 64, required: true })
   @IsOptional()

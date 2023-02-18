@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Fee } from '@src/fee/fee.entity';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, JoinColumn } from 'typeorm';
-import { User } from '../user/user.entity';
+import { PersonProfile } from '@src/person-profile/person-profile.entity';
 
 @Entity('country')
 export class Country {
@@ -28,7 +28,7 @@ export class Country {
     required: false,
   })
   @Column({ type: 'boolean', nullable: false, default: true })
-  is_active: boolean;
+  isActive: boolean;
 
   @ApiProperty({
     description: 'Message if the country is inactive',
@@ -166,9 +166,9 @@ export class Country {
   @Column({ type: 'varchar', nullable: false, length: 128, default: '' })
   cardPhysicMessage: string;
 
-  @OneToMany(() => User, (user) => user.country)
+  @OneToMany(() => PersonProfile, (personProfile) => personProfile.country)
   @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })
-  user: User[];
+  personProfile: PersonProfile[];
 
   @OneToMany(() => Fee, (fee) => fee.country)
   @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })

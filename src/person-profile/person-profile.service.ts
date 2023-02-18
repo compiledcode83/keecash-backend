@@ -24,30 +24,34 @@ export class PersonProfileService {
     return personProfile;
   }
 
-  async getPersonUserInfo(userId: string) {
+  async getPersonUserInfo(userId: number) {
     const userInfo = await this.personProfileRepository
       .createQueryBuilder('person_profile')
       .select([
         'user.id as id',
-        'user.firstName as firstName',
-        'user.secondName as secondName',
-        'user.referralId as referralId',
-        'user.referralAppliedId as referralAppliedId',
+        'user.firstName as first_name',
+        'user.secondName as second_name',
+        'user.referralId as referral_id',
+        'user.referralAppliedId as referral_applied_id',
         'user.email as email',
-        'user.phoneNumber as phoneNumber',
-        'user.countryId as countryId',
+        'user.phoneNumber as phone_number',
         'user.language as language',
         'user.type as type',
         'user.status as status',
-        'user.registeredAt as registeredAt',
-        'user.approvedAt as approvedAt',
-        'user.rejectedAt as rejectedAt',
+        'user.registeredAt as registered_at',
+        'user.approvedAt as approved_at',
+        'user.rejectedAt as rejected_at',
         'user.language as language',
-        'person_profile.address as address',
+        'person_profile.address1 as address1',
+        'person_profile.address2 as address2',
+        'person_profile.zipcode as zipcode',
         'person_profile.city as city',
+        'person_profile.countryId as country_id',
+        'country.countryCode as country_code',
       ])
       .innerJoin('person_profile.user', 'user')
-      .where(`user.email='${userId}'`)
+      .innerJoin('person_profile.country', 'country')
+      .where(`user.id='${userId}'`)
       .getRawOne();
 
     return userInfo;

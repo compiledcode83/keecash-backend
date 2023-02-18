@@ -5,9 +5,9 @@ import {
   UseGuards,
   Request,
   Get,
-  BadRequestException,
   Query,
   Patch,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { JwtAdminAuthGuard } from '@src/auth/guards/jwt-admin-auth.guard';
@@ -34,30 +34,18 @@ export class AdminController {
   @Get('user')
   async findUserInfo(@Request() request, @Query('userId') userId: string) {
     const user = await this.userService.findByEmailPhonenumberReferralId(userId);
-    if (user) {
-      if (user.type === AccountType.Person) {
-        const userInfo = await this.personProfileService.getPersonUserInfo(user.email);
+    if (!user) throw new NotFoundException(`User info ${userId} not found`);
 
-        if (userInfo) return userInfo;
+    switch (user.type) {
+      case AccountType.Person:
+        const userInfo = await this.personProfileService.getPersonUserInfo(user.id);
+        if (!userInfo) throw new NotFoundException(`Profile of user ${userId} not found`);
 
-        return {
-          id: user.id,
-          firstname: user.firstName,
-          secondname: user.secondName,
-          email: user.email,
-          phonenumber: user.phoneNumber,
-          referralid: user.referralId,
-          referralappliedid: user.referralAppliedId,
-          registeredat: user.registeredAt,
-          approvedat: user.approvedAt,
-          rejectedat: user.rejectedAt,
-          status: user.status,
-          type: user.type,
-          language: user.language,
-        };
-      }
+        return userInfo;
+
+      case AccountType.Enterprise:
+        break;
     }
-    throw new BadRequestException('Can not find user');
   }
 
   @ApiOperation({

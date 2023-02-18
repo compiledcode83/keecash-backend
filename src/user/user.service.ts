@@ -6,7 +6,6 @@ import { CountryService } from '@src/country/country.service';
 import { DocumentService } from '@src/document/document.service';
 import { DocumentTypeEnum } from '@src/document/document.types';
 import { EnterpriseProfileService } from '@src/enterprise-profile/enterprise-profile.service';
-import { PersonProfile } from '@src/person-profile/person-profile.entity';
 import { PersonProfileService } from '@src/person-profile/person-profile.service';
 import { ShareholderService } from '@src/shareholder/shareholder.service';
 import { VerificationService } from '@src/verification/verification.service';
@@ -50,8 +49,10 @@ export class UserService {
   async findByEmailPhonenumberReferralId(userInfo: string): Promise<User | null> {
     const userByEmail = await this.findByEmail(userInfo);
     if (userByEmail) return userByEmail;
+
     const userByPhonenumber = await this.findByPhonenumber(userInfo);
     if (userByPhonenumber) return userByPhonenumber;
+
     const userByReferralId = await this.findByReferralId(userInfo);
     if (userByReferralId) return userByReferralId;
 
@@ -96,7 +97,8 @@ export class UserService {
     const savedUser = await this.findOne(res.id);
 
     await this.personProfileService.save({
-      address: body.address,
+      address1: body.address1,
+      address2: body.address2,
       city: body.city,
       user: savedUser,
     });
@@ -203,14 +205,10 @@ export class UserService {
     }
     {
       const personProfile = await this.personProfileService.getByUserId(user.id);
-      const personalInfo: Partial<PersonProfile> = {};
-      if (body.address) personalInfo.address = body.address;
-      if (body.city) personalInfo.city = body.city;
-      if (Object.keys(personalInfo).length !== 0)
-        await this.personProfileService.update(personProfile.id, personalInfo);
+      await this.personProfileService.update(personProfile.id, body);
     }
 
-    return this.personProfileService.getPersonUserInfo(user.email);
+    return this.personProfileService.getPersonUserInfo(user.id);
   }
 
   async createAccount(body: CreateAccountDto) {
@@ -303,18 +301,24 @@ export class UserService {
   async addPersonalUserInfo(email: string, body: AddPersonUserInfoDto): Promise<User> {
     const user = await this.findByEmail(email);
     if (user.status === UserStatus.PhoneValidated) {
-      const country = await this.countryService.findCountryByName(body.country);
       await this.userRepository.update(
         { email },
         {
           firstName: body.firstName,
           secondName: body.secondName,
-          countryId: country.id,
           status: UserStatus.Completed,
         },
       );
 
-      await this.personProfileService.save({ address: body.address, city: body.city, user: user });
+      const country = await this.countryService.findCountryByName(body.country);
+
+      await this.personProfileService.save({
+        address1: body.address1,
+        address2: body.address2,
+        city: body.city,
+        countryId: country.id,
+        user: user,
+      });
 
       return this.findByEmail(email);
     }
