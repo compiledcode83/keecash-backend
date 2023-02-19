@@ -193,22 +193,22 @@ export class UserService {
   }
 
   async updatePersonalUser(body: UpdateUserInfoDto) {
-    const user = await this.findByEmail(body.email);
-    {
-      const userInfo: Partial<User> = {};
-      if (body.firstName) userInfo.firstName = body.firstName;
-      if (body.secondName) userInfo.secondName = body.secondName;
-      if (body.accountType) userInfo.type = body.accountType;
-      if (body.status) userInfo.status = body.status;
-      if (body.language) userInfo.language = body.language;
-      if (Object.keys(userInfo).length !== 0) await this.userRepository.update(user.id, userInfo);
-    }
-    {
-      const personProfile = await this.personProfileService.getByUserId(user.id);
-      await this.personProfileService.update(personProfile.id, body);
-    }
+    await this.userRepository.update(body.userId, {
+      firstName: body.firstName,
+      secondName: body.secondName,
+      type: body.accountType,
+      language: body.language,
+    });
 
-    return this.personProfileService.getPersonUserInfo(user.id);
+    const personProfile = await this.personProfileService.getByUserId(body.userId);
+    await this.personProfileService.update(personProfile.id, {
+      address1: body.address1,
+      address2: body.address2,
+      zipcode: body.zipcode,
+      city: body.city,
+    });
+
+    return this.personProfileService.getPersonUserInfo(body.userId);
   }
 
   async createAccount(body: CreateAccountDto) {

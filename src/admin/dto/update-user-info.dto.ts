@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AccountType, Language, UserStatus } from '@src/user/user.types';
-import { IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class UpdateUserInfoDto {
   @ApiProperty({
@@ -43,14 +51,14 @@ export class UpdateUserInfoDto {
   @IsString()
   @MinLength(1)
   @MaxLength(128)
-  address_primary: string;
+  address1: string;
 
   @ApiProperty({ description: 'Address', maximum: 64, required: true })
   @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(128)
-  address_secondary: string;
+  address2: string;
 
   @ApiProperty({ description: 'zipcode', maximum: 64, required: true })
   @IsOptional()
@@ -92,4 +100,8 @@ export class UpdateUserInfoDto {
   @IsOptional()
   @IsEnum(Language)
   language: Language;
+
+  @ApiProperty({ description: 'User ID' })
+  @IsInt()
+  userId: number;
 }

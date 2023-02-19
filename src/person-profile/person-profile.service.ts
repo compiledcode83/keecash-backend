@@ -17,9 +17,7 @@ export class PersonProfileService {
   }
 
   async getByUserId(userId: number): Promise<PersonProfile> {
-    const personProfile = await this.personProfileRepository.findOne({
-      where: { user: { id: userId } },
-    });
+    const personProfile = await this.personProfileRepository.findOne({ where: { userId } });
 
     return personProfile;
   }

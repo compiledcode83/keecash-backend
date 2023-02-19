@@ -137,10 +137,11 @@ export class AuthService {
     };
   }
 
-  async adminLogin(body: LoginAdminDto): Promise<string> {
+  async adminLogin(body: LoginAdminDto) {
     const res = await this.verificationService.sendEmailVerificationCode(body.email);
-    if (res) return 'Security OTP sent your email successfully';
-    throw new BadRequestException('Can not send Security OTP');
+    if (!res) throw new BadRequestException('Cannot send Security OTP');
+
+    return { msg: 'Security OTP sent your email successfully' };
   }
 
   async confirmOtpForAdmin(body: ConfirmEmailVerificationCodeForAdminDto): Promise<string> {

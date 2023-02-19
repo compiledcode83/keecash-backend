@@ -8,6 +8,10 @@ export class PersonProfile {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
+  @ApiProperty({ description: 'User Id', maximum: 64, required: true })
+  @Column({ type: 'int', nullable: true })
+  userId: number;
+
   @ApiProperty({ description: 'Address 1', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
   address1: string;

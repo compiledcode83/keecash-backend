@@ -32,7 +32,7 @@ export class AdminController {
   @ApiOperation({ description: `Get User Info By Filter(email, phone, referral id)` })
   @UseGuards(JwtAdminAuthGuard)
   @Get('user')
-  async findUserInfo(@Request() request, @Query('userId') userId: string) {
+  async findUserInfo(@Query('userId') userId: string) {
     const user = await this.userService.findByEmailPhonenumberReferralId(userId);
     if (!user) throw new NotFoundException(`User info ${userId} not found`);
 
@@ -53,7 +53,7 @@ export class AdminController {
   })
   @UseGuards(JwtAdminAuthGuard)
   @Patch('user')
-  async updateUserInfo(@Request() request, @Body() body: UpdateUserInfoDto) {
+  async updateUserInfo(@Body() body: UpdateUserInfoDto) {
     return this.adminService.updateUserInfo(body);
   }
 
@@ -62,7 +62,7 @@ export class AdminController {
   })
   @UseGuards(JwtAdminAuthGuard)
   @Get('crypto-tx')
-  async getCryptoTx(@Request() request, @Query() query: GetCryptoTxAdminDto) {
+  async getCryptoTx(@Query() query: GetCryptoTxAdminDto) {
     return this.adminService.getCryptoTx(query);
   }
 
@@ -71,7 +71,7 @@ export class AdminController {
   })
   @UseGuards(JwtAdminAuthGuard)
   @Get('beneficiaries')
-  async getBeneficiaries(@Request() request, @Query() query: GetBeneficiariesDto) {
+  async getBeneficiaries(@Query() query: GetBeneficiariesDto) {
     return this.adminService.getBeneficiaries(query.email);
   }
 
@@ -80,7 +80,7 @@ export class AdminController {
   })
   @UseGuards(JwtAdminAuthGuard)
   @Post('admin')
-  async addAdmin(@Request() request, @Body() body: AddAdminDto) {
+  async addAdmin(@Body() body: AddAdminDto) {
     switch (body.type) {
       case AdminTypeEnum.SuperAdmin:
         return this.adminService.addAdmin(body);
