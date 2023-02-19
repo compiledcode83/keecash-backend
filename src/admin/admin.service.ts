@@ -22,10 +22,7 @@ export class AdminService {
   }
 
   async getCryptoTx(body: GetCryptoTxAdminDto) {
-    const user = await this.userService.findByEmail(body.email);
-    if (!user) throw new BadRequestException('Cannot find user');
-
-    return this.cryptoTxService.findAllPaginated(body, user.id);
+    return this.cryptoTxService.findAllPaginated(body, body.userId);
   }
 
   async getBeneficiaries(email: string) {

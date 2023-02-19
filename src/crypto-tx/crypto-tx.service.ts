@@ -22,7 +22,6 @@ import { CryptoPayoutNotifyDto } from './dto/crypto-payout-notify.dto';
 const GRANT_TYPE = 'client_credentials';
 const ADMIN_USER_ID = 1;
 const OUT_USER_ID = 2;
-
 const CRYPTO_TRIPLEA_FEE_PERCENT = 1;
 
 interface IConfig {
@@ -546,21 +545,17 @@ export class CryptoTxService {
       queryBuilder.andWhere({ userSenderId: searchParams.userId });
       queryBuilder.orWhere({ userReceiverId: searchParams.userId });
     }
-
     if ('currencyName' in searchParams) {
       queryBuilder.andWhere({ currencyName: searchParams.currencyName });
     }
-
     if ('type' in searchParams) {
       queryBuilder.andWhere({ type: searchParams.type });
     }
-
     if ('fromDate' in searchParams) {
       queryBuilder.andWhere({
         createdAt: MoreThanOrEqual(searchParams.fromDate),
       });
     }
-
     if ('toDate' in searchParams) {
       queryBuilder.andWhere({
         createdAt: LessThanOrEqual(searchParams.toDate),

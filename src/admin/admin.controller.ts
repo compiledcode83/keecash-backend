@@ -48,36 +48,28 @@ export class AdminController {
     }
   }
 
-  @ApiOperation({
-    description: `Update user info`,
-  })
+  @ApiOperation({ description: `Update user info` })
   @UseGuards(JwtAdminAuthGuard)
   @Patch('user')
   async updateUserInfo(@Body() body: UpdateUserInfoDto) {
     return this.adminService.updateUserInfo(body);
   }
 
-  @ApiOperation({
-    description: `Get Crypto Transactions`,
-  })
+  @ApiOperation({ description: `Get Crypto Transactions` })
   @UseGuards(JwtAdminAuthGuard)
   @Get('crypto-tx')
   async getCryptoTx(@Query() query: GetCryptoTxAdminDto) {
     return this.adminService.getCryptoTx(query);
   }
 
-  @ApiOperation({
-    description: `Get beneficiary users and wallets`,
-  })
+  @ApiOperation({ description: `Get beneficiary users and wallets` })
   @UseGuards(JwtAdminAuthGuard)
   @Get('beneficiaries')
   async getBeneficiaries(@Query() query: GetBeneficiariesDto) {
     return this.adminService.getBeneficiaries(query.email);
   }
 
-  @ApiOperation({
-    description: `Add admin`,
-  })
+  @ApiOperation({ description: `Add admin` })
   @UseGuards(JwtAdminAuthGuard)
   @Post('admin')
   async addAdmin(@Body() body: AddAdminDto) {

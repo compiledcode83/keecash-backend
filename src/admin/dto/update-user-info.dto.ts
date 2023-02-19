@@ -1,25 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsInt, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { AccountType, Language, UserStatus } from '@src/user/user.types';
-import {
-  IsEmail,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
 
 export class UpdateUserInfoDto {
-  @ApiProperty({
-    example: 'user@example.com',
-    required: true,
-    maximum: 255,
-    description: 'Email address',
-  })
-  @IsEmail()
-  email: string;
-
   @ApiProperty({
     example: 'John',
     required: true,
