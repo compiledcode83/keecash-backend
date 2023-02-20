@@ -12,7 +12,7 @@ import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
 import { LoginAdminDto } from './dto/login-admin.dto';
 import { ConfirmEmailVerificationCodeDto } from '@src/user/dto/confirm-email-verification.dto';
 import { VerificationService } from '@src/verification/verification.service';
-import { Admin } from '@src/admin/table/admin.entity';
+import { Admin } from '@src/admin/admin.entity';
 import { AdminService } from '@src/admin/admin.service';
 import { ConfirmEmailVerificationCodeForAdminDto } from '@src/user/dto/confirm-email-verification-for-admin.dto';
 

@@ -7,7 +7,7 @@ import { UserModule } from '@src/user/user.module';
 import { VerificationModule } from '@src/verification/verification.module';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
-import { AdminRepository } from './table/admin.repository';
+import { AdminRepository } from './admin.repository';
 
 @Module({
   imports: [

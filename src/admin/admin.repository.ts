@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Admin } from './admin.entity';
-import { AddAdminDto } from '../dto/add-admin.dto';
+import { AddAdminDto } from './dto/add-admin.dto';
 
 @Injectable()
 export class AdminRepository extends Repository<Admin> {

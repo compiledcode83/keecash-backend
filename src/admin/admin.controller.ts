@@ -3,7 +3,6 @@ import {
   Controller,
   Post,
   UseGuards,
-  Request,
   Get,
   Query,
   Patch,
@@ -73,15 +72,6 @@ export class AdminController {
   @UseGuards(JwtAdminAuthGuard)
   @Post('admin')
   async addAdmin(@Body() body: AddAdminDto) {
-    switch (body.type) {
-      case AdminTypeEnum.SuperAdmin:
-        return this.adminService.addAdmin(body);
-      case AdminTypeEnum.CountryManager:
-        break;
-      case AdminTypeEnum.CustomerSupport:
-        break;
-      default:
-        break;
-    }
+    return this.adminService.addAdmin(body);
   }
 }

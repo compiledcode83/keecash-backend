@@ -28,7 +28,7 @@ import { JwtAdminAuthGuard } from './guards/jwt-admin-auth.guard';
 import { ConfirmEmailVerificationCodeForAdminDto } from '@src/user/dto/confirm-email-verification-for-admin.dto';
 import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { User } from '@src/user/user.entity';
-import { Admin } from '@src/admin/table/admin.entity';
+import { Admin } from '@src/admin/admin.entity';
 
 @Controller('auth')
 export class AuthController {

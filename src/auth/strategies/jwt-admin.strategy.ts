@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AccessTokenInterfaceForAdmin } from '../auth.type';
-import { Admin } from '@src/admin/table/admin.entity';
+import { Admin } from '@src/admin/admin.entity';
 
 @Injectable()
 export class JwtAdminStrategy extends PassportStrategy(Strategy, 'jwtAdmin') {

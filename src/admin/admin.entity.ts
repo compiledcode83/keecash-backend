@@ -7,7 +7,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AdminTypeEnum } from '../admin.types';
+import { AdminTypeEnum } from './admin.types';
 
 @Entity('admin')
 export class Admin {

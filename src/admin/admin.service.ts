@@ -5,8 +5,8 @@ import { UserService } from '@src/user/user.service';
 import { AddAdminDto } from './dto/add-admin.dto';
 import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
-import { Admin } from './table/admin.entity';
-import { AdminRepository } from './table/admin.repository';
+import { Admin } from './admin.entity';
+import { AdminRepository } from './admin.repository';
 
 @Injectable()
 export class AdminService {
