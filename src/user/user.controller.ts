@@ -135,4 +135,16 @@ export class UserController {
       userId: 'JamesBond007',
     };
   }
+
+  @ApiOperation({ description: 'Get all referred users' })
+  @Get('referral')
+  async getReferral(@Request() req) {
+    const { referralId } = await this.userService.findOne(req.user.id);
+    const referredUsers = await this.userService.getReferredUsersByReferralId(referralId);
+
+    return {
+      referral_id: referralId,
+      godsons: referredUsers,
+    };
+  }
 }
