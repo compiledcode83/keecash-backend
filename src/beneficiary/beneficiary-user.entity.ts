@@ -34,6 +34,9 @@ export class BeneficiaryUser {
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.userBeneficiary)
-  user: User;
+  @ManyToOne(() => User, (user) => user.mainUser)
+  mainUser: User;
+
+  @ManyToOne(() => User, (user) => user.beneficiaryUser)
+  beneficiaryUser: User;
 }

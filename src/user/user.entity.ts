@@ -14,7 +14,7 @@ import { PersonProfile } from '../person-profile/person-profile.entity';
 import { Document } from '../document/document.entity';
 import { EnterpriseProfile } from '../enterprise-profile/enterprise-profile.entity';
 import { CryptoTx } from '@src/crypto-tx/crypto-tx.entity';
-import { BeneficiaryUser } from '@src/beneficiary/table/beneficiary-user.entity';
+import { BeneficiaryUser } from '@src/beneficiary/beneficiary-user.entity';
 import { AccountType, Language, UserStatus } from './user.types';
 
 @Entity('user')
@@ -125,7 +125,11 @@ export class User {
   @JoinColumn({ name: 'id', referencedColumnName: 'user_receiver_id' })
   receiver: CryptoTx[];
 
-  @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.user)
+  @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.mainUser)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
-  userBeneficiary: BeneficiaryUser[];
+  mainUser: BeneficiaryUser[];
+
+  @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.beneficiaryUser)
+  @JoinColumn({ name: 'id', referencedColumnName: 'beneficiary_user_id' })
+  beneficiaryUser: BeneficiaryUser[];
 }

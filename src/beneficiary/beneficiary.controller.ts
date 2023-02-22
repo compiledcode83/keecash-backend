@@ -38,7 +38,19 @@ export class BeneficiaryController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('verify-user-exist')
-  async verifyUserExist() {
+  async verifyUserExist(@Body() body) {
+    const { userField } = body;
+
+    return;
+  }
+
+  @ApiOperation({ description: `Verify if crypto address exists` })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('verify-crypto-address')
+  async verifyCryptoAddress(@Body() body) {
+    const { data } = body;
+
     return;
   }
 

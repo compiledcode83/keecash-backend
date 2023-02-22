@@ -58,7 +58,7 @@ export class CryptoTxService {
     };
     this.tripleaNotifyUrl = this.configService.get<string>('cryptoConfig.tripleaNotifyUrl');
     this.tripleaAccessToken = { USD: '', EUR: '' };
-    this.getAccessToken();
+    // this.getAccessToken();
   }
 
   async getBalanceByCurrency(userId: number, currencyName: FiatCurrencyEnum | string) {

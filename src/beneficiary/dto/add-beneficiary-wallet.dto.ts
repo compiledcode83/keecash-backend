@@ -27,7 +27,7 @@ export class AddBeneficiaryWalletDto {
     example: 'USDT',
     required: true,
     maximum: 255,
-    description: 'Cryto currency Name',
+    description: 'Cryptocurrency Name',
   })
   @IsEnum(CryptoCurrencyEnum)
   type: CryptoCurrencyEnum;

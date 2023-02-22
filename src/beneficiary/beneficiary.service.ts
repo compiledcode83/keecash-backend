@@ -2,10 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserService } from '@src/user/user.service';
 import { AddBeneficiaryUserDto } from './dto/add-beneficiary-user.dto';
 import { AddBeneficiaryWalletDto } from './dto/add-beneficiary-wallet.dto';
-import { BeneficiaryUser } from './table/beneficiary-user.entity';
-import { BeneficiaryUserRepository } from './table/beneficiary-user.repository';
-import { BeneficiaryWallet } from './table/beneficiary-wallet.entity';
-import { BeneficiaryWalletRepository } from './table/beneficiary-wallet.repository';
+import { BeneficiaryUser } from './beneficiary-user.entity';
+import { BeneficiaryUserRepository } from './beneficiary-user.repository';
+import { BeneficiaryWallet } from './beneficiary-wallet.entity';
+import { BeneficiaryWalletRepository } from './beneficiary-wallet.repository';
 
 @Injectable()
 export class BeneficiaryService {
@@ -21,15 +21,15 @@ export class BeneficiaryService {
     );
     if (beneficiaryUser) {
       const newBeneficiaryUser: Partial<BeneficiaryUser> = {
-        userId: beneficiaryUser.id,
-        beneficiaryUserId: userId,
+        userId,
+        beneficiaryUserId: beneficiaryUser.id,
       };
       const beneficiaryUserEntity = this.beneficiaryUserRepository.create(newBeneficiaryUser);
       await this.beneficiaryUserRepository.save(beneficiaryUserEntity);
 
       return 'Success';
     }
-    throw new BadRequestException('Can not find beneficiary user');
+    throw new BadRequestException('Cannot find beneficiary user');
   }
 
   async addBeneficiaryWallet(body: AddBeneficiaryWalletDto, userId: number): Promise<string> {
