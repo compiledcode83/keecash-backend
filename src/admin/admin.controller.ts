@@ -7,6 +7,8 @@ import {
   Query,
   Patch,
   NotFoundException,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { JwtAdminAuthGuard } from '@src/auth/guards/jwt-admin-auth.guard';
@@ -19,6 +21,7 @@ import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 import { AdminTypeEnum } from './admin.types';
 import { PersonProfileService } from '@src/person-profile/person-profile.service';
+import { AdminFilterDto } from './dto/admin.filter.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -27,6 +30,27 @@ export class AdminController {
     private readonly userService: UserService,
     private readonly personProfileService: PersonProfileService,
   ) {}
+
+  @ApiOperation({ description: `Get admin` })
+  @UseGuards(JwtAdminAuthGuard)
+  @Get()
+  async findAllPaginated(@Query() searchParams: AdminFilterDto) {
+    return this.adminService.findAllPaginated(searchParams);
+  }
+
+  @ApiOperation({ description: `Add admin` })
+  @UseGuards(JwtAdminAuthGuard)
+  @Post()
+  async addAdmin(@Body() body: AddAdminDto) {
+    return this.adminService.addAdmin(body);
+  }
+
+  @ApiOperation({})
+  @UseGuards(JwtAdminAuthGuard)
+  @Delete(':id')
+  async deleteAdmin(@Param('id') id: number) {
+    return this.adminService.deleteAdmin(id);
+  }
 
   @ApiOperation({ description: `Get User Info By Filter(email, phone, referral id)` })
   @UseGuards(JwtAdminAuthGuard)
@@ -66,12 +90,5 @@ export class AdminController {
   @Get('beneficiaries')
   async getBeneficiaries(@Query() query: GetBeneficiariesDto) {
     return this.adminService.getBeneficiaries(query.email);
-  }
-
-  @ApiOperation({ description: `Add admin` })
-  @UseGuards(JwtAdminAuthGuard)
-  @Post('admin')
-  async addAdmin(@Body() body: AddAdminDto) {
-    return this.adminService.addAdmin(body);
   }
 }

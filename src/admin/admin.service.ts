@@ -7,6 +7,8 @@ import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 import { Admin } from './admin.entity';
 import { AdminRepository } from './admin.repository';
+import { AdminFilterDto } from './dto/admin.filter.dto';
+import { PagingResult } from 'typeorm-cursor-pagination';
 
 @Injectable()
 export class AdminService {
@@ -16,6 +18,10 @@ export class AdminService {
     private readonly beneficiaryService: BeneficiaryService,
     private readonly adminRepository: AdminRepository,
   ) {}
+
+  async findAllPaginated(searchParams: AdminFilterDto): Promise<PagingResult<Admin>> {
+    return this.adminRepository.getPaginatedQueryBuilder(searchParams);
+  }
 
   async updateUserInfo(body: UpdateUserInfoDto) {
     return this.userService.updatePersonalUser(body);
@@ -46,6 +52,10 @@ export class AdminService {
 
   async addAdmin(body: AddAdminDto): Promise<Admin> {
     return this.adminRepository.addAdmin(body);
+  }
+
+  async deleteAdmin(id: number) {
+    return this.adminRepository.softDelete({ id });
   }
 
   async addNormalAdmin(body: AddAdminDto): Promise<Admin> {

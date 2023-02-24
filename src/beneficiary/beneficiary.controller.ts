@@ -15,6 +15,37 @@ export class BeneficiaryController {
   @UseGuards(JwtAuthGuard)
   @Get('all')
   async getAllBeneficiaries(@Request() req) {
+    return {
+      users: [
+        {
+          firstName: 'Hol',
+          lastName: 'Mayissa',
+          email: 'big.boss@keecash.com',
+          referalId: 'LPUMIRY',
+        },
+        {
+          firstName: 'Hol',
+          lastName: 'Mayissa',
+          email: 'big.boss@keecash.com',
+          referalId: 'LPUMIRY',
+        },
+      ],
+      wallets: [
+        {
+          address: '0x80788e2A335BCC461CA9A0d6b912cdE37C7bbB86',
+          name: 'My Ether wallet',
+          userId: 1,
+          type: CryptoCurrencyEnum.ETH_ERC20,
+        },
+        {
+          address: '0x80788e2A335BCC461CA9A0d6b912cdE37C7bbB86',
+          name: 'My BTC wallet',
+          userId: 1,
+          type: CryptoCurrencyEnum.BTC,
+        },
+      ],
+    };
+
     const beneficiaryUsers = await this.beneficiaryService.getBeneficiaryUsers(req.user.id);
     const beneficiaryWallets = await this.beneficiaryService.getBeneficiaryWallets(req.user.id);
 

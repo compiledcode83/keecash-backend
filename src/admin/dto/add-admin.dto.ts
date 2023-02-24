@@ -48,5 +48,5 @@ export class AddAdminDto {
   @MaxLength(128)
   @IsOptional()
   @Validate(CountryExistsByNameValidator)
-  country: string;
+  country?: string;
 }
