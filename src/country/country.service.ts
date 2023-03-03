@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { UpdateCountryDto } from '@src/admin/dto/update-country.dto';
+import { UpdateResult } from 'typeorm';
 import { Country } from './country.entity';
 import { CountryRepository } from './country.repository';
 
@@ -14,12 +16,19 @@ export class CountryService {
     return country;
   }
 
-  async getCountryList(): Promise<Country[]> {
-    const countryList = await this.countryRepository
-      .createQueryBuilder('country')
-      .select(['name', 'country_code', 'phone_code'])
-      .getRawMany();
+  async getAllCountries(): Promise<Country[]> {
+    const countryList = await this.countryRepository.find();
 
     return countryList;
+  }
+
+  async updateCountry(body: UpdateCountryDto) {
+    try {
+      await this.countryRepository.update(body.id, body);
+
+      return this.countryRepository.findOne({ where: { id: body.id } });
+    } catch (error) {
+      throw error;
+    }
   }
 }

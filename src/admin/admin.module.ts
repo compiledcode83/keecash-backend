@@ -8,6 +8,7 @@ import { VerificationModule } from '@src/verification/verification.module';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminRepository } from './admin.repository';
+import { CountryModule } from '@src/country/country.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AdminRepository } from './admin.repository';
     CryptoTxModule,
     BeneficiaryModule,
     PersonProfileModule,
+    CountryModule,
   ],
   controllers: [AdminController],
   providers: [AdminService, AdminRepository],

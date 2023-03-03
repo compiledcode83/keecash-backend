@@ -23,7 +23,7 @@ export class CursorFilterDto {
 
   @ApiProperty({ example: 'id', enum: ['id'], required: false })
   @IsOptional()
-  @IsIn(['id'])
+  @IsIn(['id', 'createdAt'])
   orderParam = 'id';
 
   @ApiProperty({ example: 'ASC', enum: ['ASC', 'DESC'], required: false })

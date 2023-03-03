@@ -1,25 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Fee } from '@src/fee/fee.entity';
-import { Exclude } from 'class-transformer';
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany, JoinColumn } from 'typeorm';
-import { PersonProfile } from '@src/person-profile/person-profile.entity';
+import { IsBoolean, IsInt, IsString, MinLength } from 'class-validator';
 
-@Entity('country')
-export class Country {
-  @Exclude({ toPlainOnly: true })
-  @PrimaryGeneratedColumn({ name: 'id' })
+export class UpdateCountryDto {
+  @ApiProperty({
+    example: 1,
+    required: true,
+    description: 'Country ID',
+  })
+  @IsInt()
   id: number;
 
   @ApiProperty({ description: 'Country name', maximum: 128, required: false })
-  @Column({ type: 'varchar', nullable: false, length: 128 })
+  @IsString()
+  @MinLength(1)
   name: string;
 
   @ApiProperty({ description: 'Country code', maximum: 128, required: false })
-  @Column({ type: 'varchar', nullable: false, length: 128 })
+  @IsString()
+  @MinLength(1)
   countryCode: string;
 
   @ApiProperty({ description: 'Phone code', maximum: 128, required: false })
-  @Column({ type: 'varchar', nullable: false, length: 128 })
+  @IsString()
+  @MinLength(1)
   phoneCode: string;
 
   @ApiProperty({
@@ -27,7 +30,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @IsBoolean()
   isActive: boolean;
 
   @ApiProperty({
@@ -35,7 +38,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'varchar', nullable: false, default: '', length: 128 })
+  @IsString()
   inactiveMessage: string;
 
   @ApiProperty({
@@ -43,7 +46,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'boolean', nullable: false, default: false })
+  @IsBoolean()
   inMaintenance: boolean;
 
   @ApiProperty({
@@ -51,7 +54,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'varchar', nullable: false, length: 128, default: '' })
+  @IsString()
   inMaintenanceMessage: string;
 
   @ApiProperty({
@@ -59,7 +62,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @IsBoolean()
   depositActivated: boolean;
 
   @ApiProperty({
@@ -67,7 +70,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'varchar', nullable: false, length: 128, default: '' })
+  @IsString()
   depositMessage: string;
 
   @ApiProperty({
@@ -75,7 +78,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @IsBoolean()
   withdrawActivated: boolean;
 
   @ApiProperty({
@@ -83,7 +86,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'varchar', nullable: false, length: 128, default: '' })
+  @IsString()
   withdrawMessage: string;
 
   @ApiProperty({
@@ -91,7 +94,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @IsBoolean()
   transferActivated: boolean;
 
   @ApiProperty({
@@ -99,7 +102,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'varchar', nullable: false, length: 128, default: '' })
+  @IsString()
   transferMessage: string;
 
   @ApiProperty({
@@ -107,7 +110,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @IsBoolean()
   cardActivated: boolean;
 
   @ApiProperty({
@@ -115,7 +118,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'varchar', nullable: false, length: 128, default: '' })
+  @IsString()
   cardMessage: string;
 
   @ApiProperty({
@@ -123,7 +126,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @IsBoolean()
   cardMultipleActivated: boolean;
 
   @ApiProperty({
@@ -131,7 +134,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'varchar', nullable: false, length: 128, default: '' })
+  @IsString()
   cardMultipleMessage: string;
 
   @ApiProperty({
@@ -139,7 +142,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @IsBoolean()
   cardUniqueActivated: boolean;
 
   @ApiProperty({
@@ -147,7 +150,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'varchar', nullable: false, length: 128, default: '' })
+  @IsString()
   cardUniqueMessage: string;
 
   @ApiProperty({
@@ -155,7 +158,7 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'boolean', nullable: false, default: true })
+  @IsBoolean()
   cardPhysicActivated: boolean;
 
   @ApiProperty({
@@ -163,14 +166,6 @@ export class Country {
     maximum: 128,
     required: false,
   })
-  @Column({ type: 'varchar', nullable: false, length: 128, default: '' })
+  @IsString()
   cardPhysicMessage: string;
-
-  @OneToMany(() => PersonProfile, (personProfile) => personProfile.country)
-  @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })
-  personProfile: PersonProfile[];
-
-  @OneToMany(() => Fee, (fee) => fee.country)
-  @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })
-  fee: Fee[];
 }

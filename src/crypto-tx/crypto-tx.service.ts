@@ -541,10 +541,6 @@ export class CryptoTxService {
   ): Promise<PaginatedResult<CryptoTx>> {
     const queryBuilder = this.cryptoTxRepository.createQueryBuilder('crypto_tx');
 
-    if ('userId' in searchParams) {
-      queryBuilder.andWhere({ userSenderId: searchParams.userId });
-      queryBuilder.orWhere({ userReceiverId: searchParams.userId });
-    }
     if ('currencyName' in searchParams) {
       queryBuilder.andWhere({ currencyName: searchParams.currencyName });
     }
@@ -560,6 +556,10 @@ export class CryptoTxService {
       queryBuilder.andWhere({
         createdAt: LessThanOrEqual(searchParams.toDate),
       });
+    }
+    if ('userId' in searchParams) {
+      queryBuilder.andWhere({ userSenderId: searchParams.userId });
+      queryBuilder.orWhere({ userReceiverId: searchParams.userId });
     }
 
     const paginator = buildPaginator({

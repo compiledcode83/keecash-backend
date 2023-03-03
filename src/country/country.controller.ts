@@ -10,8 +10,8 @@ export class CountryController {
 
   @ApiOperation({ description: `Get available country list` })
   @UseGuards(JwtAuthGuard)
-  @Get('list')
-  async getCountryList(): Promise<Country[]> {
-    return this.countryService.getCountryList();
+  @Get()
+  async getAllCountries(): Promise<Country[]> {
+    return this.countryService.getAllCountries();
   }
 }

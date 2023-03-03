@@ -22,6 +22,8 @@ import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 import { AdminTypeEnum } from './admin.types';
 import { PersonProfileService } from '@src/person-profile/person-profile.service';
 import { AdminFilterDto } from './dto/admin.filter.dto';
+import { UpdateCountryDto } from './dto/update-country.dto';
+import { CountryService } from '@src/country/country.service';
 
 @Controller('admin')
 export class AdminController {
@@ -29,6 +31,7 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly userService: UserService,
     private readonly personProfileService: PersonProfileService,
+    private readonly countryService: CountryService,
   ) {}
 
   @ApiOperation({ description: `Get admin` })
@@ -90,5 +93,12 @@ export class AdminController {
   @Get('beneficiaries')
   async getBeneficiaries(@Query() query: GetBeneficiariesDto) {
     return this.adminService.getBeneficiaries(query.email);
+  }
+
+  @ApiOperation({ description: 'Update country setting' })
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch('country')
+  async updateCountry(@Body() body: UpdateCountryDto) {
+    return this.countryService.updateCountry(body);
   }
 }
