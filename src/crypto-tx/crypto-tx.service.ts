@@ -16,8 +16,8 @@ import { CryptoTransactionFilterDto } from './dto/crypto-transaction-filter.dto'
 import { PaginatedResult } from '@src/common/pagination/pagination.types';
 import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { buildPaginator, PagingResult } from 'typeorm-cursor-pagination';
-import { FeeService } from '@src/fee/fee.service';
 import { CryptoPayoutNotifyDto } from './dto/crypto-payout-notify.dto';
+import { CountryFeeService } from '@src/country/country-fee/country-fee.service';
 
 const GRANT_TYPE = 'client_credentials';
 const ADMIN_USER_ID = 1;
@@ -42,7 +42,7 @@ export class CryptoTxService {
     private readonly httpService: HttpService,
     private readonly cryptoTxRepository: CryptoTxRepository,
     private readonly userService: UserService,
-    private readonly feeService: FeeService,
+    private readonly countryFeeService: CountryFeeService,
   ) {
     this.tripleaClientId = {
       USD: this.configService.get<string>('cryptoConfig.tripleaUSDClientId'),
@@ -206,8 +206,8 @@ export class CryptoTxService {
       }
     | boolean
   > {
-    const CRYPTO_WITHDRAW_FEE_PERCENT = await this.feeService.getCryptoWithdrawFeePercent();
-    const CRYPTO_WITHDRAW_FEE_FIXED = await this.feeService.getCryptoWithdrawFeeFixed();
+    const CRYPTO_WITHDRAW_FEE_PERCENT = await this.countryFeeService.getCryptoWithdrawFeePercent();
+    const CRYPTO_WITHDRAW_FEE_FIXED = await this.countryFeeService.getCryptoWithdrawFeeFixed();
     const amount =
       (body.amount * (100 - CRYPTO_WITHDRAW_FEE_PERCENT)) / 100 - CRYPTO_WITHDRAW_FEE_FIXED;
     try {
@@ -292,10 +292,10 @@ export class CryptoTxService {
   }
 
   async paymentNotifyDeposit(body: CryptoPaymentNotifyDto) {
-    const CRYPTO_DEPOSIT_FEE_PERCENT = await this.feeService.getCryptoDepostiFeePercent();
-    const CRYPTO_DEPOSIT_FEE_FIXED = await this.feeService.getCryptoDepostiFeeFixed();
+    const CRYPTO_DEPOSIT_FEE_PERCENT = await this.countryFeeService.getCryptoDepostiFeePercent();
+    const CRYPTO_DEPOSIT_FEE_FIXED = await this.countryFeeService.getCryptoDepostiFeeFixed();
     const CRYPTO_DEPOSIT_REFERRAL_FEE_PERCENT =
-      await this.feeService.getCryptoDepositReferralFeePercent();
+      await this.countryFeeService.getCryptoDepositReferralFeePercent();
 
     const requestHeader = {
       Authorization: `Bearer ${this.tripleaAccessToken[body.order_currency]}`,
@@ -386,10 +386,10 @@ export class CryptoTxService {
   }
 
   async paymentNotifyWithdraw(body: CryptoPayoutNotifyDto) {
-    const CRYPTO_WITHDRAW_FEE_PERCENT = await this.feeService.getCryptoWithdrawFeePercent();
-    const CRYPTO_WITHDRAW_FEE_FIXED = await this.feeService.getCryptoWithdrawFeeFixed();
+    const CRYPTO_WITHDRAW_FEE_PERCENT = await this.countryFeeService.getCryptoWithdrawFeePercent();
+    const CRYPTO_WITHDRAW_FEE_FIXED = await this.countryFeeService.getCryptoWithdrawFeeFixed();
     const CRYPTO_WITHDRAW_REFERRAL_FEE_PERCENT =
-      await this.feeService.getCryptoWithdrawReferralFeePercent();
+      await this.countryFeeService.getCryptoWithdrawReferralFeePercent();
 
     const requestHeader = {
       Authorization: `Bearer ${this.tripleaAccessToken[body.local_currency]}`,
@@ -473,10 +473,10 @@ export class CryptoTxService {
   }
 
   async cryptoTransfer(body: CryptoTransferDto, userId: number) {
-    const CRYPTO_TRANSFER_FEE_FIXED = await this.feeService.getCryptoTransferFeeFixed();
-    const CRYPTO_TRANSFER_FEE_PERCENT = await this.feeService.getCryptoTransferFeePercent();
+    const CRYPTO_TRANSFER_FEE_FIXED = await this.countryFeeService.getCryptoTransferFeeFixed();
+    const CRYPTO_TRANSFER_FEE_PERCENT = await this.countryFeeService.getCryptoTransferFeePercent();
     const CRYPTO_TRANSFER_REFERRAL_FEE_PERCENT =
-      await this.feeService.getCryptoTransferReferralFeePercent();
+      await this.countryFeeService.getCryptoTransferReferralFeePercent();
     const receiver = await this.userService.findByEmailPhonenumberReferralId(body.receiver);
     if (receiver) {
       const referralUserId = await this.userService.getReferralUserId(userId);

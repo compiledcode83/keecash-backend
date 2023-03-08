@@ -1,16 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  OneToOne,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from '@src/user/user.entity';
-import { Country } from '../country/country.entity';
-import { Shareholder } from '../shareholder/shareholder.entity';
+import { Shareholder } from '../../shareholder/shareholder.entity';
 
 export enum Position {
   SECRETARY = 'SECRETARY',

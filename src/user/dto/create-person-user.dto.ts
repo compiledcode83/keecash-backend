@@ -9,7 +9,7 @@ import {
   IsPhoneNumber,
   IsOptional,
 } from 'class-validator';
-import { DocumentTypeEnum } from '../../document/document.types';
+import { DocumentTypeEnum } from '../document/document.types';
 import { Language } from '../user.types';
 import { CountryExistsByNameValidator } from '../validator/country-exists-by-name.validator';
 import { ReferralIdExistsValidator } from '../validator/referral-id-exists.validator';

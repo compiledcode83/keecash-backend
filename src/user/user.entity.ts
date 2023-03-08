@@ -10,9 +10,9 @@ import {
   OneToOne,
 } from 'typeorm';
 import { AuthRefreshToken } from '@src/auth-refresh-token/auth-refresh-token.entity';
-import { PersonProfile } from '../person-profile/person-profile.entity';
-import { Document } from '../document/document.entity';
-import { EnterpriseProfile } from '../enterprise-profile/enterprise-profile.entity';
+import { PersonProfile } from './person-profile/person-profile.entity';
+import { Document } from './document/document.entity';
+import { EnterpriseProfile } from './enterprise-profile/enterprise-profile.entity';
 import { CryptoTx } from '@src/crypto-tx/crypto-tx.entity';
 import { BeneficiaryUser } from '@src/beneficiary/beneficiary-user.entity';
 import { AccountType, Language, UserStatus } from './user.types';

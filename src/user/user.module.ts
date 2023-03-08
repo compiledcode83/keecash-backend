@@ -12,9 +12,9 @@ import { ConfigService } from '@nestjs/config';
 import { CountryExistsByNameValidator } from './validator/country-exists-by-name.validator';
 import { ReferralIdExistsValidator } from './validator/referral-id-exists.validator';
 import { CountryModule } from '@src/country/country.module';
-import { DocumentModule } from '@src/document/document.module';
-import { EnterpriseProfileModule } from '@src/enterprise-profile/enterprise-profile.module';
-import { PersonProfileModule } from '@src/person-profile/person-profile.module';
+import { DocumentModule } from '@src/user/document/document.module';
+import { EnterpriseProfileModule } from '@src/user/enterprise-profile/enterprise-profile.module';
+import { PersonProfileModule } from '@src/user/person-profile/person-profile.module';
 import { ShareholderModule } from '@src/shareholder/shareholder.module';
 
 @Module({

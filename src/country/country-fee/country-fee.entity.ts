@@ -1,16 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { FiatCurrencyEnum } from '@src/crypto-tx/crypto-tx.types';
 import { Country } from '@src/country/country.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('fee')
-export class Fee {
+@Entity('country-fee')
+export class CountryFee {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
-
-  @ApiProperty({ description: 'country id', maximum: 64, required: true })
-  @Column({ type: 'int', nullable: false })
-  countryId: number;
 
   @ApiProperty({
     description: 'Crypto currency name',
@@ -120,6 +116,6 @@ export class Fee {
   @Column({ type: 'float', nullable: false })
   transferMaxAmount: number;
 
-  @ManyToOne(() => Country, (country) => country.fee)
+  @OneToOne(() => Country, (country) => country.fee)
   country: Country;
 }

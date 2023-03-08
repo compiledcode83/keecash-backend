@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { User } from '../user/user.entity';
+import { User } from '../user.entity';
 import { DocumentTypeEnum } from './document.types';
 
 @Entity('document')

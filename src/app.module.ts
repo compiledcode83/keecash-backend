@@ -14,17 +14,19 @@ import { AuthRefreshTokenModule } from './auth-refresh-token/auth-refresh-token.
 import { VerificationModule } from './verification/verification.module';
 import { StorageModule } from './storage/storage.module';
 import { CryptoTxModule } from './crypto-tx/crypto-tx.module';
-import { FeeModule } from './fee/fee.module';
 import { BeneficiaryModule } from './beneficiary/beneficiary.module';
 import { AdminModule } from './admin/admin.module';
 import { CountryModule } from './country/country.module';
-import { DocumentModule } from './document/document.module';
-import { EnterpriseProfileModule } from './enterprise-profile/enterprise-profile.module';
-import { PersonProfileModule } from './person-profile/person-profile.module';
+import { DocumentModule } from './user/document/document.module';
+import { EnterpriseProfileModule } from './user/enterprise-profile/enterprise-profile.module';
+import { PersonProfileModule } from './user/person-profile/person-profile.module';
 import { ShareholderModule } from './shareholder/shareholder.module';
+import { CountryActivationModule } from './country/country-activation/country-activation.module';
+import { CountryFeeModule } from './country/country-fee/country-fee.module';
 import verificationConfig from './config/verification.config';
 import storageConfig from './config/storage.config';
 import cryptoConfig from './config/crypto.config';
+import { RouterModule } from '@nestjs/core';
 
 EnvHelper.verifyNodeEnv();
 
@@ -49,20 +51,50 @@ EnvHelper.verifyNodeEnv();
       },
       inject: [ConfigService],
     }),
-    UserModule,
     AuthModule,
     AuthRefreshTokenModule,
     VerificationModule,
     StorageModule,
     CryptoTxModule,
-    FeeModule,
     BeneficiaryModule,
     AdminModule,
-    CountryModule,
-    DocumentModule,
-    EnterpriseProfileModule,
-    PersonProfileModule,
+    RouterModule.register([
+      {
+        path: 'user',
+        module: UserModule,
+        children: [
+          {
+            path: 'person-profile',
+            module: PersonProfileModule,
+          },
+          {
+            path: 'enterprise-profile',
+            module: EnterpriseProfileModule,
+          },
+          {
+            path: 'document',
+            module: DocumentModule,
+          },
+        ],
+      },
+      {
+        path: 'country',
+        module: CountryModule,
+        children: [
+          {
+            path: 'activation',
+            module: CountryActivationModule,
+          },
+          {
+            path: 'fee',
+            module: CountryFeeModule,
+          },
+        ],
+      },
+    ]),
     ShareholderModule,
+    CountryActivationModule,
+    CountryFeeModule,
   ],
 })
 export class AppModule {}

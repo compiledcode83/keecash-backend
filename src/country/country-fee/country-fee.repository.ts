@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { FiatCurrencyEnum } from '@src/crypto-tx/crypto-tx.types';
 import { DataSource, Repository } from 'typeorm';
-import { Fee } from './fee.entity';
+import { CountryFee } from './country-fee.entity';
 
 @Injectable()
-export class FeeRepository extends Repository<Fee> {
+export class CountryFeeRepository extends Repository<CountryFee> {
   constructor(private readonly dataSource: DataSource) {
-    super(Fee, dataSource.manager);
+    super(CountryFee, dataSource.manager);
   }
 
   async getDepositFixedFee(countryId: number, currencyName: FiatCurrencyEnum): Promise<number> {

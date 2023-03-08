@@ -20,7 +20,7 @@ import { GetBeneficiariesDto } from './dto/get-beneficiary-admin.dto';
 import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 import { AdminTypeEnum } from './admin.types';
-import { PersonProfileService } from '@src/person-profile/person-profile.service';
+import { PersonProfileService } from '@src/user/person-profile/person-profile.service';
 import { AdminFilterDto } from './dto/admin.filter.dto';
 import { UpdateCountryDto } from './dto/update-country.dto';
 import { CountryService } from '@src/country/country.service';

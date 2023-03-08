@@ -12,8 +12,8 @@ import {
   ValidateNested,
   IsOptional,
 } from 'class-validator';
-import { DocumentTypeEnum } from '@src/document/document.types';
-import { Position } from '@src/enterprise-profile/enterprise-profile.entity';
+import { DocumentTypeEnum } from '@src/user/document/document.types';
+import { Position } from '@src/user/enterprise-profile/enterprise-profile.entity';
 import { Language } from '../user.types';
 import { CountryExistsByNameValidator } from '../validator/country-exists-by-name.validator';
 import { ReferralIdExistsValidator } from '../validator/referral-id-exists.validator';

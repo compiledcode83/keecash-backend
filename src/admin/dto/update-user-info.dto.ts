@@ -39,7 +39,6 @@ export class UpdateUserInfoDto {
   @ApiProperty({ description: 'Address', maximum: 64, required: true })
   @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(128)
   address2: string;
 
