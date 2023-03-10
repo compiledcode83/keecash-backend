@@ -30,6 +30,7 @@ import { RouterModule } from '@nestjs/core';
 import { BeneficiaryUserModule } from './beneficiary/beneficiary-user/beneficiary-user.module';
 import { BeneficiaryWalletModule } from './beneficiary/beneficiary-wallet/beneficiary-wallet.module';
 import { CardModule } from './card/card.module';
+import { CardHistoryModule } from './card-history/card-history.module';
 
 EnvHelper.verifyNodeEnv();
 
@@ -112,6 +113,7 @@ EnvHelper.verifyNodeEnv();
     CountryActivationModule,
     CountryFeeModule,
     CardModule,
+    CardHistoryModule,
   ],
 })
 export class AppModule {}

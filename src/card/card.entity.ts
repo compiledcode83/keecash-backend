@@ -1,13 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CardHistory } from '@src/card-history/card-history.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { CardTypeEnum } from './card.type';
+import { CardTypeEnum } from './card.types';
 
 @Entity('card')
 export class Card {
@@ -53,4 +55,7 @@ export class Card {
   @ApiProperty({ description: 'Deleted at date' })
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedAt: Date;
+
+  @OneToMany(() => CardHistory, (history) => history.card)
+  history: CardHistory[];
 }
