@@ -16,8 +16,8 @@ export class CountryService {
     return country;
   }
 
-  async getAllCountries(): Promise<Country[]> {
-    const countryList = await this.countryRepository.find();
+  async findAll(withActivation = true, withFee = true): Promise<Country[]> {
+    const countryList = await this.countryRepository.findAll(withActivation, withFee);
 
     return countryList;
   }

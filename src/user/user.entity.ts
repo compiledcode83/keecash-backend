@@ -14,8 +14,9 @@ import { PersonProfile } from './person-profile/person-profile.entity';
 import { Document } from './document/document.entity';
 import { EnterpriseProfile } from './enterprise-profile/enterprise-profile.entity';
 import { CryptoTx } from '@src/crypto-tx/crypto-tx.entity';
-import { BeneficiaryUser } from '@src/beneficiary/beneficiary-user.entity';
+import { BeneficiaryUser } from '@src/beneficiary/beneficiary-user/beneficiary-user.entity';
 import { AccountType, Language, UserStatus } from './user.types';
+import { BeneficiaryWallet } from '@src/beneficiary/beneficiary-wallet/beneficiary-wallet.entity';
 
 @Entity('user')
 export class User {
@@ -108,13 +109,10 @@ export class User {
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   documents: Document[];
 
-  @OneToOne(() => PersonProfile, (personProfile: PersonProfile) => personProfile.user)
+  @OneToOne(() => PersonProfile, (personProfile) => personProfile.user)
   personProfile: PersonProfile;
 
-  @OneToOne(
-    () => EnterpriseProfile,
-    (enterpriseProfile: EnterpriseProfile) => enterpriseProfile.user,
-  )
+  @OneToOne(() => EnterpriseProfile, (enterpriseProfile) => enterpriseProfile.user)
   enterpriseProfile: EnterpriseProfile;
 
   @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.userSender)
@@ -125,11 +123,12 @@ export class User {
   @JoinColumn({ name: 'id', referencedColumnName: 'user_receiver_id' })
   receiver: CryptoTx[];
 
-  @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.mainUser)
-  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
-  mainUser: BeneficiaryUser[];
+  @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.payer)
+  payer: BeneficiaryUser[];
 
-  @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.beneficiaryUser)
-  @JoinColumn({ name: 'id', referencedColumnName: 'beneficiary_user_id' })
-  beneficiaryUser: BeneficiaryUser[];
+  @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.payee)
+  payee: BeneficiaryUser[];
+
+  @OneToMany(() => BeneficiaryWallet, (beneficiaryWallet) => beneficiaryWallet.user)
+  beneficiaryWallet: BeneficiaryWallet[];
 }

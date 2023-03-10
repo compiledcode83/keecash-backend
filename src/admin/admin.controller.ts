@@ -88,12 +88,12 @@ export class AdminController {
     return this.adminService.getCryptoTx(query);
   }
 
-  @ApiOperation({ description: `Get beneficiary users and wallets` })
-  @UseGuards(JwtAdminAuthGuard)
-  @Get('beneficiaries')
-  async getBeneficiaries(@Query() query: GetBeneficiariesDto) {
-    return this.adminService.getBeneficiaries(query.email);
-  }
+  // @ApiOperation({ description: `Get beneficiary users and wallets` })
+  // @UseGuards(JwtAdminAuthGuard)
+  // @Get('beneficiaries')
+  // async getBeneficiaries(@Query() query: GetBeneficiariesDto) {
+  //   return this.adminService.getBeneficiaries(query.email);
+  // }
 
   @ApiOperation({ description: 'Update country setting' })
   @UseGuards(JwtAdminAuthGuard)

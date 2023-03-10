@@ -5,8 +5,10 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('beneficiary_user')
@@ -14,29 +16,31 @@ export class BeneficiaryUser {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({ description: 'User Id', maximum: 64, required: true })
-  @Column({ type: 'int', nullable: false })
-  userId: number;
+  @ApiProperty({ description: 'Payer Id' })
+  @Column({ nullable: true })
+  payerId: number;
 
-  @ApiProperty({ description: 'Beneficiary User Id', maximum: 64, required: true })
-  @Column({ type: 'int', nullable: false })
-  beneficiaryUserId: number;
+  @ApiProperty({ description: 'Payee Id' })
+  @Column({ nullable: true })
+  payeeId: number;
 
   @ApiProperty({ description: 'Created at date' })
-  @Column({ type: 'timestamp', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   createdAt: Date;
 
   @ApiProperty({ description: 'Updated at date' })
-  @CreateDateColumn()
+  @UpdateDateColumn()
   updatedAt: Date;
 
   @ApiProperty({ description: 'Deleted at date' })
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.mainUser)
-  mainUser: User;
+  @ManyToOne(() => User, (user) => user.payer)
+  @JoinColumn({ name: 'payer_id', referencedColumnName: 'id' })
+  payer: User;
 
-  @ManyToOne(() => User, (user) => user.beneficiaryUser)
-  beneficiaryUser: User;
+  @ManyToOne(() => User, (user) => user.payee)
+  @JoinColumn({ name: 'payee_id', referencedColumnName: 'id' })
+  payee: User;
 }

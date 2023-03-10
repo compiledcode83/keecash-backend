@@ -27,6 +27,8 @@ import verificationConfig from './config/verification.config';
 import storageConfig from './config/storage.config';
 import cryptoConfig from './config/crypto.config';
 import { RouterModule } from '@nestjs/core';
+import { BeneficiaryUserModule } from './beneficiary/beneficiary-user/beneficiary-user.module';
+import { BeneficiaryWalletModule } from './beneficiary/beneficiary-wallet/beneficiary-wallet.module';
 
 EnvHelper.verifyNodeEnv();
 
@@ -56,7 +58,6 @@ EnvHelper.verifyNodeEnv();
     VerificationModule,
     StorageModule,
     CryptoTxModule,
-    BeneficiaryModule,
     AdminModule,
     RouterModule.register([
       {
@@ -74,6 +75,20 @@ EnvHelper.verifyNodeEnv();
           {
             path: 'document',
             module: DocumentModule,
+          },
+        ],
+      },
+      {
+        path: 'beneficiary',
+        module: BeneficiaryModule,
+        children: [
+          {
+            path: 'user',
+            module: BeneficiaryUserModule,
+          },
+          {
+            path: 'wallet',
+            module: BeneficiaryWalletModule,
           },
         ],
       },

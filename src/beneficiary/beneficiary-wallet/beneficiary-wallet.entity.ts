@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -50,6 +51,7 @@ export class BeneficiaryWallet {
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedAt: Date;
 
-  // @ManyToOne(() => User, (user) => user.beneficiary_user)
-  // beneficiaryUser: User;
+  @ManyToOne(() => User, (user) => user.beneficiaryWallet)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  user: User;
 }

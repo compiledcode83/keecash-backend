@@ -72,6 +72,7 @@ export class AuthController {
   @UseGuards(AdminAuthGuard)
   @Post('admin-login')
   async adminLogin(@Request() request, @Body() body: LoginAdminDto) {
+    console.log('admin-login');
     return this.authService.adminLogin(body);
   }
 

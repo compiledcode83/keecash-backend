@@ -3,15 +3,11 @@ import { Exclude } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, JoinColumn, OneToOne } from 'typeorm';
 import { Country } from '../country.entity';
 
-@Entity('country-activation')
+@Entity('country_activation')
 export class CountryActivation {
   @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
-
-  @ApiProperty({ description: 'Country ID' })
-  @Column({ type: 'int' })
-  countryId: number;
 
   @ApiProperty({
     description: 'If the country is active now.',
@@ -158,5 +154,6 @@ export class CountryActivation {
   cardPhysicMessage: string;
 
   @OneToOne(() => Country, (country) => country.activation)
+  @JoinColumn()
   country: Country;
 }

@@ -1,20 +1,32 @@
-import { Body, Request, Controller, Post, UseGuards, Get, Query } from '@nestjs/common';
+import { Body, Request, Controller, Post, UseGuards, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
-import { BeneficiaryService } from './beneficiary.service';
-import { AddBeneficiaryUserDto } from './dto/add-beneficiary-user.dto';
-import { AddBeneficiaryWalletDto } from './dto/add-beneficiary-wallet.dto';
+import { AddBeneficiaryUserDto } from './beneficiary-user/dto/add-beneficiary-user.dto';
+import { AddBeneficiaryWalletDto } from './beneficiary-wallet/dto/add-beneficiary-wallet.dto';
 import { CryptoCurrencyEnum } from '@src/crypto-tx/crypto-tx.types';
+import { BeneficiaryUserService } from './beneficiary-user/beneficiary-user.service';
+import { BeneficiaryWalletService } from './beneficiary-wallet/beneficiary-wallet.service';
 
-@Controller('beneficiary')
+@Controller()
 export class BeneficiaryController {
-  constructor(private readonly beneficiaryService: BeneficiaryService) {}
+  constructor(
+    private readonly beneficiaryUserService: BeneficiaryUserService,
+    private readonly beneficiaryWalletService: BeneficiaryWalletService,
+  ) {}
 
   @ApiOperation({ description: `Get all beneficiary users and wallets` })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('all')
   async getAllBeneficiaries(@Request() req) {
+    const beneficiaryUsers = await this.beneficiaryUserService.getByPayerId(req.user.id);
+    const beneficiaryWallets = await this.beneficiaryWalletService.getByUserId(req.user.id);
+
+    return {
+      users: beneficiaryUsers,
+      wallets: beneficiaryWallets,
+    };
+
     return {
       users: [
         {
@@ -44,14 +56,6 @@ export class BeneficiaryController {
           type: CryptoCurrencyEnum.BTC,
         },
       ],
-    };
-
-    const beneficiaryUsers = await this.beneficiaryService.getBeneficiaryUsers(req.user.id);
-    const beneficiaryWallets = await this.beneficiaryService.getBeneficiaryWallets(req.user.id);
-
-    return {
-      users: beneficiaryUsers,
-      wallets: beneficiaryWallets,
     };
   }
 
@@ -89,27 +93,27 @@ export class BeneficiaryController {
   @UseGuards(JwtAuthGuard)
   @Post('add-user')
   async addBeneficiaryUser(@Body() body: AddBeneficiaryUserDto, @Request() req) {
-    return this.beneficiaryService.addBeneficiaryUser(body, req.user.id);
+    return this.beneficiaryUserService.addBeneficiaryUser(body, req.user.id);
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('add-wallet')
   async addBeneficiaryWallet(@Body() body: AddBeneficiaryWalletDto, @Request() req) {
-    return this.beneficiaryService.addBeneficiaryWallet(body, req.user.id);
+    return this.beneficiaryWalletService.addBeneficiaryWallet(body, req.user.id);
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('users')
   async getBeneficiaryUsers(@Request() req) {
-    return this.beneficiaryService.getBeneficiaryUsers(req.user.id);
+    return this.beneficiaryUserService.getByPayerId(req.user.id);
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('wallets')
   async getBeneficiaryUser(@Request() req) {
-    return this.beneficiaryService.getBeneficiaryWallets(req.user.id);
+    return this.beneficiaryWalletService.getByUserId(req.user.id);
   }
 }

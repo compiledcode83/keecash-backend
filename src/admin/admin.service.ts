@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { BeneficiaryService } from '@src/beneficiary/beneficiary.service';
 import { CryptoTxService } from '@src/crypto-tx/crypto-tx.service';
 import { UserService } from '@src/user/user.service';
 import { AddAdminDto } from './dto/add-admin.dto';
@@ -9,13 +8,16 @@ import { Admin } from './admin.entity';
 import { AdminRepository } from './admin.repository';
 import { AdminFilterDto } from './dto/admin.filter.dto';
 import { PagingResult } from 'typeorm-cursor-pagination';
+import { BeneficiaryUserService } from '@src/beneficiary/beneficiary-user/beneficiary-user.service';
+import { BeneficiaryWalletService } from '@src/beneficiary/beneficiary-wallet/beneficiary-wallet.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly userService: UserService,
     private readonly cryptoTxService: CryptoTxService,
-    private readonly beneficiaryService: BeneficiaryService,
+    private readonly beneficiaryUserService: BeneficiaryUserService,
+    private readonly beneficiaryWalletService: BeneficiaryWalletService,
     private readonly adminRepository: AdminRepository,
   ) {}
 
@@ -31,16 +33,16 @@ export class AdminService {
     return this.cryptoTxService.findAllPaginated(body, body.userId);
   }
 
-  async getBeneficiaries(email: string) {
-    const user = await this.userService.findByEmail(email);
-    const beneficiaryUsers = await this.beneficiaryService.getBeneficiaryUsers(user.id);
-    const beneficiaryWallets = await this.beneficiaryService.getBeneficiaryWallets(user.id);
+  // async getBeneficiaries(email: string) {
+  //   const user = await this.userService.findByEmail(email);
+  //   const beneficiaryUsers = await this.beneficiaryUserService.getByPayerId(user.id);
+  //   const beneficiaryWallets = await this.beneficiaryWalletService.getBeneficiaryWallets(user.id);
 
-    return {
-      beneficiaryUsers,
-      beneficiaryWallets,
-    };
-  }
+  //   return {
+  //     beneficiaryUsers,
+  //     beneficiaryWallets,
+  //   };
+  // }
 
   async validateAdmin(email: string, password: string): Promise<Partial<Admin> | null> {
     return this.adminRepository.validateAdmin(email, password);

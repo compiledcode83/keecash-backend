@@ -24,11 +24,9 @@ export class Country {
   phoneCode: string;
 
   @OneToOne(() => CountryActivation, (activation) => activation.country, { cascade: true })
-  @JoinColumn()
   activation: CountryActivation;
 
   @OneToOne(() => CountryFee, (fee) => fee.country)
-  @JoinColumn()
   fee: CountryFee;
 
   @OneToMany(() => PersonProfile, (personProfile) => personProfile.country)

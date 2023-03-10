@@ -10,6 +10,9 @@ export class AdminStrategy extends PassportStrategy(Strategy, 'admin') {
   }
 
   async validate(email: string, password: string): Promise<any> {
+    console.log({ email });
+    console.log({ password });
+
     const admin = await this.adminService.validateAdmin(email, password);
     if (!admin) {
       throw new UnauthorizedException();

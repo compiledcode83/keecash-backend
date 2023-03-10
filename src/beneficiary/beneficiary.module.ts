@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
 import { BeneficiaryService } from './beneficiary.service';
 import { BeneficiaryController } from './beneficiary.controller';
-import { BeneficiaryUserRepository } from './beneficiary-user.repository';
-import { UserModule } from '@src/user/user.module';
-import { BeneficiaryWalletRepository } from './beneficiary-wallet.repository';
+import { BeneficiaryWalletModule } from './beneficiary-wallet/beneficiary-wallet.module';
+import { BeneficiaryUserModule } from './beneficiary-user/beneficiary-user.module';
 
 @Module({
-  imports: [UserModule],
-  providers: [BeneficiaryService, BeneficiaryUserRepository, BeneficiaryWalletRepository],
+  imports: [BeneficiaryWalletModule, BeneficiaryUserModule],
+  providers: [BeneficiaryService],
   controllers: [BeneficiaryController],
   exports: [BeneficiaryService],
 })

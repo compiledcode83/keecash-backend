@@ -3,7 +3,7 @@ import { FiatCurrencyEnum } from '@src/crypto-tx/crypto-tx.types';
 import { Country } from '@src/country/country.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('country-fee')
+@Entity('country_fee')
 export class CountryFee {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
@@ -117,5 +117,6 @@ export class CountryFee {
   transferMaxAmount: number;
 
   @OneToOne(() => Country, (country) => country.fee)
+  @JoinColumn()
   country: Country;
 }

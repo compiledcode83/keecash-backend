@@ -12,6 +12,6 @@ export class CountryController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async getAllCountries(): Promise<Country[]> {
-    return this.countryService.getAllCountries();
+    return this.countryService.findAll();
   }
 }

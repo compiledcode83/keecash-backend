@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '@src/auth/auth.module';
-import { BeneficiaryModule } from '@src/beneficiary/beneficiary.module';
 import { CryptoTxModule } from '@src/crypto-tx/crypto-tx.module';
 import { PersonProfileModule } from '@src/user/person-profile/person-profile.module';
 import { UserModule } from '@src/user/user.module';
@@ -9,6 +8,8 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminRepository } from './admin.repository';
 import { CountryModule } from '@src/country/country.module';
+import { BeneficiaryUserModule } from '@src/beneficiary/beneficiary-user/beneficiary-user.module';
+import { BeneficiaryWalletModule } from '@src/beneficiary/beneficiary-wallet/beneficiary-wallet.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { CountryModule } from '@src/country/country.module';
     // AuthModule,
     UserModule,
     CryptoTxModule,
-    BeneficiaryModule,
+    BeneficiaryUserModule,
+    BeneficiaryWalletModule,
     PersonProfileModule,
     CountryModule,
   ],
