@@ -22,7 +22,7 @@ export class CardHistory {
   @Column({ type: 'enum', enum: CardTxStatusEnum, default: CardTxStatusEnum.InProgress })
   status: CardTxStatusEnum;
 
-  @Column({ type: 'double', nullable: false })
+  @Column({ type: 'float', nullable: false })
   amount: number;
 
   @ApiProperty({ description: 'Created at date' })
