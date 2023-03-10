@@ -11,7 +11,6 @@ import {
   Param,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
-import { JwtAdminAuthGuard } from '@api/auth/guards/jwt-admin-auth.guard';
 import { AccountType } from '@api/user/user.types';
 import { UserService } from '@api/user/user.service';
 import { AdminService } from './admin.service';
@@ -26,6 +25,7 @@ import { UpdateCountryDto } from './dto/update-country.dto';
 import { CountryService } from '@api/country/country.service';
 import { GetCardAdminDto } from './dto/get-card.admin.dto';
 import { CardService } from '@api/card/card.service';
+import { JwtAdminAuthGuard } from '@admin/admin-auth/guards/jwt-admin-auth.guard';
 
 @Controller()
 export class AdminController {

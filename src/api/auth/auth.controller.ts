@@ -22,9 +22,8 @@ import { CookieToBodyInterceptor } from '@src/common/interceptors/cookie-to-body
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { RealIP } from 'nestjs-real-ip';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
-import { AdminAuthGuard } from './guards/admin-auth.guard';
-import { LoginAdminDto } from './dto/login-admin.dto';
-import { JwtAdminAuthGuard } from './guards/jwt-admin-auth.guard';
+import { AdminAuthGuard } from '../../admin/admin-auth/guards/admin-auth.guard';
+import { LoginAdminDto } from '../../admin/admin-auth/dto/login-admin.dto';
 import { ConfirmEmailVerificationCodeForAdminDto } from '@api/user/dto/confirm-email-verification-for-admin.dto';
 import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { User } from '@api/user/user.entity';
@@ -66,26 +65,6 @@ export class AuthController {
     return { accessToken: authData.accessToken };
   }
 
-  @ApiOperation({ description: `Admin login` })
-  @ApiResponse(ApiResponseHelper.success(Admin))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @UseGuards(AdminAuthGuard)
-  @Post('admin-login')
-  async adminLogin(@Request() request, @Body() body: LoginAdminDto) {
-    console.log('admin-login');
-    return this.authService.adminLogin(body);
-  }
-
-  @ApiOperation({
-    description: `Confirm OTP for email verification for admin login`,
-  })
-  @Post('confirm-otp')
-  async confirmOtp(@Request() request, @Body() body: ConfirmEmailVerificationCodeForAdminDto) {
-    const accessToken = await this.authService.confirmOtpForAdmin(body);
-
-    return { accessToken };
-  }
-
   @UseInterceptors(new CookieToBodyInterceptor('refreshToken', 'refreshToken'))
   @HttpCode(HttpStatus.CREATED)
   @Post('refresh-tokens')
@@ -117,13 +96,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('/user-profile')
   async successUser(@Request() req) {
-    return req.user;
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(JwtAdminAuthGuard)
-  @Get('/admin-profile')
-  async successAdmin(@Request() req) {
     return req.user;
   }
 }

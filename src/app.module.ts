@@ -56,50 +56,54 @@ EnvHelper.verifyNodeEnv();
       },
       inject: [ConfigService],
     }),
-    RouterModule.register([
-      {
-        path: 'admin',
-        children: [{ path: '', module: AdminModule }],
-      },
-    ]),
-    AuthModule,
-    AuthRefreshTokenModule,
-    VerificationModule,
-    StorageModule,
-    CryptoTxModule,
-    RouterModule.register([
-      {
-        path: 'user',
-        module: UserModule,
-        children: [
-          { path: 'person-profile', module: PersonProfileModule },
-          { path: 'enterprise-profile', module: EnterpriseProfileModule },
-          { path: 'document', module: DocumentModule },
-        ],
-      },
-      {
-        path: 'beneficiary',
-        module: BeneficiaryModule,
-        children: [
-          { path: 'user', module: BeneficiaryUserModule },
-          { path: 'wallet', module: BeneficiaryWalletModule },
-        ],
-      },
-      {
-        path: 'country',
-        module: CountryModule,
-        children: [
-          { path: 'activation', module: CountryActivationModule },
-          { path: 'fee', module: CountryFeeModule },
-        ],
-      },
-    ]),
-    ShareholderModule,
-    CountryActivationModule,
-    CountryFeeModule,
-    CardModule,
-    CardHistoryModule,
+    AdminModule,
     AdminAuthModule,
+    RouterModule.register([
+      {
+        path: 'admin/v1',
+        module: AdminModule,
+        children: [{ path: 'auth', module: AdminAuthModule }],
+      },
+      {
+        path: 'api/v1',
+        children: [
+          { path: 'auth', module: AuthModule },
+          { path: '/', module: AuthRefreshTokenModule },
+          { path: '/', module: VerificationModule },
+          { path: '/', module: StorageModule },
+          { path: '/', module: CryptoTxModule },
+          { path: '/', module: CountryActivationModule },
+          { path: '/', module: ShareholderModule },
+          { path: '/', module: CardModule },
+          { path: '/', module: CardHistoryModule },
+          {
+            path: 'user',
+            module: UserModule,
+            children: [
+              { path: 'person-profile', module: PersonProfileModule },
+              { path: 'enterprise-profile', module: EnterpriseProfileModule },
+              { path: 'document', module: DocumentModule },
+            ],
+          },
+          {
+            path: 'beneficiary',
+            module: BeneficiaryModule,
+            children: [
+              { path: 'user', module: BeneficiaryUserModule },
+              { path: 'wallet', module: BeneficiaryWalletModule },
+            ],
+          },
+          {
+            path: 'country',
+            module: CountryModule,
+            children: [
+              { path: 'activation', module: CountryActivationModule },
+              { path: 'fee', module: CountryFeeModule },
+            ],
+          },
+        ],
+      },
+    ]),
   ],
 })
 export class AppModule {}

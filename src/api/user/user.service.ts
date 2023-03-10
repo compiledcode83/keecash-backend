@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateUserInfoDto } from '@admin/admin/dto/update-user-info.dto';
-import { AccessTokenInterfaceForUser } from '@api/auth/auth.type';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
 import { CountryService } from '@api/country/country.service';
 import { DocumentService } from '@api/user/document/document.service';
 import { DocumentTypeEnum } from '@api/user/document/document.types';
@@ -241,7 +241,7 @@ export class UserService {
   }
 
   async createAccessToken(user: User) {
-    const payload: AccessTokenInterfaceForUser = {
+    const payload: UserAccessTokenInterface = {
       id: user.id,
       email: user.email,
       firstName: user.firstName,

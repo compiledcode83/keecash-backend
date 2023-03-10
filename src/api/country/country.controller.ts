@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '@src/api/auth/guards/jwt-auth.guard';
 import { Country } from './country.entity';
 import { CountryService } from './country.service';
 
-@Controller('country')
+@Controller()
 export class CountryController {
   constructor(private readonly countryService: CountryService) {}
 

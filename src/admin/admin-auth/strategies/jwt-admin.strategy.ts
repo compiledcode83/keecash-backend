@@ -2,7 +2,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AccessTokenInterfaceForAdmin } from '../auth.type';
+import { AdminAccessTokenInterface } from '../admin-auth.type';
 import { Admin } from '@admin/admin/admin.entity';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class JwtAdminStrategy extends PassportStrategy(Strategy, 'jwtAdmin') {
     });
   }
 
-  async validate(payload: Partial<Admin>): Promise<AccessTokenInterfaceForAdmin> {
+  async validate(payload: Partial<Admin>): Promise<AdminAccessTokenInterface> {
     return {
       id: payload.id,
       email: payload.email,
