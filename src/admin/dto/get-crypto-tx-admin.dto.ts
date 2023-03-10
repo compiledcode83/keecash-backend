@@ -4,7 +4,7 @@ import { CryptoTransactionFilterDto } from '@src/crypto-tx/dto/crypto-transactio
 
 export class GetCryptoTxAdminDto extends CryptoTransactionFilterDto {
   @ApiProperty({
-    example: 'user@example.com',
+    example: 1,
     required: true,
     maximum: 255,
     description: 'Email address',

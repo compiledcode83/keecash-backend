@@ -30,7 +30,7 @@ export class AdminService {
   }
 
   async getCryptoTx(body: GetCryptoTxAdminDto) {
-    return this.cryptoTxService.findAllPaginated(body, body.userId);
+    return this.cryptoTxService.findAllPaginated(body);
   }
 
   // async getBeneficiaries(email: string) {

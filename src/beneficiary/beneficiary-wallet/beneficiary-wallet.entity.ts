@@ -33,10 +33,7 @@ export class BeneficiaryWallet {
     maximum: 255,
     required: true,
   })
-  @Column({
-    type: 'enum',
-    enum: CryptoCurrencyEnum,
-  })
+  @Column({ type: 'enum', enum: CryptoCurrencyEnum })
   type: CryptoCurrencyEnum;
 
   @ApiProperty({ description: 'Created at date' })

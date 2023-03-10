@@ -17,11 +17,11 @@ export class BeneficiaryUser {
   id: number;
 
   @ApiProperty({ description: 'Payer Id' })
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   payerId: number;
 
   @ApiProperty({ description: 'Payee Id' })
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   payeeId: number;
 
   @ApiProperty({ description: 'Created at date' })

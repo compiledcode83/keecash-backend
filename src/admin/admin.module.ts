@@ -10,6 +10,7 @@ import { AdminRepository } from './admin.repository';
 import { CountryModule } from '@src/country/country.module';
 import { BeneficiaryUserModule } from '@src/beneficiary/beneficiary-user/beneficiary-user.module';
 import { BeneficiaryWalletModule } from '@src/beneficiary/beneficiary-wallet/beneficiary-wallet.module';
+import { CardModule } from '@src/card/card.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { BeneficiaryWalletModule } from '@src/beneficiary/beneficiary-wallet/ben
     BeneficiaryWalletModule,
     PersonProfileModule,
     CountryModule,
+    CardModule,
   ],
   controllers: [AdminController],
   providers: [AdminService, AdminRepository],

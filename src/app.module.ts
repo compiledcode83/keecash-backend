@@ -29,6 +29,7 @@ import cryptoConfig from './config/crypto.config';
 import { RouterModule } from '@nestjs/core';
 import { BeneficiaryUserModule } from './beneficiary/beneficiary-user/beneficiary-user.module';
 import { BeneficiaryWalletModule } from './beneficiary/beneficiary-wallet/beneficiary-wallet.module';
+import { CardModule } from './card/card.module';
 
 EnvHelper.verifyNodeEnv();
 
@@ -110,6 +111,7 @@ EnvHelper.verifyNodeEnv();
     ShareholderModule,
     CountryActivationModule,
     CountryFeeModule,
+    CardModule,
   ],
 })
 export class AppModule {}

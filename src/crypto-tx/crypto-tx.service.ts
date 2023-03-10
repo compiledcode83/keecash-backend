@@ -1,9 +1,10 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { lastValueFrom, map } from 'rxjs';
+import { PagingResult } from 'typeorm-cursor-pagination';
 import { v4 as uuid } from 'uuid';
 import { CryptoDepositDto } from './dto/crypto-deposit.dto';
-import { lastValueFrom, map } from 'rxjs';
 import { CryptoPaymentNotifyDto } from './dto/crypto-payment-notify.dto';
 import { CryptoTxRepository } from './crypto-tx-repository';
 import { CryptoTx } from './crypto-tx.entity';
@@ -13,9 +14,6 @@ import { CryptoWithdrawDto } from './dto/crypto-withdraw.dto';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';
 import { CryptoTransferDto } from './dto/crypto-transfer.dto';
 import { CryptoTransactionFilterDto } from './dto/crypto-transaction-filter.dto';
-import { PaginatedResult } from '@src/common/pagination/pagination.types';
-import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
-import { buildPaginator, PagingResult } from 'typeorm-cursor-pagination';
 import { CryptoPayoutNotifyDto } from './dto/crypto-payout-notify.dto';
 import { CountryFeeService } from '@src/country/country-fee/country-fee.service';
 
@@ -59,6 +57,12 @@ export class CryptoTxService {
     this.tripleaNotifyUrl = this.configService.get<string>('cryptoConfig.tripleaNotifyUrl');
     this.tripleaAccessToken = { USD: '', EUR: '' };
     // this.getAccessToken();
+  }
+
+  async findAllPaginated(
+    searchParams: CryptoTransactionFilterDto,
+  ): Promise<PagingResult<CryptoTx>> {
+    return this.cryptoTxRepository.findAllPaginated(searchParams);
   }
 
   async getBalanceByCurrency(userId: number, currencyName: FiatCurrencyEnum | string) {
@@ -534,54 +538,6 @@ export class CryptoTxService {
     const res = await this.cryptoTxRepository.save(cryptoTxEntity);
 
     return res;
-  }
-
-  async getPaginatedQueryBuilder(
-    searchParams: CryptoTransactionFilterDto,
-  ): Promise<PaginatedResult<CryptoTx>> {
-    const queryBuilder = this.cryptoTxRepository.createQueryBuilder('crypto_tx');
-
-    if ('currencyName' in searchParams) {
-      queryBuilder.andWhere({ currencyName: searchParams.currencyName });
-    }
-    if ('type' in searchParams) {
-      queryBuilder.andWhere({ type: searchParams.type });
-    }
-    if ('fromDate' in searchParams) {
-      queryBuilder.andWhere({
-        createdAt: MoreThanOrEqual(searchParams.fromDate),
-      });
-    }
-    if ('toDate' in searchParams) {
-      queryBuilder.andWhere({
-        createdAt: LessThanOrEqual(searchParams.toDate),
-      });
-    }
-    if ('userId' in searchParams) {
-      queryBuilder.andWhere({ userSenderId: searchParams.userId });
-      queryBuilder.orWhere({ userReceiverId: searchParams.userId });
-    }
-
-    const paginator = buildPaginator({
-      entity: CryptoTx,
-      alias: 'crypto_tx',
-      paginationKeys: ['id', searchParams.orderParam],
-      query: {
-        limit: searchParams.limit,
-        order: searchParams.orderType,
-        afterCursor: searchParams.afterCursor,
-        beforeCursor: searchParams.beforeCursor,
-      },
-    });
-
-    return paginator.paginate(queryBuilder);
-  }
-
-  async findAllPaginated(
-    searchParams: CryptoTransactionFilterDto,
-    userId: number,
-  ): Promise<PagingResult<CryptoTx>> {
-    return this.getPaginatedQueryBuilder({ ...searchParams, userId });
   }
 
   async getLastTransaction(userId: number): Promise<CryptoTx> {

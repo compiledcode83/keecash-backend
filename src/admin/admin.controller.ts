@@ -24,6 +24,8 @@ import { PersonProfileService } from '@src/user/person-profile/person-profile.se
 import { AdminFilterDto } from './dto/admin.filter.dto';
 import { UpdateCountryDto } from './dto/update-country.dto';
 import { CountryService } from '@src/country/country.service';
+import { GetCardAdminDto } from './dto/get-card.admin.dto';
+import { CardService } from '@src/card/card.service';
 
 @Controller('admin')
 export class AdminController {
@@ -32,6 +34,7 @@ export class AdminController {
     private readonly userService: UserService,
     private readonly personProfileService: PersonProfileService,
     private readonly countryService: CountryService,
+    private readonly cardService: CardService,
   ) {}
 
   @ApiOperation({ description: `Get admin` })
@@ -100,5 +103,12 @@ export class AdminController {
   @Patch('country')
   async updateCountry(@Body() body: UpdateCountryDto) {
     return this.countryService.updateCountry(body);
+  }
+
+  @ApiOperation({ description: 'Get cards by user' })
+  @UseGuards(JwtAdminAuthGuard)
+  @Get('card')
+  async findCardsByUserId(@Query() query: GetCardAdminDto) {
+    return this.cardService.findAllPaginated(query);
   }
 }

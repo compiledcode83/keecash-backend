@@ -48,7 +48,7 @@ export class CryptoTxController {
   @UseGuards(JwtAuthGuard)
   @Get('transactions')
   async getTransactions(@Query() searchParams: CryptoTransactionFilterDto, @Request() req) {
-    return this.cryptoTxService.findAllPaginated(searchParams, req.user.id);
+    return this.cryptoTxService.findAllPaginated({ ...searchParams, userId: req.user.id });
   }
 
   @ApiBearerAuth()
