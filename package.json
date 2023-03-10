@@ -22,7 +22,8 @@
     "migration:run": "NODE_ENV=development npx typeorm-ts-node-commonjs migration:run --dataSource ./src/config/datasource.ts",
     "migration:revert": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:revert",
     "migration:generate": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:generate --",
-    "migration:create": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:create --"
+    "migration:create": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:create --",
+    "repl": "npm run start -- --entryFile repl"
   },
   "dependencies": {
     "@google-cloud/storage": "^6.7.0",
