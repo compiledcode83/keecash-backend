@@ -8,7 +8,15 @@ export class CountryRepository extends Repository<Country> {
     super(Country, dataSource.manager);
   }
 
-  async findAll(withActivation, withFee) {
+  async getNameList(): Promise<string[]> {
+    const countries = await this.createQueryBuilder('country').select('name').getRawMany();
+
+    const names = countries.map((country) => country.name);
+
+    return names;
+  }
+
+  async findOneWithActivationAndFee(name, withActivation, withFee): Promise<Country> {
     const queryBuilder = this.createQueryBuilder('country');
 
     if (withActivation) {
@@ -19,8 +27,8 @@ export class CountryRepository extends Repository<Country> {
       queryBuilder.leftJoinAndSelect('country.fee', 'fee');
     }
 
-    const countries = queryBuilder.limit().getMany();
+    const country = await queryBuilder.where({ name }).getOne();
 
-    return countries;
+    return country;
   }
 }

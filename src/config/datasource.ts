@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import path = require('path');
 import * as dotenv from 'dotenv';
-import { EnvHelper } from '@src/common/helpers/env.helper';
+import { EnvHelper } from '@common/helpers/env.helper';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 dotenv.config({ path: EnvHelper.getEnvFilePath() });

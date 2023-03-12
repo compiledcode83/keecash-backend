@@ -9,7 +9,7 @@ import {
   JoinColumn,
   OneToOne,
 } from 'typeorm';
-import { AuthRefreshToken } from '@src/api/auth-refresh-token/auth-refresh-token.entity';
+import { AuthRefreshToken } from '@api/auth-refresh-token/auth-refresh-token.entity';
 import { PersonProfile } from './person-profile/person-profile.entity';
 import { Document } from './document/document.entity';
 import { EnterpriseProfile } from './enterprise-profile/enterprise-profile.entity';

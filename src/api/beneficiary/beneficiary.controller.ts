@@ -1,15 +1,17 @@
 import { Body, Request, Controller, Post, UseGuards, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@src/api/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { AddBeneficiaryUserDto } from './beneficiary-user/dto/add-beneficiary-user.dto';
 import { AddBeneficiaryWalletDto } from './beneficiary-wallet/dto/add-beneficiary-wallet.dto';
 import { CryptoCurrencyEnum } from '@api/crypto-tx/crypto-tx.types';
 import { BeneficiaryUserService } from './beneficiary-user/beneficiary-user.service';
 import { BeneficiaryWalletService } from './beneficiary-wallet/beneficiary-wallet.service';
+import { BeneficiaryService } from './beneficiary.service';
 
 @Controller()
 export class BeneficiaryController {
   constructor(
+    private readonly beneficiaryService: BeneficiaryService,
     private readonly beneficiaryUserService: BeneficiaryUserService,
     private readonly beneficiaryWalletService: BeneficiaryWalletService,
   ) {}
@@ -19,13 +21,7 @@ export class BeneficiaryController {
   @UseGuards(JwtAuthGuard)
   @Get('all')
   async getAllBeneficiaries(@Request() req) {
-    const beneficiaryUsers = await this.beneficiaryUserService.getByPayerId(req.user.id);
-    const beneficiaryWallets = await this.beneficiaryWalletService.getByUserId(req.user.id);
-
-    return {
-      users: beneficiaryUsers,
-      wallets: beneficiaryWallets,
-    };
+    return this.beneficiaryService.findAllByUserId(req.user.id);
 
     return {
       users: [

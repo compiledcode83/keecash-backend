@@ -1,23 +1,16 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { CryptoTxService } from '@api/crypto-tx/crypto-tx.service';
+import { Injectable } from '@nestjs/common';
 import { UserService } from '@api/user/user.service';
 import { AddAdminDto } from './dto/add-admin.dto';
-import { GetCryptoTxAdminDto } from './dto/get-crypto-tx-admin.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 import { Admin } from './admin.entity';
 import { AdminRepository } from './admin.repository';
 import { AdminFilterDto } from './dto/admin.filter.dto';
 import { PagingResult } from 'typeorm-cursor-pagination';
-import { BeneficiaryUserService } from '@api/beneficiary/beneficiary-user/beneficiary-user.service';
-import { BeneficiaryWalletService } from '@api/beneficiary/beneficiary-wallet/beneficiary-wallet.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly userService: UserService,
-    private readonly cryptoTxService: CryptoTxService,
-    private readonly beneficiaryUserService: BeneficiaryUserService,
-    private readonly beneficiaryWalletService: BeneficiaryWalletService,
     private readonly adminRepository: AdminRepository,
   ) {}
 
@@ -28,21 +21,6 @@ export class AdminService {
   async updateUserInfo(body: UpdateUserInfoDto) {
     return this.userService.updatePersonalUser(body);
   }
-
-  async getCryptoTx(body: GetCryptoTxAdminDto) {
-    return this.cryptoTxService.findAllPaginated(body);
-  }
-
-  // async getBeneficiaries(email: string) {
-  //   const user = await this.userService.findByEmail(email);
-  //   const beneficiaryUsers = await this.beneficiaryUserService.getByPayerId(user.id);
-  //   const beneficiaryWallets = await this.beneficiaryWalletService.getBeneficiaryWallets(user.id);
-
-  //   return {
-  //     beneficiaryUsers,
-  //     beneficiaryWallets,
-  //   };
-  // }
 
   async validateAdmin(email: string, password: string): Promise<Partial<Admin> | null> {
     return this.adminRepository.validateAdmin(email, password);

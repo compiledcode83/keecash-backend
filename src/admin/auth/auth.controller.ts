@@ -1,14 +1,15 @@
 import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { LoginAdminDto } from '@src/admin/admin-auth/dto/login-admin.dto';
-import { ConfirmEmailVerificationCodeForAdminDto } from '@src/api/user/dto/confirm-email-verification-for-admin.dto';
-import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
-import { Admin } from '../admin/admin.entity';
-import { AdminAuthService } from './admin-auth.service';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { LoginAdminDto } from '@admin/auth/dto/login-admin.dto';
+import { ConfirmEmailVerificationCodeForAdminDto } from '@api/user/dto/confirm-email-verification-for-admin.dto';
+import { ApiResponseHelper } from '@common/helpers/api-response.helper';
+import { Admin } from '@admin/admin/admin.entity';
+import { AdminAuthService } from './auth.service';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { JwtAdminAuthGuard } from './guards/jwt-admin-auth.guard';
 
 @Controller()
+@ApiTags('Authentication')
 export class AdminAuthController {
   constructor(private readonly adminAuthService: AdminAuthService) {}
 
@@ -18,7 +19,6 @@ export class AdminAuthController {
   @UseGuards(AdminAuthGuard)
   @Post('login')
   async login(@Request() request, @Body() body: LoginAdminDto) {
-    console.log('admin-login');
     return this.adminAuthService.login(body);
   }
 
@@ -34,7 +34,7 @@ export class AdminAuthController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
-  @Get('/profile')
+  @Get('profile')
   async successAdmin(@Request() req) {
     return req.user;
   }

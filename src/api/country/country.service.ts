@@ -16,10 +16,12 @@ export class CountryService {
     return country;
   }
 
-  async findAll(withActivation = true, withFee = true): Promise<Country[]> {
-    const countryList = await this.countryRepository.findAll(withActivation, withFee);
+  async getNameList(): Promise<any> {
+    return this.countryRepository.getNameList();
+  }
 
-    return countryList;
+  async findOneByName(name: string, withActivation = true, withFee = true): Promise<Country> {
+    return this.countryRepository.findOneWithActivationAndFee(name, withActivation, withFee);
   }
 
   async updateCountry(body: UpdateCountryDto) {

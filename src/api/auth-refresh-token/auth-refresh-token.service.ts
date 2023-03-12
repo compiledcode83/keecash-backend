@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RefreshTokenInfo } from '@src/api/auth/dto/refresh-token-info.dto';
+import { RefreshTokenInfo } from '@api/auth/dto/refresh-token-info.dto';
 import { User } from '@api/user/user.entity';
 import { AuthRefreshToken } from './auth-refresh-token.entity';
 import { AuthRefreshTokenRepository } from './auth-refresh-token.repository';

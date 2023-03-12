@@ -20,7 +20,7 @@ export class AppBootstrapManager {
 
     app
       .use(json({ limit: '50mb' }))
-      // .setGlobalPrefix('api/v1')
+      .setGlobalPrefix('api/v1')
       .useGlobalFilters(new InternalServerErrorExceptionsFilter())
       .useGlobalPipes(
         new ValidationPipe({

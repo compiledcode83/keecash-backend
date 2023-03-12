@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { AuthRefreshTokenService } from '@src/api/auth-refresh-token/auth-refresh-token.service';
+import { AuthRefreshTokenService } from '@api/auth-refresh-token/auth-refresh-token.service';
 import {
   ValidationArguments,
   ValidatorConstraint,

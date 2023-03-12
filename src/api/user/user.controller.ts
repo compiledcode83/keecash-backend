@@ -18,7 +18,7 @@ import { ConfirmEmailVerificationCodeDto } from './dto/confirm-email-verificatio
 import { JwtService } from '@nestjs/jwt';
 import { PasswordResetDto } from './dto/password-reset.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
-import { JwtAuthGuard } from '@src/api/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { ConfirmEmailVerificationCodeForAdminDto } from './dto/confirm-email-verification-for-admin.dto';
 import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
 

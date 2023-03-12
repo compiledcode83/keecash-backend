@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { DateValidator } from '@src/common/validators/date-validator';
+import { CardSearchIndexEnum } from '@admin/card/card.types';
+import { DateValidator } from '@common/validators/date-validator';
 import { IsEnum, IsInt, IsOptional, IsString, Validate, ValidateIf } from 'class-validator';
-import { CardSearchIndexEnum } from '../admin.types';
 
 export class GetCardAdminDto {
   @ApiProperty({

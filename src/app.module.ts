@@ -31,7 +31,12 @@ import { BeneficiaryUserModule } from '@api/beneficiary/beneficiary-user/benefic
 import { BeneficiaryWalletModule } from '@api/beneficiary/beneficiary-wallet/beneficiary-wallet.module';
 import { CardModule } from '@api/card/card.module';
 import { CardHistoryModule } from '@api/card-history/card-history.module';
-import { AdminAuthModule } from './admin/admin-auth/admin-auth.module';
+import { AdminAuthModule } from '@admin/auth/admin-auth.module';
+import { AdminBeneficiaryModule } from '@admin/beneficiary/beneficiary.module';
+import { AdminCryptoTxModule } from '@admin/crypto-tx/crypto-tx.module';
+import { AdminCardModule } from '@admin/card/card.module';
+import { AdminUserModule } from '@admin/user/user.module';
+import { AdminCountryModule } from '@admin/country/country.module';
 
 EnvHelper.verifyNodeEnv();
 
@@ -56,49 +61,83 @@ EnvHelper.verifyNodeEnv();
       },
       inject: [ConfigService],
     }),
+
+    // Admin modules
     AdminModule,
     AdminAuthModule,
+    AdminBeneficiaryModule,
+    AdminCardModule,
+    AdminCryptoTxModule,
+    AdminCountryModule,
+    AdminUserModule,
+
+    // Public & library modules
+    AuthModule,
+    AuthRefreshTokenModule,
+    StorageModule,
+    CryptoTxModule,
+    ShareholderModule,
+    CardModule,
+    CardHistoryModule,
+    UserModule,
+    PersonProfileModule,
+    EnterpriseProfileModule,
+    DocumentModule,
+    BeneficiaryModule,
+    BeneficiaryUserModule,
+    BeneficiaryWalletModule,
+    CountryModule,
+    CountryActivationModule,
+    CountryFeeModule,
+
+    // Router module
     RouterModule.register([
       {
-        path: 'admin/v1',
-        module: AdminModule,
-        children: [{ path: 'auth', module: AdminAuthModule }],
+        path: '/admin',
+        children: [
+          { path: '/', module: AdminModule },
+          { path: '/auth', module: AdminAuthModule },
+          { path: '/card', module: AdminCardModule },
+          { path: '/country', module: AdminCountryModule },
+          { path: '/crypto-tx', module: AdminCryptoTxModule },
+          { path: '/user', module: AdminUserModule },
+          { path: '/beneficiary', module: AdminBeneficiaryModule },
+        ],
       },
       {
-        path: 'api/v1',
+        path: '/public',
         children: [
           { path: 'auth', module: AuthModule },
           { path: '/', module: AuthRefreshTokenModule },
           { path: '/', module: VerificationModule },
           { path: '/', module: StorageModule },
           { path: '/', module: CryptoTxModule },
-          { path: '/', module: CountryActivationModule },
           { path: '/', module: ShareholderModule },
           { path: '/', module: CardModule },
           { path: '/', module: CardHistoryModule },
           {
-            path: 'user',
+            path: '/user',
             module: UserModule,
             children: [
-              { path: 'person-profile', module: PersonProfileModule },
-              { path: 'enterprise-profile', module: EnterpriseProfileModule },
-              { path: 'document', module: DocumentModule },
+              { path: '/person-profile', module: PersonProfileModule },
+              { path: '/enterprise-profile', module: EnterpriseProfileModule },
+              { path: '/document', module: DocumentModule },
             ],
           },
           {
-            path: 'beneficiary',
+            path: '/beneficiary',
             module: BeneficiaryModule,
             children: [
-              { path: 'user', module: BeneficiaryUserModule },
-              { path: 'wallet', module: BeneficiaryWalletModule },
+              { path: '/user', module: BeneficiaryUserModule },
+              { path: '/wallet', module: BeneficiaryWalletModule },
             ],
           },
           {
-            path: 'country',
+            path: '/country',
             module: CountryModule,
             children: [
-              { path: 'activation', module: CountryActivationModule },
-              { path: 'fee', module: CountryFeeModule },
+              { path: '/activation', module: CountryActivationModule },
+              { path: '/fee', module: CountryFeeModule },
             ],
           },
         ],

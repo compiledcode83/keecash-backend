@@ -5,7 +5,7 @@ import { DateTime } from 'luxon';
 import { randomBytes } from 'node:crypto';
 import { User } from '@api/user/user.entity';
 import { AuthRefreshToken } from './auth-refresh-token.entity';
-import { RefreshTokenInfo } from '@src/api/auth/dto/refresh-token-info.dto';
+import { RefreshTokenInfo } from '@api/auth/dto/refresh-token-info.dto';
 
 @Injectable()
 export class AuthRefreshTokenRepository extends Repository<AuthRefreshToken> {

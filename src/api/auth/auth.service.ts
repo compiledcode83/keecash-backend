@@ -3,9 +3,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@api/user/user.entity';
 import { UserService } from '@api/user/user.service';
-import { AuthRefreshTokenService } from '@src/api/auth-refresh-token/auth-refresh-token.service';
+import { AuthRefreshTokenService } from '@api/auth-refresh-token/auth-refresh-token.service';
 import { UserAccessTokenInterface } from './auth.type';
-import { AuthRefreshToken } from '@src/api/auth-refresh-token/auth-refresh-token.entity';
+import { AuthRefreshToken } from '@api/auth-refresh-token/auth-refresh-token.entity';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
@@ -57,7 +57,7 @@ export class AuthService {
       };
     }
 
-    const userByPhonenumber = await this.userService.findByPhonenumber(emailOrPhoneNumber);
+    const userByPhonenumber = await this.userService.findByPhoneNumber(emailOrPhoneNumber);
 
     if (userByPhonenumber && (await bcrypt.compare(password, userByPhonenumber.password))) {
       return {

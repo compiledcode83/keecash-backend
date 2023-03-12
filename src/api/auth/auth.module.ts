@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { AuthRefreshTokenModule } from '@src/api/auth-refresh-token/auth-refresh-token.module';
+import { AuthRefreshTokenModule } from '@api/auth-refresh-token/auth-refresh-token.module';
 import { UserModule } from '@api/user/user.module';
 import { VerificationModule } from '@api/verification/verification.module';
 import { AuthController } from './auth.controller';

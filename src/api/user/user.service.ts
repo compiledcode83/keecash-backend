@@ -38,7 +38,7 @@ export class UserService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async findByPhonenumber(phoneNumber: string): Promise<User> {
+  async findByPhoneNumber(phoneNumber: string): Promise<User> {
     return this.userRepository.findOne({ where: { phoneNumber } });
   }
 
@@ -50,7 +50,7 @@ export class UserService {
     const userByEmail = await this.findByEmail(userInfo);
     if (userByEmail) return userByEmail;
 
-    const userByPhonenumber = await this.findByPhonenumber(userInfo);
+    const userByPhonenumber = await this.findByPhoneNumber(userInfo);
     if (userByPhonenumber) return userByPhonenumber;
 
     const userByReferralId = await this.findByReferralId(userInfo);

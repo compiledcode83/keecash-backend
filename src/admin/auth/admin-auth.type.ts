@@ -1,4 +1,4 @@
-import { AdminTypeEnum } from '../admin/admin.types';
+import { AdminTypeEnum } from '@admin/admin/admin.types';
 
 export interface AdminAccessTokenInterface {
   id: number;

@@ -11,25 +11,21 @@ import {
   HttpCode,
   Req,
 } from '@nestjs/common';
-import { AuthService } from '@src/api/auth/auth.service';
+import { AuthService } from '@api/auth/auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
-import { CookieToBodyInterceptor } from '@src/common/interceptors/cookie-to-body.interceptor';
+import { CookieToBodyInterceptor } from '@common/interceptors/cookie-to-body.interceptor';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { RealIP } from 'nestjs-real-ip';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
-import { AdminAuthGuard } from '../../admin/admin-auth/guards/admin-auth.guard';
-import { LoginAdminDto } from '../../admin/admin-auth/dto/login-admin.dto';
-import { ConfirmEmailVerificationCodeForAdminDto } from '@api/user/dto/confirm-email-verification-for-admin.dto';
-import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
+import { ApiResponseHelper } from '@common/helpers/api-response.helper';
 import { User } from '@api/user/user.entity';
-import { Admin } from '@admin/admin/admin.entity';
 
-@Controller('auth')
+@Controller()
 export class AuthController {
   constructor(
     private readonly authService: AuthService,

@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfirmEmailVerificationCodeForAdminDto } from '@src/api/user/dto/confirm-email-verification-for-admin.dto';
-import { VerificationService } from '@src/api/verification/verification.service';
-import { Admin } from '../admin/admin.entity';
-import { AdminService } from '../admin/admin.service';
+import { ConfirmEmailVerificationCodeForAdminDto } from '@api/user/dto/confirm-email-verification-for-admin.dto';
+import { VerificationService } from '@api/verification/verification.service';
+import { Admin } from '@admin/admin/admin.entity';
+import { AdminService } from '@admin/admin/admin.service';
 import { AdminAccessTokenInterface } from './admin-auth.type';
 import { LoginAdminDto } from './dto/login-admin.dto';
 

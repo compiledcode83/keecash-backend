@@ -11,7 +11,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@src/api/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { FiatCurrencyEnum } from './crypto-tx.types';
 import { CryptoTxService } from './crypto-tx.service';
 import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dto';

@@ -9,7 +9,7 @@ import {
   MinLength,
   Validate,
 } from 'class-validator';
-import { AdminTypeEnum } from '../admin.types';
+import { AdminTypeEnum } from '@admin/admin/admin.types';
 
 export class AddAdminDto {
   @ApiProperty({
