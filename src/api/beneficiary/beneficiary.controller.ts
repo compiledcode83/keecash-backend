@@ -8,6 +8,7 @@ import { BeneficiaryWalletService } from './beneficiary-wallet/beneficiary-walle
 import { BeneficiaryService } from './beneficiary.service';
 import { TypesOfBeneficiary } from './beneficiary.types';
 import { UserService } from '@api/user/user.service';
+import { VerifyWalletAddressDto } from './beneficiary-wallet/dto/verify-wallet-address.dto';
 
 @Controller()
 @ApiTags('Manage beneficiaries')
@@ -54,10 +55,10 @@ export class BeneficiaryController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('verify-crypto-address')
-  async verifyCryptoAddress(@Body() body) {
-    const { blockchain, cryptoAddress } = body.data;
-
-    const doesExist = await this.beneficiaryWalletService.checkIfExist({ address: cryptoAddress });
+  async verifyCryptoAddress(@Body() body: VerifyWalletAddressDto) {
+    const doesExist = await this.beneficiaryWalletService.checkIfExist({
+      address: body.cryptoAddress,
+    });
 
     return { valid: doesExist };
   }

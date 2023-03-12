@@ -17,16 +17,17 @@ export class BeneficiaryWalletService {
     return wallets.length > 0;
   }
 
-  async addBeneficiaryWallet(body: AddBeneficiaryWalletDto, userId: number): Promise<string> {
-    const newBeneficiaryWallet: Partial<BeneficiaryWallet> = {
+  async addBeneficiaryWallet(
+    body: AddBeneficiaryWalletDto,
+    userId: number,
+  ): Promise<BeneficiaryWallet> {
+    const beneficiaryWallet = await this.beneficiaryWalletRepository.save({
       userId,
       name: body.name,
       address: body.address,
       type: body.type,
-    };
-    const beneficiaryWalletEntity = this.beneficiaryWalletRepository.create(newBeneficiaryWallet);
-    await this.beneficiaryWalletRepository.save(beneficiaryWalletEntity);
+    });
 
-    return 'Success';
+    return beneficiaryWallet;
   }
 }
