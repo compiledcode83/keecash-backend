@@ -46,7 +46,7 @@ export class UserService {
     return this.userRepository.findOne({ where: { referralId } });
   }
 
-  async findByEmailPhonenumberReferralId(userInfo: string): Promise<User | null> {
+  async findByEmailPhoneNumberReferralId(userInfo: string): Promise<User | null> {
     const userByEmail = await this.findByEmail(userInfo);
     if (userByEmail) return userByEmail;
 
@@ -240,18 +240,18 @@ export class UserService {
     return savedUser;
   }
 
-  async createAccessToken(user: User) {
-    const payload: UserAccessTokenInterface = {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      secondName: user.secondName,
-      status: user.status,
-      type: user.type,
-    };
+  // async createAccessToken(user: User) {
+  //   const payload: UserAccessTokenInterface = {
+  //     id: user.id,
+  //     email: user.email,
+  //     firstName: user.firstName,
+  //     secondName: user.secondName,
+  //     status: user.status,
+  //     type: user.type,
+  //   };
 
-    return { accessToken: await this.jwtService.signAsync(payload) };
-  }
+  //   return { accessToken: await this.jwtService.signAsync(payload) };
+  // }
 
   async sendEmailOtp(email: string): Promise<string> {
     const user = await this.findByEmail(email);

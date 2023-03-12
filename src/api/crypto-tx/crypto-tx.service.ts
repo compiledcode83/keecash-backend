@@ -481,7 +481,7 @@ export class CryptoTxService {
     const CRYPTO_TRANSFER_FEE_PERCENT = await this.countryFeeService.getCryptoTransferFeePercent();
     const CRYPTO_TRANSFER_REFERRAL_FEE_PERCENT =
       await this.countryFeeService.getCryptoTransferReferralFeePercent();
-    const receiver = await this.userService.findByEmailPhonenumberReferralId(body.receiver);
+    const receiver = await this.userService.findByEmailPhoneNumberReferralId(body.receiver);
     if (receiver) {
       const referralUserId = await this.userService.getReferralUserId(userId);
       const fee = (body.amount * CRYPTO_TRANSFER_FEE_PERCENT) / 100 + CRYPTO_TRANSFER_FEE_FIXED;

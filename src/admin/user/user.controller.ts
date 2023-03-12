@@ -18,7 +18,7 @@ export class AdminUserController {
   @UseGuards(JwtAdminAuthGuard)
   @Get()
   async findUserInfo(@Query('searchKey') searchKey: string) {
-    const user = await this.userService.findByEmailPhonenumberReferralId(searchKey);
+    const user = await this.userService.findByEmailPhoneNumberReferralId(searchKey);
     if (!user) throw new NotFoundException(`User info ${searchKey} not found`);
 
     switch (user.type) {

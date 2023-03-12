@@ -15,7 +15,7 @@ export class BeneficiaryUserService {
   }
 
   async addBeneficiaryUser(body: AddBeneficiaryUserDto, userId: number): Promise<string> {
-    const beneficiaryUser = await this.userService.findByEmailPhonenumberReferralId(
+    const beneficiaryUser = await this.userService.findByEmailPhoneNumberReferralId(
       body.beneficiaryUser,
     );
     if (beneficiaryUser) {

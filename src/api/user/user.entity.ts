@@ -36,11 +36,7 @@ export class User {
   @Column({ type: 'varchar', nullable: false, length: 128 })
   referralId: string;
 
-  @ApiProperty({
-    description: 'Referral applied id',
-    maximum: 128,
-    required: false,
-  })
+  @ApiProperty({ description: 'Referral applied id', maximum: 128, required: false })
   @Column({ type: 'varchar', nullable: true, length: 128 })
   referralAppliedId: string;
 
@@ -56,48 +52,35 @@ export class User {
   @Column({ type: 'varchar', nullable: false, length: 255 })
   password: string;
 
-  @ApiProperty({
-    description: 'Language',
-    maximum: 255,
-    required: true,
-  })
+  @ApiProperty({ description: 'PIN Code', maximum: 255, required: true })
+  @Column({ type: 'varchar', nullable: true, length: 255 })
+  pincode: string;
+
+  @ApiProperty({ description: 'Avatar URL', maximum: 255, required: true })
+  @Column({ type: 'varchar', nullable: true, length: 255 })
+  urlAvatar: string;
+
+  @ApiProperty({ description: 'Language', maximum: 255, required: true })
   @Column({ type: 'enum', enum: Language, default: Language.English })
   language: Language;
 
-  @ApiProperty({
-    description: 'Account type',
-    maximum: 255,
-    required: true,
-  })
+  @ApiProperty({ description: 'Account type', maximum: 255, required: true })
   @Column({ type: 'enum', enum: AccountType, default: AccountType.Person })
   type: AccountType;
 
-  @ApiProperty({
-    description: 'Status',
-    maximum: 255,
-    required: true,
-  })
+  @ApiProperty({ description: 'Status', maximum: 255, required: true })
   @Column({ type: 'enum', enum: UserStatus, default: UserStatus.Registered })
   status: UserStatus;
 
-  @ApiProperty({
-    description: 'Date when the user was created',
-    required: true,
-  })
+  @ApiProperty({ description: 'Date when the user was created', required: true })
   @CreateDateColumn()
   registeredAt: Date;
 
-  @ApiProperty({
-    description: 'Date when the user was approved',
-    required: false,
-  })
+  @ApiProperty({ description: 'Date when the user was approved', required: false })
   @Column({ type: 'timestamptz', nullable: true })
   approvedAt: Date;
 
-  @ApiProperty({
-    description: 'Date when user was rejected',
-    required: false,
-  })
+  @ApiProperty({ description: 'Date when user was rejected', required: false })
   @Column({ type: 'timestamptz', nullable: true })
   rejectedAt: Date;
 
