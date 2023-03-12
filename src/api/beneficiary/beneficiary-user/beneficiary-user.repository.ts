@@ -8,12 +8,20 @@ export class BeneficiaryUserRepository extends Repository<BeneficiaryUser> {
     super(BeneficiaryUser, dataSource.manager);
   }
 
-  async getByPayerId(payerId: number) {
-    const payees = await this.createQueryBuilder('beneficiary_user')
-      .leftJoinAndSelect('beneficiary_user.payee', 'payee')
-      .select(['payee.id', 'payee.first_name', 'payee.second_name', 'payee.referral_id'])
-      .where({ payerId })
-      .getMany();
+  async getByPayerId(payerId: number, isAdmin: boolean) {
+    const queryBuilder = this.createQueryBuilder('beneficiary_user').leftJoinAndSelect(
+      'beneficiary_user.payee',
+      'payee',
+    );
+
+    if (!isAdmin) {
+      queryBuilder.select([
+        `CONCAT(payee.firstName, ' ', payee.secondName) as name`,
+        'payee.urlAvatar as url_avatar',
+        'payee.referral_id as beneficiary_user_id',
+      ]);
+    }
+    const payees = await queryBuilder.where({ payerId }).getRawMany();
 
     return payees;
   }

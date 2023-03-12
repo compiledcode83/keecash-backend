@@ -12,6 +12,6 @@ export class AdminBeneficiaryController {
   @UseGuards(JwtAdminAuthGuard)
   @Get()
   async getBeneficiaries(@Query('userId') userId: number) {
-    return this.beneficiaryService.findAllByUserId(userId);
+    return this.beneficiaryService.findAllByUserId(userId, true);
   }
 }

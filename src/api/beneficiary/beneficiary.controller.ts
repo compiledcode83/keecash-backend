@@ -1,5 +1,5 @@
 import { Body, Request, Controller, Post, UseGuards, Get } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { AddBeneficiaryUserDto } from './beneficiary-user/dto/add-beneficiary-user.dto';
 import { AddBeneficiaryWalletDto } from './beneficiary-wallet/dto/add-beneficiary-wallet.dto';
@@ -9,6 +9,7 @@ import { BeneficiaryWalletService } from './beneficiary-wallet/beneficiary-walle
 import { BeneficiaryService } from './beneficiary.service';
 
 @Controller()
+@ApiTags('Manage beneficiaries')
 export class BeneficiaryController {
   constructor(
     private readonly beneficiaryService: BeneficiaryService,
@@ -99,17 +100,17 @@ export class BeneficiaryController {
     return this.beneficiaryWalletService.addBeneficiaryWallet(body, req.user.id);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('users')
-  async getBeneficiaryUsers(@Request() req) {
-    return this.beneficiaryUserService.getByPayerId(req.user.id);
-  }
+  //   @ApiBearerAuth()
+  //   @UseGuards(JwtAuthGuard)
+  //   @Get('users')
+  //   async getBeneficiaryUsers(@Request() req) {
+  //     return this.beneficiaryUserService.getByPayerId(req.user.id);
+  //   }
 
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('wallets')
-  async getBeneficiaryUser(@Request() req) {
-    return this.beneficiaryWalletService.getByUserId(req.user.id);
-  }
+  //   @ApiBearerAuth()
+  //   @UseGuards(JwtAuthGuard)
+  //   @Get('wallets')
+  //   async getBeneficiaryUser(@Request() req) {
+  //     return this.beneficiaryWalletService.getByUserId(req.user.id);
+  //   }
 }
