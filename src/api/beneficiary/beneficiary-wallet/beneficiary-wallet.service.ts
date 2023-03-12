@@ -7,8 +7,14 @@ import { AddBeneficiaryWalletDto } from './dto/add-beneficiary-wallet.dto';
 export class BeneficiaryWalletService {
   constructor(private readonly beneficiaryWalletRepository: BeneficiaryWalletRepository) {}
 
-  async getByUserId(userId: number) {
-    return this.beneficiaryWalletRepository.getByUserId(userId);
+  async findByUserId(userId: number) {
+    return this.beneficiaryWalletRepository.findByUserId(userId);
+  }
+
+  async checkIfExist(params: any): Promise<boolean> {
+    const wallets = await this.beneficiaryWalletRepository.findBy(params);
+
+    return wallets.length > 0;
   }
 
   async addBeneficiaryWallet(body: AddBeneficiaryWalletDto, userId: number): Promise<string> {

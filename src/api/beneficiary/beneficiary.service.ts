@@ -10,8 +10,8 @@ export class BeneficiaryService {
   ) {}
 
   async findAllByUserId(userId: number, isAdmin = false) {
-    const beneficiaryUsers = await this.beneficiaryUserService.getByPayerId(userId, isAdmin);
-    const beneficiaryWallets = await this.beneficiaryWalletService.getByUserId(userId);
+    const beneficiaryUsers = await this.beneficiaryUserService.findByPayerId(userId, isAdmin);
+    const beneficiaryWallets = await this.beneficiaryWalletService.findByUserId(userId);
 
     return {
       users: beneficiaryUsers,

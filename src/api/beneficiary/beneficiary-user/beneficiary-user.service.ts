@@ -10,8 +10,8 @@ export class BeneficiaryUserService {
     private readonly userService: UserService,
   ) {}
 
-  async getByPayerId(payerId: number, isAdmin: boolean) {
-    return this.beneficiaryUserRepository.getByPayerId(payerId, isAdmin);
+  async findByPayerId(payerId: number, isAdmin: boolean) {
+    return this.beneficiaryUserRepository.findByPayerId(payerId, isAdmin);
   }
 
   async addBeneficiaryUser(body: AddBeneficiaryUserDto, userId: number): Promise<string> {

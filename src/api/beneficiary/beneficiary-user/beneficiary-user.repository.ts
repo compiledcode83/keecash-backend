@@ -8,7 +8,7 @@ export class BeneficiaryUserRepository extends Repository<BeneficiaryUser> {
     super(BeneficiaryUser, dataSource.manager);
   }
 
-  async getByPayerId(payerId: number, isAdmin: boolean) {
+  async findByPayerId(payerId: number, isAdmin: boolean) {
     const queryBuilder = this.createQueryBuilder('beneficiary_user').leftJoinAndSelect(
       'beneficiary_user.payee',
       'payee',

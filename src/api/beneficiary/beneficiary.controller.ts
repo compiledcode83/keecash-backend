@@ -55,9 +55,11 @@ export class BeneficiaryController {
   @UseGuards(JwtAuthGuard)
   @Post('verify-crypto-address')
   async verifyCryptoAddress(@Body() body) {
-    const { data } = body;
+    const { blockchain, cryptoAddress } = body.data;
 
-    return;
+    const doesExist = await this.beneficiaryWalletService.checkIfExist({ address: cryptoAddress });
+
+    return { valid: doesExist };
   }
 
   @ApiBearerAuth()

@@ -8,7 +8,7 @@ export class BeneficiaryWalletRepository extends Repository<BeneficiaryWallet> {
     super(BeneficiaryWallet, dataSource.manager);
   }
 
-  async getByUserId(userId: number) {
+  async findByUserId(userId: number) {
     const beneficiaryWallets = await this.createQueryBuilder('beneficiary_wallet')
       .select(['beneficiary_wallet.type', 'beneficiary_wallet.name', 'beneficiary_wallet.address'])
       .where({ userId })
