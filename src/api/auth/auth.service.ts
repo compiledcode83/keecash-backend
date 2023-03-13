@@ -110,7 +110,7 @@ export class AuthService {
     }
 
     await this.authRefreshTokenService.deleteByToken(params.refreshToken);
-    const user = await this.userService.findOne(oldRefreshToken.userId);
+    const user = await this.userService.findOneById(oldRefreshToken.userId);
 
     const accessToken = await this.createAccessToken(user);
     const refreshToken = await this.createRefreshToken(user, refreshTokenInfo);

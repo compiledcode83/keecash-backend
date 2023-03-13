@@ -60,7 +60,7 @@ export class UserService {
   }
 
   async getReferralUserId(userId: number): Promise<number | null> {
-    const { referralAppliedId } = await this.findOne(userId);
+    const { referralAppliedId } = await this.findOneById(userId);
 
     const referralUser = await this.userRepository
       .createQueryBuilder('user')
@@ -74,7 +74,7 @@ export class UserService {
   async getReferredUsersByReferralId(referralId: string): Promise<User[]> {
     const referredUsers = await this.userRepository
       .createQueryBuilder('user')
-      .select(['email', 'status', 'registeredAt'])
+      .select(['email', 'status', 'registered_at as created_at', 'registered_at as updated_at'])
       .where(`referral_applied_id = '${referralId}'`)
       .getRawMany();
 
@@ -104,7 +104,7 @@ export class UserService {
     const res = await this.userRepository.save(userEntity, {
       reload: false,
     });
-    const savedUser = await this.findOne(res.id);
+    const savedUser = await this.findOneById(res.id);
 
     await this.personProfileService.save({
       address1: body.address1,
@@ -138,7 +138,7 @@ export class UserService {
     const resUser = await this.userRepository.save(userEntity, {
       reload: false,
     });
-    const savedUser = await this.findOne(resUser.id);
+    const savedUser = await this.findOneById(resUser.id);
     const country = await this.countryService.findCountryByName(body.country);
 
     const enterpriseProfile = await this.enterpriseProfileService.save({
@@ -187,7 +187,7 @@ export class UserService {
     return 'success';
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOneById(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } });
   }
 
@@ -235,7 +235,7 @@ export class UserService {
     const res = await this.userRepository.save(userEntity, {
       reload: false,
     });
-    const savedUser = await this.findOne(res.id);
+    const savedUser = await this.findOneById(res.id);
 
     return savedUser;
   }
