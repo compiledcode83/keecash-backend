@@ -108,38 +108,13 @@ EnvHelper.verifyNodeEnv();
         path: '/public',
         children: [
           { path: 'auth', module: AuthModule },
-          { path: '/', module: AuthRefreshTokenModule },
-          { path: '/', module: VerificationModule },
           { path: '/', module: StorageModule },
           { path: '/', module: CryptoTxModule },
-          { path: '/', module: ShareholderModule },
           { path: '/', module: CardModule },
           { path: '/', module: CardHistoryModule },
-          {
-            path: '/user',
-            module: UserModule,
-            children: [
-              { path: '/person-profile', module: PersonProfileModule },
-              { path: '/enterprise-profile', module: EnterpriseProfileModule },
-              { path: '/document', module: DocumentModule },
-            ],
-          },
-          {
-            path: '/beneficiary',
-            module: BeneficiaryModule,
-            children: [
-              { path: '/user', module: BeneficiaryUserModule },
-              { path: '/wallet', module: BeneficiaryWalletModule },
-            ],
-          },
-          {
-            path: '/country',
-            module: CountryModule,
-            children: [
-              { path: '/activation', module: CountryActivationModule },
-              { path: '/fee', module: CountryFeeModule },
-            ],
-          },
+          { path: '/', module: UserModule },
+          { path: '/beneficiary', module: BeneficiaryModule },
+          { path: '/country', module: CountryModule },
         ],
       },
     ]),
