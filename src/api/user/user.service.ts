@@ -334,4 +334,10 @@ export class UserService {
     }
     throw new BadRequestException('Please complete last steps');
   }
+
+  async setPincode(userId: number, pincode: string) {
+    this.userRepository.update({ id: userId }, { pincode: await bcrypt.hash(pincode, 10) });
+
+    return true;
+  }
 }

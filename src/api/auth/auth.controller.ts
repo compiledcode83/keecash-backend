@@ -35,6 +35,7 @@ import { VerificationService } from '../verification/verification.service';
 import { ConfirmEmailVerificationCodeForAdminDto } from '../user/dto/confirm-email-verification-for-admin.dto';
 import { PasswordResetDto } from '../user/dto/password-reset.dto';
 import { JwtService } from '@nestjs/jwt';
+import { SetPincodeDto } from './dto/set-pincode-dto';
 
 @Controller()
 @ApiTags('Authentication')
@@ -166,6 +167,27 @@ export class AuthController {
     return { accessToken };
   }
 
+  @ApiOperation({ description: `Set PIN code` })
+  @Post('set-pin-code')
+  @UseGuards(JwtAuthGuard)
+  async setPinCode(@Request() req, @Body() body: SetPincodeDto) {
+    await this.userService.setPincode(req.user.id, body.pincode);
+  }
+
+  @ApiOperation({ description: 'Verify PIN code' })
+  @Post('pin-code-verification')
+  @UseGuards(JwtAuthGuard)
+  async verifyPinCode() {
+    return true;
+  }
+
+  @ApiOperation({ description: 'Reset PIN code' })
+  @Post('reset-pin-code')
+  @UseGuards(JwtAuthGuard)
+  async resetPinCode() {
+    return true;
+  }
+
   @ApiOperation({ description: `Send email verification code for forget password` })
   @Post('send-email-verification-code-for-forget-password')
   async sendEmailVerificationCodeForForgetPassword(@Body() body: SendEmailVerificationCodeDto) {
@@ -188,7 +210,7 @@ export class AuthController {
     return { accessToken };
   }
 
-  @ApiOperation({ description: `Confirm email verification code` })
+  @ApiOperation({ description: `Reset password` })
   @Post('password-reset')
   async passwordReset(@Body() body: PasswordResetDto) {
     const payload: any = this.jwtService.verify(body.token);

@@ -1,15 +1,5 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Post,
-  Request,
-  UseGuards,
-  UseInterceptors,
-  Get,
-} from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
-import { VerificationService } from '@api/verification/verification.service';
+import { Controller, Request, UseGuards, Get } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ConfirmPhoneNumberVerificationCodeDto } from './dto/confirm-phone-verification.dto';
 import { UserService } from './user.service';
 import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
@@ -24,12 +14,9 @@ import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
 
 @Controller()
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly verificationService: VerificationService,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly userService: UserService, private readonly jwtService: JwtService) {}
 
+  @ApiTags('Get referrals')
   @ApiOperation({ description: 'Get all referred users' })
   @UseGuards(JwtAuthGuard)
   @Get('referral')
