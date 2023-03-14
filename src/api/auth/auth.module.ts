@@ -8,7 +8,8 @@ import { VerificationModule } from '@api/verification/verification.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { LocalStrategy } from './strategies/local.strategy';
+import { LocalPasswordStrategy } from './strategies/local-pwd.strategy';
+import { LocalPincodeStrategy } from './strategies/local-pin.strategy';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalPasswordStrategy, LocalPincodeStrategy, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

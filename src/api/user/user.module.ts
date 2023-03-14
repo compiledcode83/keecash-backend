@@ -20,16 +20,6 @@ import { ShareholderModule } from '@api/shareholder/shareholder.module';
 @Module({
   imports: [
     VerificationModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        return {
-          secret: configService.get<string>('jwtConfig.secret'),
-          signOptions: { expiresIn: '24h' },
-        };
-      },
-    }),
     CountryModule,
     DocumentModule,
     EnterpriseProfileModule,

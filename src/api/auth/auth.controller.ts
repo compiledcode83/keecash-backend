@@ -13,10 +13,10 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from '@api/auth/auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LocalPwdAuthGuard } from './guards/local-pwd-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { LoginUserDto } from './dto/login-user.dto';
+import { PasswordLoginDto } from './dto/password-login.dto';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { CookieToBodyInterceptor } from '@common/interceptors/cookie-to-body.interceptor';
@@ -36,6 +36,8 @@ import { ConfirmEmailVerificationCodeForAdminDto } from '../user/dto/confirm-ema
 import { PasswordResetDto } from '../user/dto/password-reset.dto';
 import { JwtService } from '@nestjs/jwt';
 import { SetPincodeDto } from './dto/set-pincode-dto';
+import { PincodeLoginDto } from './dto/pincode-login.dto';
+import { LocalPinAuthGuard } from './guards/local-pin-auth.guard';
 
 @Controller()
 @ApiTags('Authentication')
@@ -51,12 +53,12 @@ export class AuthController {
   @ApiOperation({ description: `User login` })
   @ApiResponse(ApiResponseHelper.success(User))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(LocalPwdAuthGuard)
   @Post('user-login')
-  async login(
+  async loginByPassword(
     @Request() request,
     @Req() req,
-    // @Body() body: LoginUserDto,
+    @Body() body: PasswordLoginDto,
     @Res({ passthrough: true }) res: Response,
     @RealIP() ip: string,
   ) {
@@ -175,10 +177,32 @@ export class AuthController {
   }
 
   @ApiOperation({ description: 'Verify PIN code' })
+  @ApiResponse(ApiResponseHelper.success(''))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @UseGuards(LocalPinAuthGuard)
   @Post('pin-code-verification')
-  @UseGuards(JwtAuthGuard)
-  async verifyPinCode() {
-    return true;
+  async loginByPinCode(
+    @Request() request,
+    @Req() req,
+    @Body() body: PincodeLoginDto,
+    @Res({ passthrough: true }) res: Response,
+    @RealIP() ip: string,
+  ) {
+    const refreshTokenInfo: RefreshTokenInfo = {
+      useragent: req.headers['user-agent'],
+      ipaddress: ip,
+    };
+
+    const authData = await this.authService.login(request.user, refreshTokenInfo);
+
+    res.cookie('refreshToken', authData.refreshToken, {
+      httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
+      secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
+      maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
+      domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
+    });
+
+    return { accessToken: authData.accessToken };
   }
 
   @ApiOperation({ description: 'Reset PIN code' })

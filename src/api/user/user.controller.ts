@@ -1,20 +1,11 @@
 import { Controller, Request, UseGuards, Get } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ConfirmPhoneNumberVerificationCodeDto } from './dto/confirm-phone-verification.dto';
 import { UserService } from './user.service';
-import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
-import { SendEmailVerificationCodeDto } from './dto/send-email-verification.dto';
-import { ConfirmEmailVerificationCodeDto } from './dto/confirm-email-verification.dto';
-import { JwtService } from '@nestjs/jwt';
-import { PasswordResetDto } from './dto/password-reset.dto';
-import { CreateAccountDto } from './dto/create-account.dto';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
-import { ConfirmEmailVerificationCodeForAdminDto } from './dto/confirm-email-verification-for-admin.dto';
-import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
 
 @Controller()
 export class UserController {
-  constructor(private readonly userService: UserService, private readonly jwtService: JwtService) {}
+  constructor(private readonly userService: UserService) {}
 
   @ApiTags('Get referrals')
   @ApiOperation({ description: 'Get all referred users' })

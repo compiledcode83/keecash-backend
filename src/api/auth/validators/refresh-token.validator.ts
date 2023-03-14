@@ -11,9 +11,7 @@ export class RefreshTokenValidator implements ValidatorConstraintInterface {
   constructor(private readonly authRefreshTokenService: AuthRefreshTokenService) {}
 
   async validate(token: string, args: ValidationArguments): Promise<boolean> {
-    const refreshToken = await this.authRefreshTokenService.findOneBy({
-      token,
-    });
+    const refreshToken = await this.authRefreshTokenService.findOneBy({ token });
 
     return refreshToken && DateTime.fromJSDate(refreshToken.expireAt) > DateTime.now();
   }

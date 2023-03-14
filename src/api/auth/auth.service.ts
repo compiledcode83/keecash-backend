@@ -10,6 +10,7 @@ import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
 import { VerificationService } from '@api/verification/verification.service';
+import { isEmail } from 'class-validator';
 
 @Injectable()
 export class AuthService {
@@ -40,33 +41,54 @@ export class AuthService {
     };
   }
 
-  async validateUser(
-    emailOrPhoneNumber: string,
-    password: string,
+  async validateUserByPassword(
+    emailOrPhoneNumber,
+    password,
   ): Promise<UserAccessTokenInterface | null> {
-    const userByEmail = await this.userService.findByEmail(emailOrPhoneNumber);
+    let user: User;
 
-    if (userByEmail && (await bcrypt.compare(password, userByEmail.password))) {
+    if (isEmail(emailOrPhoneNumber)) user = await this.userService.findByEmail(emailOrPhoneNumber);
+    else user = await this.userService.findByPhoneNumber(emailOrPhoneNumber);
+
+    if (!user) return null;
+
+    const isValidated = await bcrypt.compare(password, user.password);
+
+    if (isValidated) {
       return {
-        id: userByEmail.id,
-        firstName: userByEmail.firstName,
-        secondName: userByEmail.secondName,
-        email: userByEmail.email,
-        status: userByEmail.status,
-        type: userByEmail.type,
+        id: user.id,
+        firstName: user.firstName,
+        secondName: user.secondName,
+        email: user.email,
+        status: user.status,
+        type: user.type,
       };
     }
 
-    const userByPhonenumber = await this.userService.findByPhoneNumber(emailOrPhoneNumber);
+    return null;
+  }
 
-    if (userByPhonenumber && (await bcrypt.compare(password, userByPhonenumber.password))) {
+  async validateUserByPincode(
+    emailOrPhoneNumber,
+    pincode,
+  ): Promise<UserAccessTokenInterface | null> {
+    let user: User;
+
+    if (isEmail(emailOrPhoneNumber)) user = await this.userService.findByEmail(emailOrPhoneNumber);
+    else user = await this.userService.findByPhoneNumber(emailOrPhoneNumber);
+
+    if (!user) return null;
+
+    const isValidated = await bcrypt.compare(pincode, user.pincode);
+
+    if (isValidated) {
       return {
-        id: userByPhonenumber.id,
-        firstName: userByPhonenumber.firstName,
-        secondName: userByPhonenumber.secondName,
-        email: userByPhonenumber.email,
-        status: userByPhonenumber.status,
-        type: userByPhonenumber.type,
+        id: user.id,
+        firstName: user.firstName,
+        secondName: user.secondName,
+        email: user.email,
+        status: user.status,
+        type: user.type,
       };
     }
 

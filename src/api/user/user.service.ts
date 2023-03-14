@@ -1,7 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { UpdateUserInfoDto } from '@admin/admin/dto/update-user-info.dto';
-import { UserAccessTokenInterface } from '@api/auth/auth.type';
 import { CountryService } from '@api/country/country.service';
 import { DocumentService } from '@api/user/document/document.service';
 import { DocumentTypeEnum } from '@api/user/document/document.types';
@@ -29,7 +27,6 @@ export class UserService {
     private readonly enterpriseProfileService: EnterpriseProfileService,
     private readonly personProfileService: PersonProfileService,
     private readonly shareholderservice: ShareholderService,
-    private readonly jwtService: JwtService,
     private readonly verificationService: VerificationService,
     private readonly userRepository: UserRepository,
   ) {}
@@ -239,19 +236,6 @@ export class UserService {
 
     return savedUser;
   }
-
-  // async createAccessToken(user: User) {
-  //   const payload: UserAccessTokenInterface = {
-  //     id: user.id,
-  //     email: user.email,
-  //     firstName: user.firstName,
-  //     secondName: user.secondName,
-  //     status: user.status,
-  //     type: user.type,
-  //   };
-
-  //   return { accessToken: await this.jwtService.signAsync(payload) };
-  // }
 
   async sendEmailOtp(email: string): Promise<string> {
     const user = await this.findByEmail(email);
