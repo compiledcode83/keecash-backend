@@ -2,8 +2,10 @@ import { Controller, Request, UseGuards, Get } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
+import { GetReferralResponseDto } from './dto/get-referral-response.dto';
 
 @Controller()
+@ApiTags('Users Info')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -11,8 +13,8 @@ export class UserController {
   @ApiOperation({ description: 'Get all referred users' })
   @UseGuards(JwtAuthGuard)
   @Get('referral')
-  async getReferral(@Request() req) {
-    const { referralId } = await this.userService.findOneById(req.user.id);
+  async getReferral(@Request() req): Promise<GetReferralResponseDto> {
+    const { referralId } = await this.userService.findOne({ id: req.user.id });
     const referredUsers = await this.userService.getReferredUsersByReferralId(referralId);
 
     return {

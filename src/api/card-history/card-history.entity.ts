@@ -1,11 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Card } from '@api/card/card.entity';
-import { CryptoCurrencyEnum } from '@api/crypto-tx/crypto-tx.types';
-import { User } from '@api/user/user.entity';
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,

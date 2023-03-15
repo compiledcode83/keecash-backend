@@ -61,7 +61,7 @@ export class UserService {
   }
 
   async getReferralUserId(userId: number): Promise<number | null> {
-    const { referralAppliedId } = await this.findOneById(userId);
+    const { referralAppliedId } = await this.findOne({ id: userId });
 
     const referralUser = await this.userRepository
       .createQueryBuilder('user')
@@ -72,7 +72,7 @@ export class UserService {
     return referralUser.id;
   }
 
-  async getReferredUsersByReferralId(referralId: string): Promise<User[]> {
+  async getReferredUsersByReferralId(referralId: string): Promise<Partial<User>[]> {
     const referredUsers = await this.userRepository
       .createQueryBuilder('user')
       .select(['email', 'status', 'registered_at as created_at', 'registered_at as updated_at'])
@@ -90,22 +90,20 @@ export class UserService {
 
   async createPersonalUser(body: CreatePersonUserDto) {
     const referralId = await this.generateReferralId();
-    const user: Partial<User> = {
+
+    const res = await this.userRepository.save({
       firstName: body.firstName,
       secondName: body.secondName,
-      referralId: referralId,
+      referralId,
       referralAppliedId: body?.referralAppliedId,
       email: body.email,
       phoneNumber: body.phoneNumber,
       language: body.language,
       type: AccountType.Person,
       password: await bcrypt.hash(body.password, 10),
-    };
-    const userEntity = this.userRepository.create(user);
-    const res = await this.userRepository.save(userEntity, {
-      reload: false,
     });
-    const savedUser = await this.findOneById(res.id);
+
+    const savedUser = await this.findOne({ id: res.id });
 
     await this.personProfileService.save({
       address1: body.address1,
@@ -125,21 +123,19 @@ export class UserService {
 
   async createEnterpriseUser(body: CreateEnterpriseUserDto) {
     const referralId = await this.generateReferralId();
-    const user: Partial<User> = {
+
+    const newUser = await this.userRepository.save({
       firstName: body.firstName,
       secondName: body.secondName,
-      referralId: referralId,
+      referralId,
       referralAppliedId: body?.referralAppliedId,
       email: body.email,
       language: body.language,
       type: AccountType.Enterprise,
       password: await bcrypt.hash(body.password, 10),
-    };
-    const userEntity = this.userRepository.create(user);
-    const resUser = await this.userRepository.save(userEntity, {
-      reload: false,
     });
-    const savedUser = await this.findOneById(resUser.id);
+
+    const savedUser = await this.findOne({ id: newUser.id });
     const country = await this.countryService.findCountryByName(body.country);
 
     const enterpriseProfile = await this.enterpriseProfileService.save({
@@ -188,10 +184,6 @@ export class UserService {
     return 'success';
   }
 
-  async findOneById(id: number): Promise<User> {
-    return this.userRepository.findOne({ where: { id } });
-  }
-
   async generateReferralId(): Promise<string> {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -224,19 +216,17 @@ export class UserService {
 
   async createAccount(body: CreateAccountDto) {
     const referralId = await this.generateReferralId();
-    const user: Partial<User> = {
-      referralId: referralId,
+
+    const newUser = await this.userRepository.save({
+      referralId,
       referralAppliedId: body?.referralAppliedId,
       email: body.email,
       language: body.language,
       type: AccountType.Person,
       password: await bcrypt.hash(body.password, 10),
-    };
-    const userEntity = this.userRepository.create(user);
-    const res = await this.userRepository.save(userEntity, {
-      reload: false,
     });
-    const savedUser = await this.findOneById(res.id);
+
+    const savedUser = await this.findOne({ id: newUser.id });
 
     return savedUser;
   }

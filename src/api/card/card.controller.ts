@@ -2,7 +2,6 @@ import { Controller, Get, Param, Post, Query, Request, UseGuards } from '@nestjs
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
-import { query } from 'express';
 
 @Controller()
 @ApiTags('Get cards data')
