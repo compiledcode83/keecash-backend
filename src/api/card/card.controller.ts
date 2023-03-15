@@ -1,9 +1,11 @@
-import { Controller, Get, Request, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Param, Post, Query, Request, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
+import { query } from 'express';
 
-@Controller('card')
+@Controller()
+@ApiTags('Get cards data')
 export class CardController {
   constructor(private readonly cardService: CardService) {}
 
@@ -15,8 +17,155 @@ export class CardController {
     return;
   }
 
-  @Get(':/card_name/transactions/')
-  async getTransactions() {
+  @ApiOperation({ description: 'Get dashboard items' })
+  @ApiBearerAuth()
+  @Get('get-dashboard-items')
+  async getDashboardItems(@Query() query) {
+    const transactions = [
+      {
+        amount: '200',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'income',
+      },
+      {
+        amount: '40',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'outgoing',
+      },
+      {
+        amount: '150',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'income',
+      },
+      {
+        amount: '19.57',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'outgoing',
+      },
+      {
+        amount: '120.5',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'income',
+      },
+      {
+        amount: '110',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'outgoing',
+      },
+      {
+        amount: '77',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'income',
+      },
+      {
+        amount: '65',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'outgoing',
+      },
+      {
+        amount: '240',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'income',
+      },
+      {
+        amount: '34',
+        currency: '$',
+        date: '2022-11-12 07:30',
+        from: 'From back',
+        to: 'Front',
+        type: 'outgoing',
+      },
+    ];
+    const wallets = [
+      {
+        balance: '1000',
+        currency: 'EUR',
+        cards: [
+          {
+            logo: '',
+            balance: '450',
+            currency: '€',
+            cardNumber: '12345 1334',
+            name: 'Cameleon',
+            date: '03/12',
+          },
+          {
+            logo: '',
+            balance: '550',
+            currency: '€',
+            cardNumber: '12345 1555',
+            name: 'test',
+            date: '02/12',
+          },
+        ],
+      },
+      {
+        balance: '1550',
+        currency: 'USD',
+        cards: [
+          {
+            logo: '', // !remove
+            balance: '1550',
+            currency: '$',
+            cardNumber: '5123446******1234', // ! changer le fonctionnement 5 visa 4 master
+            name: 'Pasquier',
+            date: '03/12',
+          },
+        ],
+      },
+    ];
+
+    return {
+      isSuccess: true,
+      wallets,
+      recommended: 'EUR',
+    };
+  }
+
+  @ApiOperation({ description: 'Get card transaction invoices' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('/card/:card_name/transactions/:reference/invoice')
+  async getInvoices(@Param() params) {
+    const result = {
+      link: '',
+    };
+
+    return result;
+  }
+
+  @ApiOperation({ description: 'Get card transactions' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('/card/:card_name/transactions/')
+  async getTransactions(@Param() params) {
     const result = [
       {
         currency: 'EUR',
