@@ -4,13 +4,13 @@ import {
   Get,
   Res,
   Post,
-  Request,
   UseGuards,
   HttpStatus,
   UseInterceptors,
   HttpCode,
   Req,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthService } from '@api/auth/auth.service';
 import { LocalPwdAuthGuard } from './guards/local-pwd-auth.guard';
@@ -18,7 +18,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PasswordLoginDto } from './dto/password-login.dto';
 import { ConfigService } from '@nestjs/config';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { CookieToBodyInterceptor } from '@common/interceptors/cookie-to-body.interceptor';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { RealIP } from 'nestjs-real-ip';
@@ -37,7 +37,6 @@ import { PasswordResetDto } from '../user/dto/password-reset.dto';
 import { JwtService } from '@nestjs/jwt';
 import { SetPincodeDto } from './dto/set-pincode-dto';
 import { PincodeLoginDto } from './dto/pincode-login.dto';
-import { LocalPinAuthGuard } from './guards/local-pin-auth.guard';
 
 @Controller()
 @ApiTags('Authentication')
@@ -56,7 +55,7 @@ export class AuthController {
   @UseGuards(LocalPwdAuthGuard)
   @Post('user-login')
   async loginByPassword(
-    @Request() request,
+    @Req() request,
     @Req() req,
     @Body() body: PasswordLoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -109,7 +108,7 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('user-profile')
-  async successUser(@Request() req) {
+  async successUser(@Req() req) {
     return req.user;
   }
 
@@ -127,17 +126,14 @@ export class AuthController {
   @ApiOperation({ description: `Send email verification code` })
   @UseGuards(JwtAuthGuard)
   @Post('send-email-verification-code')
-  async sendEmailVerificationCode(@Request() req) {
+  async sendEmailVerificationCode(@Req() req) {
     return this.userService.sendEmailOtp(req.user.email);
   }
 
   @ApiOperation({ description: `Confirm email verification code` })
   @UseGuards(JwtAuthGuard)
   @Post('confirm-email-verification-code')
-  async confirmEmailVerificationCode(
-    @Request() req,
-    @Body() body: ConfirmEmailVerificationCodeDto,
-  ) {
+  async confirmEmailVerificationCode(@Req() req, @Body() body: ConfirmEmailVerificationCodeDto) {
     const updatedUser = await this.userService.confirmEmailOtp(req.user.email, body.code);
 
     const accessToken = await this.authService.createAccessToken(updatedUser);
@@ -148,10 +144,7 @@ export class AuthController {
   @ApiOperation({ description: `Send phone number verification code` })
   @UseGuards(JwtAuthGuard)
   @Post('send-phone-verification-code')
-  async sendPhoneVerificationCode(
-    @Request() req,
-    @Body() body: SendPhoneNumberVerificationCodeDto,
-  ) {
+  async sendPhoneVerificationCode(@Req() req, @Body() body: SendPhoneNumberVerificationCodeDto) {
     return this.userService.sendPhoneOtp(req.user.email, body);
   }
 
@@ -159,7 +152,7 @@ export class AuthController {
   @Post('confirm-phone-verification-code')
   @UseGuards(JwtAuthGuard)
   async confirmPhoneNumberVerificationCode(
-    @Request() req,
+    @Req() req,
     @Body() body: ConfirmPhoneNumberVerificationCodeDto,
   ) {
     const updatedUser = await this.userService.confirmPhoneOtp(req.user.email, body.code);
@@ -172,37 +165,25 @@ export class AuthController {
   @ApiOperation({ description: `Set PIN code` })
   @Post('set-pin-code')
   @UseGuards(JwtAuthGuard)
-  async setPinCode(@Request() req, @Body() body: SetPincodeDto) {
-    await this.userService.setPincode(req.user.id, body.pincode);
+  async setPinCode(@Req() req, @Body() body: SetPincodeDto) {
+    try {
+      await this.userService.setPincode(req.user.id, body.pincode);
+    } catch (error) {
+      throw new InternalServerErrorException('Error occured while setting new PIN code');
+    }
   }
 
   @ApiOperation({ description: 'Verify PIN code' })
   @ApiResponse(ApiResponseHelper.success(''))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @UseGuards(LocalPinAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('pin-code-verification')
-  async loginByPinCode(
-    @Request() request,
-    @Req() req,
-    @Body() body: PincodeLoginDto,
-    @Res({ passthrough: true }) res: Response,
-    @RealIP() ip: string,
-  ) {
-    const refreshTokenInfo: RefreshTokenInfo = {
-      useragent: req.headers['user-agent'],
-      ipaddress: ip,
-    };
+  async verifyPinCode(@Req() req, @Body() body: PincodeLoginDto) {
+    console.log('req:', req);
+    const isValidated = await this.authService.validateUserByPincode(req.user.id, body.pincode);
+    if (!isValidated) throw new BadRequestException();
 
-    const authData = await this.authService.login(request.user, refreshTokenInfo);
-
-    res.cookie('refreshToken', authData.refreshToken, {
-      httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
-      secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
-      maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
-      domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
-    });
-
-    return { accessToken: authData.accessToken };
+    return { isConfirm: true, accessToken: 'Bearer xxx', status: 'pin_code_set' };
   }
 
   @ApiOperation({ description: 'Reset PIN code' })
@@ -241,5 +222,18 @@ export class AuthController {
     await this.userService.passwordReset(payload.email, body.password);
 
     return 'Successfully changed';
+  }
+
+  @ApiOperation({ description: `User log out` })
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  async logout(@Req() req: Request): Promise<void> {
+    const { refreshToken } = req.cookies || null;
+
+    if (!refreshToken) {
+      throw new BadRequestException('Refresh token is missing');
+    }
+
+    return this.authService.logout(String(refreshToken));
   }
 }
