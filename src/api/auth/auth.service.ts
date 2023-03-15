@@ -68,31 +68,13 @@ export class AuthService {
     return null;
   }
 
-  async validateUserByPincode(
-    emailOrPhoneNumber,
-    pincode,
-  ): Promise<UserAccessTokenInterface | null> {
-    let user: User;
-
-    if (isEmail(emailOrPhoneNumber)) user = await this.userService.findByEmail(emailOrPhoneNumber);
-    else user = await this.userService.findByPhoneNumber(emailOrPhoneNumber);
-
+  async validateUserByPincode(userId, pincode): Promise<boolean> {
+    const user = await this.userService.findOne({ id: userId });
     if (!user) return null;
 
     const isValidated = await bcrypt.compare(pincode, user.pincode);
 
-    if (isValidated) {
-      return {
-        id: user.id,
-        firstName: user.firstName,
-        secondName: user.secondName,
-        email: user.email,
-        status: user.status,
-        type: user.type,
-      };
-    }
-
-    return null;
+    return isValidated;
   }
 
   async logout(refreshToken: string): Promise<void> {

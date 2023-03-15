@@ -10,10 +10,9 @@ import {
   HttpCode,
   Req,
   BadRequestException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthService } from '@api/auth/auth.service';
-import { LocalPwdAuthGuard } from './guards/local-pwd-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PasswordLoginDto } from './dto/password-login.dto';
@@ -36,7 +35,10 @@ import { ConfirmEmailVerificationCodeForAdminDto } from '../user/dto/confirm-ema
 import { PasswordResetDto } from '../user/dto/password-reset.dto';
 import { JwtService } from '@nestjs/jwt';
 import { SetPincodeDto } from './dto/set-pincode-dto';
-import { PincodeLoginDto } from './dto/pincode-login.dto';
+import { PincodeVerificationDto } from './dto/pincode-verification.dto';
+import { PincodeVerificationResponseDto } from './dto/pincode-verification-response.dto';
+import { PincodeResetResponseDto } from './dto/pincode-reset-response.dto';
+import { PincodeSetResponseDto } from './dto/pincode-set-response.dto';
 
 @Controller()
 @ApiTags('Authentication')
@@ -52,7 +54,7 @@ export class AuthController {
   @ApiOperation({ description: `User login` })
   @ApiResponse(ApiResponseHelper.success(User))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @UseGuards(LocalPwdAuthGuard)
+  @UseGuards(LocalAuthGuard)
   @Post('user-login')
   async loginByPassword(
     @Req() request,
@@ -165,12 +167,12 @@ export class AuthController {
   @ApiOperation({ description: `Set PIN code` })
   @Post('set-pin-code')
   @UseGuards(JwtAuthGuard)
-  async setPinCode(@Req() req, @Body() body: SetPincodeDto) {
-    try {
-      await this.userService.setPincode(req.user.id, body.pincode);
-    } catch (error) {
-      throw new InternalServerErrorException('Error occured while setting new PIN code');
-    }
+  async setPinCode(@Req() req, @Body() body: SetPincodeDto): Promise<PincodeSetResponseDto> {
+    await this.userService.setPincode(req.user.id, body.pincode);
+
+    return {
+      isSet: true,
+    };
   }
 
   @ApiOperation({ description: 'Verify PIN code' })
@@ -178,19 +180,33 @@ export class AuthController {
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @UseGuards(JwtAuthGuard)
   @Post('pin-code-verification')
-  async verifyPinCode(@Req() req, @Body() body: PincodeLoginDto) {
-    console.log('req:', req);
+  async verifyPinCode(
+    @Req() req,
+    @Body() body: PincodeVerificationDto,
+  ): Promise<PincodeVerificationResponseDto> {
     const isValidated = await this.authService.validateUserByPincode(req.user.id, body.pincode);
-    if (!isValidated) throw new BadRequestException();
 
-    return { isConfirm: true, accessToken: 'Bearer xxx', status: 'pin_code_set' };
+    if (!isValidated) {
+      throw new BadRequestException();
+    }
+
+    return {
+      isConfirm: true,
+      accessToken: req.headers.accessToken,
+      status: 'pin_code_set',
+    };
   }
 
   @ApiOperation({ description: 'Reset PIN code' })
-  @Post('reset-pin-code')
   @UseGuards(JwtAuthGuard)
-  async resetPinCode() {
-    return true;
+  @HttpCode(HttpStatus.OK)
+  @Post('reset-pin-code')
+  async resetPinCode(@Req() req): Promise<PincodeResetResponseDto> {
+    await this.userService.resetPincode(req.user.id);
+
+    return {
+      isReset: true,
+    };
   }
 
   @ApiOperation({ description: `Send email verification code for forget password` })

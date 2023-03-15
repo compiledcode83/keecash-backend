@@ -31,6 +31,10 @@ export class UserService {
     private readonly userRepository: UserRepository,
   ) {}
 
+  async findOne(params: any): Promise<User> {
+    return this.userRepository.findOne({ where: params });
+  }
+
   async findByEmail(email: string): Promise<User> {
     return this.userRepository.findOne({ where: { email } });
   }
@@ -319,9 +323,21 @@ export class UserService {
     throw new BadRequestException('Please complete last steps');
   }
 
-  async setPincode(userId: number, pincode: string) {
-    this.userRepository.update({ id: userId }, { pincode: await bcrypt.hash(pincode, 10) });
+  async setPincode(userId: number, pincode: string): Promise<void> {
+    try {
+      const encryptedPincode = await bcrypt.hash(pincode, 10);
 
-    return true;
+      await this.userRepository.update({ id: userId }, { pincode: encryptedPincode });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async resetPincode(userId: number): Promise<void> {
+    try {
+      await this.userRepository.update({ id: userId }, { pincode: null });
+    } catch (error) {
+      throw error;
+    }
   }
 }
