@@ -3,10 +3,10 @@ import { IsString, MaxLength, MinLength } from 'class-validator';
 
 export class PasswordLoginDto {
   @ApiProperty({
-    example: 'user@example.com',
+    example: 'user@example.com / +1234567890',
     required: true,
     maximum: 255,
-    description: 'E-mail',
+    description: 'Email or phone number',
   })
   @MaxLength(255)
   emailOrPhoneNumber: string;

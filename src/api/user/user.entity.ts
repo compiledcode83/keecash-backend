@@ -32,12 +32,12 @@ export class User {
   @Column({ type: 'varchar', nullable: true, length: 128 })
   secondName: string;
 
-  @ApiProperty({ description: 'Referral id', maximum: 128, required: true })
-  @Column({ type: 'varchar', nullable: false, length: 128 })
+  @ApiProperty({ description: 'Referral id', maximum: 8, required: true })
+  @Column({ type: 'varchar', nullable: false, length: 8 })
   referralId: string;
 
-  @ApiProperty({ description: 'Referral applied id', maximum: 128, required: false })
-  @Column({ type: 'varchar', nullable: true, length: 128 })
+  @ApiProperty({ description: 'Referral applied id', maximum: 8, required: false })
+  @Column({ type: 'varchar', nullable: true, length: 8 })
   referralAppliedId: string;
 
   @ApiProperty({ description: 'E-mail', maximum: 255, required: true })
@@ -71,6 +71,10 @@ export class User {
   @ApiProperty({ description: 'Status', maximum: 255, required: true })
   @Column({ type: 'enum', enum: UserStatus, default: UserStatus.Registered })
   status: UserStatus;
+
+  @ApiProperty({ description: 'Is pincode set' })
+  @Column({ type: 'boolean', default: false })
+  pin_code_set: boolean;
 
   @ApiProperty({ description: 'Date when the user was created', required: true })
   @CreateDateColumn()

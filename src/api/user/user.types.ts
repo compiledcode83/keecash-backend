@@ -15,6 +15,7 @@ export enum UserStatus {
   KycValidated = 'KYC_VALIDATED',
   KycPending = 'KYC_PENDING',
   KybValidated = 'KYB_VALIDATED',
+  KybPending = 'KYB_PENDING',
   Completed = 'COMPLETED',
   Rejected = 'REJECTED',
   Disabled = 'DISABLED',

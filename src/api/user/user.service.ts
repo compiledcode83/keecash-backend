@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { UpdateUserInfoDto } from '@admin/admin/dto/update-user-info.dto';
 import { CountryService } from '@api/country/country.service';
 import { DocumentService } from '@api/user/document/document.service';
@@ -9,10 +9,10 @@ import { ShareholderService } from '@api/shareholder/shareholder.service';
 import { VerificationService } from '@api/verification/verification.service';
 import * as bcrypt from 'bcrypt';
 import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
-import { CreateAccountDto } from './dto/create-account.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
-import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
+import { SendPhoneNumberVerificationCodeDto } from '../verification/dto/send-phone-verification.dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { AccountType, UserStatus } from './user.types';
@@ -82,7 +82,7 @@ export class UserService {
     return referredUsers;
   }
 
-  async passwordReset(email: string, password: string): Promise<boolean> {
+  async resetPassword(email: string, password: string): Promise<boolean> {
     await this.userRepository.update({ email }, { password: await bcrypt.hash(password, 10) });
 
     return true;
@@ -214,21 +214,21 @@ export class UserService {
     return this.personProfileService.getPersonUserInfo(body.userId);
   }
 
-  async createAccount(body: CreateAccountDto) {
+  async createAccount(body: CreateUserDto) {
     const referralId = await this.generateReferralId();
 
-    const newUser = await this.userRepository.save({
+    const user: Partial<User> = {
       referralId,
-      referralAppliedId: body?.referralAppliedId,
+      referralAppliedId: body.referralAppliedId,
       email: body.email,
       language: body.language,
       type: AccountType.Person,
       password: await bcrypt.hash(body.password, 10),
-    });
+    };
 
-    const savedUser = await this.findOne({ id: newUser.id });
+    const newUser = await this.userRepository.save(user);
 
-    return savedUser;
+    return newUser;
   }
 
   async sendEmailOtp(email: string): Promise<string> {
@@ -244,28 +244,63 @@ export class UserService {
 
   async confirmEmailOtp(email: string, code: string): Promise<User> {
     const res = await this.verificationService.confirmEmailVerificationCode(email, code);
-    if (res) {
-      await this.userRepository.update({ email: email }, { status: UserStatus.EmailValidated });
 
-      return this.findByEmail(email);
+    if (!res) {
+      throw new BadRequestException('Sorry, Cannot confirm email verification code');
     }
-    throw new BadRequestException('Sorry, Can not confirm email verification code');
+
+    await this.userRepository.update({ email }, { status: UserStatus.EmailValidated });
+
+    return this.findByEmail(email);
   }
 
-  async sendPhoneOtp(email: string, body: SendPhoneNumberVerificationCodeDto): Promise<string> {
-    const user = await this.findByEmail(email);
-    if (user.status === UserStatus.EmailValidated) {
-      const country = await this.countryService.findCountryByName(body.country);
-      if (body.phoneNumber.startsWith(country.phoneCode)) {
-        const res = await this.verificationService.sendPhoneVerificationCode(body.phoneNumber);
-        if (res === true) {
-          await this.userRepository.update({ email: email }, { phoneNumber: body.phoneNumber });
+  async confirmEmailOtpForForgotPassword(email: string, code: string): Promise<User> {
+    const res = await this.verificationService.confirmEmailVerificationCode(email, code);
 
-          return 'Phone number verification code was successfully sent';
-        }
-      }
+    if (!res) {
+      throw new BadRequestException('Sorry, Cannot confirm email verification code');
     }
-    throw new BadRequestException('Sorry, Can not send verification code');
+
+    await this.userRepository.update({ email }, { password: 'xyz' });
+
+    return this.findByEmail(email);
+  }
+
+  async sendPhoneOtp(email: string, body: SendPhoneNumberVerificationCodeDto): Promise<boolean> {
+    const user = await this.findByEmail(email);
+
+    if (!user) {
+      throw new InternalServerErrorException('Error occured while getting user data');
+    }
+
+    if (user.status === UserStatus.EmailValidated) {
+      throw new BadRequestException('Email is not validated yet');
+    }
+
+    if (user.status === UserStatus.PhoneValidated) {
+      throw new BadRequestException('Phone number is already validated');
+    }
+
+    const country = await this.countryService.findCountryByName(body.country);
+
+    if (!body.phoneNumber.startsWith(country.phoneCode)) {
+      throw new BadRequestException('Phone number format is incorrect');
+    }
+
+    const res = await this.verificationService.sendPhoneVerificationCode(body.phoneNumber);
+
+    if (!res) {
+      throw new InternalServerErrorException('Error occured while getting user data');
+    }
+
+    const updatedUser = await this.userRepository.update(
+      { email },
+      { phoneNumber: body.phoneNumber },
+    );
+
+    if (updatedUser.affected) return true;
+
+    return false;
   }
 
   async confirmPhoneOtp(email: string, code: string): Promise<User> {
@@ -324,10 +359,8 @@ export class UserService {
   }
 
   async resetPincode(userId: number): Promise<void> {
-    try {
-      await this.userRepository.update({ id: userId }, { pincode: null });
-    } catch (error) {
-      throw error;
-    }
+    const updatedUser = await this.userRepository.update({ id: userId }, { pincode: null });
+
+    if (!updatedUser.affected) throw new Error('Error occured while resetting pincode');
   }
 }

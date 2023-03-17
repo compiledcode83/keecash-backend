@@ -16,6 +16,6 @@ export class CountryExistsByNameValidator implements ValidatorConstraintInterfac
   }
 
   defaultMessage(args: ValidationArguments) {
-    return `Can not find '${args.value}' country`;
+    return `Cannot find country: '${args.value}'`;
   }
 }

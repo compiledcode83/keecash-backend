@@ -24,14 +24,14 @@ import { RealIP } from 'nestjs-real-ip';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
 import { ApiResponseHelper } from '@common/helpers/api-response.helper';
 import { User } from '@api/user/user.entity';
-import { CreateAccountDto } from '../user/dto/create-account.dto';
+import { CreateUserDto } from '../user/dto/create-user.dto';
 import { UserService } from '../user/user.service';
-import { ConfirmEmailVerificationCodeDto } from '../user/dto/confirm-email-verification.dto';
-import { SendPhoneNumberVerificationCodeDto } from '../user/dto/send-phone-verification.dto';
-import { ConfirmPhoneNumberVerificationCodeDto } from '../user/dto/confirm-phone-verification.dto';
-import { SendEmailVerificationCodeDto } from '../user/dto/send-email-verification.dto';
+import { ConfirmEmailVerificationCodeDto } from '../verification/dto/confirm-email-verification.dto';
+import { SendPhoneNumberVerificationCodeDto } from '../verification/dto/send-phone-verification.dto';
+import { ConfirmPhoneNumberVerificationCodeDto } from '../verification/dto/confirm-phone-verification.dto';
+import { SendEmailVerificationCodeDto } from '../verification/dto/send-email-verification.dto';
 import { VerificationService } from '../verification/verification.service';
-import { ConfirmEmailVerificationCodeForAdminDto } from '../user/dto/confirm-email-verification-for-admin.dto';
+import { ConfirmEmailVerificationCodeForAdminDto } from '../verification/dto/confirm-email-verification-for-admin.dto';
 import { PasswordResetDto } from '../user/dto/password-reset.dto';
 import { JwtService } from '@nestjs/jwt';
 import { SetPincodeDto } from './dto/set-pincode-dto';
@@ -39,6 +39,10 @@ import { PincodeVerificationDto } from './dto/pincode-verification.dto';
 import { PincodeVerificationResponseDto } from './dto/pincode-verification-response.dto';
 import { PincodeResetResponseDto } from './dto/pincode-reset-response.dto';
 import { PincodeSetResponseDto } from './dto/pincode-set-response.dto';
+import { CreateUserResponseDto } from '../user/dto/create-user-response.dto';
+import { SendEmailVerificationCodeResponseDto } from '../verification/dto/send-email-verification-code-response.dto';
+import { ConfirmEmailVerificationCodeResponseDto } from '../verification/dto/confirm-email-verification-response.dto';
+import { SendPhoneVerificationResponseDto } from '../verification/dto/send-phone-verification-response.dto';
 
 @Controller()
 @ApiTags('Authentication')
@@ -57,7 +61,6 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('user-login')
   async loginByPassword(
-    @Req() request,
     @Req() req,
     @Body() body: PasswordLoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -68,7 +71,7 @@ export class AuthController {
       ipaddress: ip,
     };
 
-    const authData = await this.authService.login(request.user, refreshTokenInfo);
+    const authData = await this.authService.login(req.user, refreshTokenInfo);
 
     res.cookie('refreshToken', authData.refreshToken, {
       httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
@@ -77,7 +80,11 @@ export class AuthController {
       domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
     });
 
-    return { accessToken: authData.accessToken };
+    return {
+      accessToken: authData.accessToken,
+      status: 'registered',
+      isUserExist: true,
+    };
   }
 
   @UseInterceptors(new CookieToBodyInterceptor('refreshToken', 'refreshToken'))
@@ -116,43 +123,77 @@ export class AuthController {
 
   @ApiOperation({ description: `Create account` })
   @Post('create-account')
-  async createAccount(@Body() body: CreateAccountDto) {
+  async createAccount(@Body() body: CreateUserDto): Promise<CreateUserResponseDto> {
     const createdAccount = await this.userService.createAccount(body);
     const accessToken = await this.authService.createAccessToken(createdAccount);
 
     await this.userService.sendEmailOtp(body.email);
 
-    return accessToken;
+    return {
+      isCreated: true,
+      accessToken,
+    };
   }
 
   @ApiOperation({ description: `Send email verification code` })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('send-email-verification-code')
-  async sendEmailVerificationCode(@Req() req) {
-    return this.userService.sendEmailOtp(req.user.email);
+  async sendEmailVerificationCode(
+    @Req() req,
+    @Body() body: SendEmailVerificationCodeDto,
+  ): Promise<SendEmailVerificationCodeResponseDto> {
+    console.log({ req: req.headers });
+    await this.userService.sendEmailOtp(req.user.email);
+
+    return {
+      isSent: true,
+      accessToken: req.headers.authorization.slice(7),
+    };
   }
 
   @ApiOperation({ description: `Confirm email verification code` })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('confirm-email-verification-code')
-  async confirmEmailVerificationCode(@Req() req, @Body() body: ConfirmEmailVerificationCodeDto) {
+  async confirmEmailVerificationCode(
+    @Req() req,
+    @Body() body: ConfirmEmailVerificationCodeDto,
+  ): Promise<ConfirmEmailVerificationCodeResponseDto> {
     const updatedUser = await this.userService.confirmEmailOtp(req.user.email, body.code);
 
-    const accessToken = await this.authService.createAccessToken(updatedUser);
+    // const accessToken = await this.authService.createAccessToken(updatedUser);
 
-    return { accessToken };
+    return {
+      isConfirmed: true,
+      accessToken: req.headers.authorization.slice(7),
+    };
   }
 
   @ApiOperation({ description: `Send phone number verification code` })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('send-phone-verification-code')
-  async sendPhoneVerificationCode(@Req() req, @Body() body: SendPhoneNumberVerificationCodeDto) {
-    return this.userService.sendPhoneOtp(req.user.email, body);
+  async sendPhoneVerificationCode(
+    @Req() req,
+    @Body() body: SendPhoneNumberVerificationCodeDto,
+  ): Promise<SendPhoneVerificationResponseDto> {
+    const res = await this.userService.sendPhoneOtp(req.user.email, body);
+
+    if (!res) {
+      return { isSent: false };
+    }
+
+    return {
+      isSent: true,
+      accessToken: req.headers.authorization.slice(7),
+    };
   }
 
   @ApiOperation({ description: `Confirm phone number verification code` })
-  @Post('confirm-phone-verification-code')
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Post('confirm-phone-verification-code')
   async confirmPhoneNumberVerificationCode(
     @Req() req,
     @Body() body: ConfirmPhoneNumberVerificationCodeDto,
@@ -165,8 +206,9 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Set PIN code` })
-  @Post('set-pin-code')
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Post('set-pin-code')
   async setPinCode(@Req() req, @Body() body: SetPincodeDto): Promise<PincodeSetResponseDto> {
     await this.userService.setPincode(req.user.id, body.pincode);
 
@@ -176,8 +218,7 @@ export class AuthController {
   }
 
   @ApiOperation({ description: 'Verify PIN code' })
-  @ApiResponse(ApiResponseHelper.success(''))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('pin-code-verification')
   async verifyPinCode(
@@ -187,7 +228,7 @@ export class AuthController {
     const isValidated = await this.authService.validateUserByPincode(req.user.id, body.pincode);
 
     if (!isValidated) {
-      throw new BadRequestException();
+      throw new BadRequestException('Pincode is incorrect');
     }
 
     return {
@@ -198,8 +239,8 @@ export class AuthController {
   }
 
   @ApiOperation({ description: 'Reset PIN code' })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
   @Post('reset-pin-code')
   async resetPinCode(@Req() req): Promise<PincodeResetResponseDto> {
     await this.userService.resetPincode(req.user.id);
@@ -209,22 +250,33 @@ export class AuthController {
     };
   }
 
-  @ApiOperation({ description: `Send email verification code for forget password` })
-  @Post('send-email-verification-code-for-forget-password')
-  async sendEmailVerificationCodeForForgetPassword(@Body() body: SendEmailVerificationCodeDto) {
+  @ApiOperation({ description: `Send email verification code for forgot password` })
+  @Post('send-email-verification-code-for-forgot-password')
+  async sendEmailVerificationCodeForForgotPassword(
+    @Body() body: SendEmailVerificationCodeDto,
+  ): Promise<SendEmailVerificationCodeResponseDto> {
     const user = await this.userService.findByEmail(body.email);
-    if (!user) throw new BadRequestException('Sorry, Can not find user');
 
-    const res = await this.verificationService.sendEmailVerificationCode(body.email);
-    if (res) return 'Email verification code was successfully sent';
+    if (user) {
+      const res = await this.verificationService.sendEmailVerificationCode(body.email);
 
-    throw new BadRequestException('Sorry, Can not send verification code');
+      if (!res) {
+        throw new BadRequestException('Failed to send verification code');
+      }
+
+      return {
+        isSent: true,
+      };
+    }
   }
 
-  @ApiOperation({ description: `Confirm email verification code` })
-  @Post('confirm-email-verification-code-for-forget-password')
-  async confirmEmailForForgetPassword(@Body() body: ConfirmEmailVerificationCodeForAdminDto) {
-    const updatedUser = await this.userService.confirmEmailOtp(body.email, body.code);
+  @ApiOperation({ description: `Confirm email verification code for forgot password` })
+  @Post('confirm-email-verification-code-for-forgot-password')
+  async confirmEmailForForgotPassword(@Body() body: ConfirmEmailVerificationCodeForAdminDto) {
+    const updatedUser = await this.userService.confirmEmailOtpForForgotPassword(
+      body.email,
+      body.code,
+    );
 
     const accessToken = await this.authService.createAccessToken(updatedUser);
 
@@ -235,9 +287,11 @@ export class AuthController {
   @Post('password-reset')
   async passwordReset(@Body() body: PasswordResetDto) {
     const payload: any = this.jwtService.verify(body.token);
-    await this.userService.passwordReset(payload.email, body.password);
+    await this.userService.resetPassword(payload.email, body.password);
 
-    return 'Successfully changed';
+    return {
+      isReset: true,
+    };
   }
 
   @ApiOperation({ description: `User log out` })
