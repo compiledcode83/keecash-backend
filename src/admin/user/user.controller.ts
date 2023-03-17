@@ -1,5 +1,5 @@
 import { Body, Controller, Get, NotFoundException, Patch, Query, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PersonProfileService } from '@api/user/person-profile/person-profile.service';
 import { UserService } from '@api/user/user.service';
 import { AccountType } from '@api/user/user.types';
@@ -15,6 +15,7 @@ export class AdminUserController {
   ) {}
 
   @ApiOperation({ description: `Get User Info By Filter(email, phone, referral id)` })
+  @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Get()
   async findUserInfo(@Query('searchKey') searchKey: string) {
@@ -34,6 +35,7 @@ export class AdminUserController {
   }
 
   @ApiOperation({ description: `Update user info` })
+  @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Patch()
   async updateUserInfo(@Body() body: UpdateUserInfoDto) {

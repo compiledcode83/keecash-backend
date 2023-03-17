@@ -1,15 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  NotFoundException,
-  Patch,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, NotFoundException, Patch, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CountryService } from '@api/country/country.service';
 import { JwtAdminAuthGuard } from '../auth/guards/jwt-admin-auth.guard';
 import { UpdateCountryDto } from '../admin/dto/update-country.dto';
@@ -21,6 +11,7 @@ export class AdminCountryController {
   constructor(private readonly countryService: CountryService) {}
 
   @ApiOperation({ description: `Get available country list` })
+  @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Get('list')
   async getNames(): Promise<string[]> {
@@ -28,6 +19,7 @@ export class AdminCountryController {
   }
 
   @ApiOperation({ description: `Get a country's activation and fee info` })
+  @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Get()
   async findOneByName(@Query('name') name: string): Promise<Country> {
@@ -41,6 +33,7 @@ export class AdminCountryController {
   }
 
   @ApiOperation({ description: 'Update country setting' })
+  @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Patch()
   async updateCountry(@Body() body: UpdateCountryDto) {

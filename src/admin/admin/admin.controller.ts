@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards, Get, Query, Delete, Param } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { AddAdminDto } from './dto/add-admin.dto';
 import { AdminFilterDto } from './dto/admin.filter.dto';
@@ -11,6 +11,7 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @ApiOperation({ description: `Get admin` })
+  @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Get()
   async findAllPaginated(@Query() searchParams: AdminFilterDto) {
@@ -18,6 +19,7 @@ export class AdminController {
   }
 
   @ApiOperation({ description: `Add admin` })
+  @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Post()
   async addAdmin(@Body() body: AddAdminDto) {
@@ -25,6 +27,7 @@ export class AdminController {
   }
 
   @ApiOperation({})
+  @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Delete(':id')
   async deleteAdmin(@Param('id') id: number) {
