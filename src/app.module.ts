@@ -106,7 +106,7 @@ EnvHelper.verifyNodeEnv();
         ],
       },
       {
-        path: '/public',
+        path: '/',
         children: [
           { path: 'auth', module: AuthModule },
           { path: '/', module: CardModule },
