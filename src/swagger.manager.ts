@@ -5,15 +5,13 @@ import { AdminModule } from '@admin/admin/admin.module';
 import { AuthModule } from '@api/auth/auth.module';
 import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
 import { CardModule } from '@api/card/card.module';
-import { CountryModule } from '@api/country/country.module';
-import { CryptoTxModule } from '@api/crypto-tx/crypto-tx.module';
-import { StorageModule } from '@api/storage/storage.module';
 import { UserModule } from '@api/user/user.module';
 import { AdminUserModule } from './admin/user/user.module';
 import { AdminCountryModule } from './admin/country/country.module';
 import { AdminCryptoTxModule } from './admin/crypto-tx/crypto-tx.module';
 import { AdminCardModule } from './admin/card/card.module';
 import { AdminBeneficiaryModule } from './admin/beneficiary/beneficiary.module';
+import { CardHistoryModule } from './api/card-history/card-history.module';
 
 export class SwaggerManager {
   static setSwaggerDefaults(app: INestApplication): INestApplication {
@@ -34,15 +32,7 @@ export class SwaggerManager {
       .build();
 
     const publicDocument = SwaggerModule.createDocument(app, publicApiConfig, {
-      include: [
-        AuthModule,
-        CardModule,
-        UserModule,
-        CountryModule,
-        StorageModule,
-        BeneficiaryModule,
-        CryptoTxModule,
-      ],
+      include: [AuthModule, CardModule, CardHistoryModule, UserModule, BeneficiaryModule],
     });
     const adminDocument = SwaggerModule.createDocument(app, adminApiConfig, {
       include: [

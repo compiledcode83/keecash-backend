@@ -1,5 +1,5 @@
 import { Controller, Request, UseGuards, Get } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { GetReferralResponseDto } from './dto/get-referral-response.dto';
@@ -9,8 +9,8 @@ import { GetReferralResponseDto } from './dto/get-referral-response.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiTags('Get referrals')
   @ApiOperation({ description: 'Get all referred users' })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('referral')
   async getReferral(@Request() req): Promise<GetReferralResponseDto> {

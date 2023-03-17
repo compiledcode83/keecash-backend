@@ -89,6 +89,7 @@ EnvHelper.verifyNodeEnv();
     CountryModule,
     CountryActivationModule,
     CountryFeeModule,
+    VerificationModule,
 
     // Router module
     RouterModule.register([
@@ -108,13 +109,10 @@ EnvHelper.verifyNodeEnv();
         path: '/public',
         children: [
           { path: 'auth', module: AuthModule },
-          { path: '/', module: StorageModule },
-          { path: '/', module: CryptoTxModule },
           { path: '/', module: CardModule },
           { path: '/', module: CardHistoryModule },
           { path: '/', module: UserModule },
           { path: '/beneficiary', module: BeneficiaryModule },
-          { path: '/country', module: CountryModule },
         ],
       },
     ]),
