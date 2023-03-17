@@ -4,8 +4,9 @@ import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
 import { PostDepositFeeDto } from './dto/post-deposit-fee.dto';
 import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
-import { CryptoCurrencyEnum } from '../crypto-tx/crypto-tx.types';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
 import { WithdrawalApplyDto } from './dto/withdrawal-apply.dto';
+import { GetDashboardItemsDto } from './dto/get-dashboard-items-response.dto';
 
 @Controller()
 export class CardController {
@@ -24,7 +25,7 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('get-dashboard-items')
-  async getDashboardItems(@Query() query) {
+  async getDashboardItems(@Req() req, @Query() query): Promise<GetDashboardItemsDto> {
     const transactions = [
       {
         amount: '200',
@@ -146,10 +147,12 @@ export class CardController {
       },
     ];
 
+    const cards = await this.cardService.getCardDetailsByUserId(req.user.id);
+
     return {
       isSuccess: true,
       wallets,
-      recommended: 'EUR',
+      recommended: FiatCurrencyEnum.EUR,
     };
   }
 

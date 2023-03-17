@@ -262,12 +262,12 @@ export class UserService {
       throw new InternalServerErrorException('Error occured while getting user data');
     }
 
-    if (user.status === UserStatus.EmailValidated) {
-      throw new BadRequestException('Email is not validated yet');
-    }
-
     if (user.status === UserStatus.PhoneValidated) {
       throw new BadRequestException('Phone number is already validated');
+    }
+
+    if (user.status !== UserStatus.EmailValidated) {
+      throw new BadRequestException('Email is not validated yet');
     }
 
     const country = await this.countryService.findCountryByName(body.country);

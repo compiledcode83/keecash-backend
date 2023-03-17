@@ -17,6 +17,7 @@ import { CryptoTx } from '@api/crypto-tx/crypto-tx.entity';
 import { BeneficiaryUser } from '@api/beneficiary/beneficiary-user/beneficiary-user.entity';
 import { AccountType, Language, UserStatus } from './user.types';
 import { BeneficiaryWallet } from '@api/beneficiary/beneficiary-wallet/beneficiary-wallet.entity';
+import { Card } from '../card/card.entity';
 
 @Entity('user')
 export class User {
@@ -91,6 +92,10 @@ export class User {
   @OneToMany(() => AuthRefreshToken, (authRefreshToken) => authRefreshToken.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   refreshTokens: AuthRefreshToken[];
+
+  @OneToMany(() => Card, (card) => card.user)
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
+  cards: Card[];
 
   @OneToMany(() => Document, (document) => document.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
