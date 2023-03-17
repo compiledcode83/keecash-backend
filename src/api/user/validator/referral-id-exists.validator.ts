@@ -12,7 +12,7 @@ export class ReferralIdExistsValidator implements ValidatorConstraintInterface {
   async validate(referralApplieId: string, args: ValidationArguments): Promise<boolean> {
     if (!referralApplieId) return true;
 
-    const userExists = await this.userService.findByReferralId(referralApplieId);
+    const userExists = await this.userService.findOne({ referralId: referralApplieId });
 
     return Boolean(userExists);
   }

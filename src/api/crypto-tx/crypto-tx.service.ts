@@ -314,7 +314,7 @@ export class CryptoTxService {
     );
 
     if (res.payment_tier === 'good') {
-      const userReceiver = await this.userService.findByEmail(res.payer_id);
+      const userReceiver = await this.userService.findOne({ email: res.payer_id });
       {
         const description = `Rates: 1${res.payment_currency}: ${res.exchange_rate}${res.display_crypto_currency}.
         You deposited ${res.order_amount} ${res.payment_currency}.`;

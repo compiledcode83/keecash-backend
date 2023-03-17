@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, MaxLength } from 'class-validator';
 
-export class AddBeneficiaryUserDto {
+export class VerifyUserExistDto {
   @ApiProperty({
     example: 'john.doe@example.com',
     required: true,
@@ -10,5 +10,5 @@ export class AddBeneficiaryUserDto {
   })
   @IsString()
   @MaxLength(255)
-  beneficiaryUser: string;
+  userField: string;
 }

@@ -255,7 +255,7 @@ export class AuthController {
   async sendEmailVerificationCodeForForgotPassword(
     @Body() body: SendEmailVerificationCodeDto,
   ): Promise<SendEmailVerificationCodeResponseDto> {
-    const user = await this.userService.findByEmail(body.email);
+    const user = await this.userService.findOne({ email: body.email });
 
     if (user) {
       const res = await this.verificationService.sendEmailVerificationCode(body.email);

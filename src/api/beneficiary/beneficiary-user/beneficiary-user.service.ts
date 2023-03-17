@@ -17,7 +17,15 @@ export class BeneficiaryUserService {
 
   async addBeneficiaryUser(body: AddBeneficiaryUserDto, userId: number): Promise<BeneficiaryUser> {
     const user = await this.userService.findByEmailPhoneNumberReferralId(body.beneficiaryUser);
-    if (!user) throw new BadRequestException('Cannot find beneficiary user');
+    if (!user) throw new BadRequestException(`Cannot find user info: ${body.beneficiaryUser}`);
+
+    const beneficiaryExist = await this.beneficiaryUserRepository.findOne({
+      where: { payerId: userId, payeeId: user.id },
+    });
+
+    if (beneficiaryExist) {
+      throw new BadRequestException(`Beneficiary user ${body.beneficiaryUser} already exists`);
+    }
 
     const beneficiary = await this.beneficiaryUserRepository.save({
       payerId: userId,

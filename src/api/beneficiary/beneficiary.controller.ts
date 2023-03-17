@@ -1,4 +1,4 @@
-import { Body, Request, Controller, Post, UseGuards, Get, NotFoundException } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Get, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { AddBeneficiaryUserDto } from './beneficiary-user/dto/add-beneficiary-user.dto';
@@ -9,6 +9,9 @@ import { BeneficiaryService } from './beneficiary.service';
 import { TypesOfBeneficiary } from './beneficiary.types';
 import { UserService } from '@api/user/user.service';
 import { VerifyWalletAddressDto } from './beneficiary-wallet/dto/verify-wallet-address.dto';
+import { VerifyUserExistDto } from './beneficiary-user/dto/verify-user-exist.dto';
+import { VerifyUserExistResponseDto } from './beneficiary-user/dto/verify-user-exist-response.dto';
+import { VerifyWalletExistResponseDto } from './beneficiary-wallet/dto/verify-wallet-address-response.dto';
 
 @Controller()
 @ApiTags('Manage beneficiaries')
@@ -24,7 +27,7 @@ export class BeneficiaryController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('all')
-  async getAllBeneficiaries(@Request() req) {
+  async getAllBeneficiaries(@Req() req) {
     return this.beneficiaryService.findAllByUserId(req.user.id);
   }
 
@@ -43,19 +46,23 @@ export class BeneficiaryController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('verify-user-exist')
-  async verifyUserExist(@Body('userField') userField: string) {
-    const user = await this.userService.findByEmailPhoneNumberReferralId(userField);
+  async verifyUserExist(@Body() body: VerifyUserExistDto): Promise<VerifyUserExistResponseDto> {
+    const user = await this.userService.findByEmailPhoneNumberReferralId(body.userField);
 
-    if (!user) throw new NotFoundException(`User not found with info ${userField}`);
-
-    return { valid: true, beneficiaryUserId: user.referralId };
+    if (user) {
+      return { valid: true, beneficiaryUserId: user.referralId };
+    } else {
+      return { valid: false };
+    }
   }
 
   @ApiOperation({ description: `Verify if crypto address exists` })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('verify-crypto-address')
-  async verifyCryptoAddress(@Body() body: VerifyWalletAddressDto) {
+  async verifyCryptoAddress(
+    @Body() body: VerifyWalletAddressDto,
+  ): Promise<VerifyWalletExistResponseDto> {
     const doesExist = await this.beneficiaryWalletService.checkIfExist({
       address: body.cryptoAddress,
     });
@@ -66,14 +73,14 @@ export class BeneficiaryController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('add-user')
-  async addBeneficiaryUser(@Body() body: AddBeneficiaryUserDto, @Request() req) {
+  async addBeneficiaryUser(@Req() req, @Body() body: AddBeneficiaryUserDto) {
     return this.beneficiaryUserService.addBeneficiaryUser(body, req.user.id);
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('add-wallet')
-  async addBeneficiaryWallet(@Body() body: AddBeneficiaryWalletDto, @Request() req) {
+  async addBeneficiaryWallet(@Req() req, @Body() body: AddBeneficiaryWalletDto) {
     return this.beneficiaryWalletService.addBeneficiaryWallet(body, req.user.id);
   }
 }

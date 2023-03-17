@@ -3,21 +3,11 @@ import { CryptoCurrencyEnum } from '@api/crypto-tx/crypto-tx.types';
 import { IsEnum, IsString } from 'class-validator';
 
 export class VerifyWalletAddressDto {
-  @ApiProperty({
-    example: 'TDUouyRW3whZrDm1RjNY1WfikC2Y73rPGw',
-    required: true,
-    maximum: 255,
-    description: 'Wallet address',
-  })
+  @ApiProperty({ example: 'TDUouyRW3whZrDm1RjNY1', required: true, description: 'Address' })
   @IsString()
   cryptoAddress: string;
 
-  @ApiProperty({
-    example: 'USDT',
-    required: true,
-    maximum: 255,
-    description: 'Cryptocurrency / chain name',
-  })
+  @ApiProperty({ example: 'BTC', required: true, description: 'Cryptocurrency / chain name' })
   @IsEnum(CryptoCurrencyEnum)
   blockchain: CryptoCurrencyEnum;
 }

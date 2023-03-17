@@ -47,9 +47,11 @@ export class AuthService {
   ): Promise<UserAccessTokenInterface | null> {
     let user: User;
 
-    if (isEmail(emailOrPhoneNumber)) user = await this.userService.findByEmail(emailOrPhoneNumber);
-    else user = await this.userService.findByPhoneNumber(emailOrPhoneNumber);
-
+    if (isEmail(emailOrPhoneNumber)) {
+      user = await this.userService.findOne({ email: emailOrPhoneNumber });
+    } else {
+      user = await this.userService.findOne({ phoneNumber: emailOrPhoneNumber });
+    }
     if (!user) return null;
 
     const isValidated = await bcrypt.compare(password, user.password);

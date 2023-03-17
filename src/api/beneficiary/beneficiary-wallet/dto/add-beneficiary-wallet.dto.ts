@@ -24,7 +24,7 @@ export class AddBeneficiaryWalletDto {
   name: string;
 
   @ApiProperty({
-    example: 'USDT',
+    example: 'BTC',
     required: true,
     maximum: 255,
     description: 'Cryptocurrency Name',

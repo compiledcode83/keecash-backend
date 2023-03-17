@@ -4,17 +4,17 @@ import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
 
 @Controller()
-@ApiTags('Get cards data')
+@ApiTags('Dashboard')
 export class CardController {
   constructor(private readonly cardService: CardService) {}
 
-  @ApiOperation({ description: `Get my all cards` })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get()
-  async findAllPaginated(@Request() req) {
-    return;
-  }
+  // @ApiOperation({ description: `Get my all cards` })
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard)
+  // @Get()
+  // async findAllPaginated(@Request() req) {
+  //   return;
+  // }
 
   @ApiOperation({ description: 'Get dashboard items' })
   @ApiBearerAuth()
@@ -152,7 +152,7 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/card/:card_name/transactions/:reference/invoice')
-  async getInvoices(@Param() params) {
+  async getInvoices(@Param() param) {
     const result = {
       link: '',
     };
@@ -164,7 +164,7 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('/card/:card_name/transactions/')
-  async getTransactions(@Param() params) {
+  async getTransactions(@Param() param) {
     const result = [
       {
         currency: 'EUR',

@@ -35,26 +35,15 @@ export class UserService {
     return this.userRepository.findOne({ where: params });
   }
 
-  async findByEmail(email: string): Promise<User> {
-    return this.userRepository.findOne({ where: { email } });
-  }
-
-  async findByPhoneNumber(phoneNumber: string): Promise<User> {
-    return this.userRepository.findOne({ where: { phoneNumber } });
-  }
-
-  async findByReferralId(referralId: string): Promise<User> {
-    return this.userRepository.findOne({ where: { referralId } });
-  }
-
   async findByEmailPhoneNumberReferralId(userInfo: string): Promise<User | null> {
-    const userByEmail = await this.findByEmail(userInfo);
+    console.log({ userInfo });
+    const userByEmail = await this.findOne({ email: userInfo });
     if (userByEmail) return userByEmail;
 
-    const userByPhonenumber = await this.findByPhoneNumber(userInfo);
+    const userByPhonenumber = await this.findOne({ phoneNumber: userInfo });
     if (userByPhonenumber) return userByPhonenumber;
 
-    const userByReferralId = await this.findByReferralId(userInfo);
+    const userByReferralId = await this.findOne({ referralId: userInfo });
     if (userByReferralId) return userByReferralId;
 
     return null;
@@ -232,7 +221,7 @@ export class UserService {
   }
 
   async sendEmailOtp(email: string): Promise<string> {
-    const user = await this.findByEmail(email);
+    const user = await this.findOne({ email });
     if (user.status === UserStatus.Registered) {
       const res = await this.verificationService.sendEmailVerificationCode(email);
       if (res === true) {
@@ -251,7 +240,7 @@ export class UserService {
 
     await this.userRepository.update({ email }, { status: UserStatus.EmailValidated });
 
-    return this.findByEmail(email);
+    return this.findOne({ email });
   }
 
   async confirmEmailOtpForForgotPassword(email: string, code: string): Promise<User> {
@@ -263,11 +252,11 @@ export class UserService {
 
     await this.userRepository.update({ email }, { password: 'xyz' });
 
-    return this.findByEmail(email);
+    return this.findOne({ email });
   }
 
   async sendPhoneOtp(email: string, body: SendPhoneNumberVerificationCodeDto): Promise<boolean> {
-    const user = await this.findByEmail(email);
+    const user = await this.findOne({ email });
 
     if (!user) {
       throw new InternalServerErrorException('Error occured while getting user data');
@@ -304,7 +293,7 @@ export class UserService {
   }
 
   async confirmPhoneOtp(email: string, code: string): Promise<User> {
-    const user = await this.findByEmail(email);
+    const user = await this.findOne({ email });
     const res = await this.verificationService.confirmPhoneNumberVerificationCode(
       user.phoneNumber,
       code,
@@ -312,7 +301,7 @@ export class UserService {
     if (res) {
       await this.userRepository.update({ email: email }, { status: UserStatus.PhoneValidated });
 
-      return this.findByEmail(email);
+      return this.findOne({ email });
     }
     throw new BadRequestException('Sorry, Can not confirm phone number');
   }
@@ -322,7 +311,7 @@ export class UserService {
   }
 
   async addPersonalUserInfo(email: string, body: AddPersonUserInfoDto): Promise<User> {
-    const user = await this.findByEmail(email);
+    const user = await this.findOne({ email });
     if (user.status === UserStatus.PhoneValidated) {
       await this.userRepository.update(
         { email },
@@ -343,7 +332,7 @@ export class UserService {
         user: user,
       });
 
-      return this.findByEmail(email);
+      return this.findOne({ email });
     }
     throw new BadRequestException('Please complete last steps');
   }

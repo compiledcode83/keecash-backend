@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { BeneficiaryWallet } from './beneficiary-wallet.entity';
 import { BeneficiaryWalletRepository } from './beneficiary-wallet.repository';
 import { AddBeneficiaryWalletDto } from './dto/add-beneficiary-wallet.dto';
@@ -21,6 +21,17 @@ export class BeneficiaryWalletService {
     body: AddBeneficiaryWalletDto,
     userId: number,
   ): Promise<BeneficiaryWallet> {
+    const walletExists = await this.beneficiaryWalletRepository.findOne({
+      where: { userId, address: body.address },
+    });
+
+    if (walletExists) {
+      throw new BadRequestException(`Wallet ${body.address} already exists`);
+    }
+
+    console.log({ walletExists });
+    console.log({ userId });
+
     const beneficiaryWallet = await this.beneficiaryWalletRepository.save({
       userId,
       name: body.name,

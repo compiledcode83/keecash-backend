@@ -10,7 +10,7 @@ export class UserExistsByEmailValidator implements ValidatorConstraintInterface 
   constructor(private readonly userService: UserService) {}
 
   async validate(email: string, args: ValidationArguments): Promise<boolean> {
-    const userExists = await this.userService.findByEmail(email);
+    const userExists = await this.userService.findOne({ email });
 
     return !Boolean(userExists);
   }

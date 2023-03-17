@@ -10,7 +10,7 @@ export class UserExistsByPhoneNumberValidator implements ValidatorConstraintInte
   constructor(private readonly userService: UserService) {}
 
   async validate(phoneNumber: string, args: ValidationArguments): Promise<boolean> {
-    const userExists = await this.userService.findByPhoneNumber(phoneNumber);
+    const userExists = await this.userService.findOne({ phoneNumber });
 
     return !Boolean(userExists);
   }
