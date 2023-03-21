@@ -15,7 +15,7 @@ import { Document } from './document/document.entity';
 import { EnterpriseProfile } from './enterprise-profile/enterprise-profile.entity';
 import { CryptoTx } from '@api/crypto-tx/crypto-tx.entity';
 import { BeneficiaryUser } from '@api/beneficiary/beneficiary-user/beneficiary-user.entity';
-import { AccountType, Language, UserStatus } from './user.types';
+import { AccountType, Language, UserStatus, VerificationStatus } from './user.types';
 import { BeneficiaryWallet } from '@api/beneficiary/beneficiary-wallet/beneficiary-wallet.entity';
 import { Card } from '../card/card.entity';
 
@@ -73,9 +73,25 @@ export class User {
   @Column({ type: 'enum', enum: UserStatus, default: UserStatus.Registered })
   status: UserStatus;
 
+  @ApiProperty({ description: 'KYC verification status' })
+  @Column({ type: 'enum', enum: VerificationStatus, default: VerificationStatus.Pending })
+  kycStatus: VerificationStatus;
+
+  @ApiProperty({ description: 'KYB verification status' })
+  @Column({ type: 'enum', enum: VerificationStatus, default: VerificationStatus.Pending })
+  kybStatus: VerificationStatus;
+
+  @ApiProperty({ description: 'Is email validated' })
+  @Column({ type: 'boolean', default: false })
+  emailValidated: boolean;
+
+  @ApiProperty({ description: 'Is phone validated' })
+  @Column({ type: 'boolean', default: false })
+  phoneValidated: boolean;
+
   @ApiProperty({ description: 'Is pincode set' })
   @Column({ type: 'boolean', default: false })
-  pin_code_set: boolean;
+  pincodeSet: boolean;
 
   @ApiProperty({ description: 'Date when the user was created', required: true })
   @CreateDateColumn()

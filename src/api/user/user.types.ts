@@ -10,15 +10,14 @@ export enum AccountType {
 
 export enum UserStatus {
   Registered = 'REGISTERED',
-  EmailValidated = 'EMAIL_VALIDATED',
-  PhoneValidated = 'PHONE_VALIDATED',
-  KycValidated = 'KYC_VALIDATED',
-  KycPending = 'KYC_PENDING',
-  KybValidated = 'KYB_VALIDATED',
-  KybPending = 'KYB_PENDING',
   Completed = 'COMPLETED',
   Rejected = 'REJECTED',
   Disabled = 'DISABLED',
   Deleted = 'DELETED',
-  PinCodeSet = 'PIN_CODE_SET',
+}
+
+export enum VerificationStatus {
+  Pending = 'PENDING',
+  Validated = 'VALIDATED',
+  Rejected = 'REJECTED',
 }

@@ -48,9 +48,11 @@ export class VerificationService {
     const serviceId = this.configService.get<string>(
       'verificationConfig.twilioVerificationServiceSid',
     );
+
     const result = await this.twilioClient.verify
       .services(serviceId)
-      .verificationChecks.create({ to: phonenumber, code: code });
+      .verificationChecks.create({ to: phonenumber, code });
+
     if (!result.valid || result.status !== 'approved') {
       return false;
     }
@@ -77,9 +79,11 @@ export class VerificationService {
     const serviceId = this.configService.get<string>(
       'verificationConfig.twilioVerificationServiceSid',
     );
+
     const result = await this.twilioClient.verify
       .services(serviceId)
       .verificationChecks.create({ to: email, code: code });
+
     if (!result.valid || result.status !== 'approved') {
       return false;
     }

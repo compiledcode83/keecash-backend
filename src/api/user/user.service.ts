@@ -238,7 +238,7 @@ export class UserService {
       throw new BadRequestException('Sorry, Cannot confirm email verification code');
     }
 
-    await this.userRepository.update({ email }, { status: UserStatus.EmailValidated });
+    await this.userRepository.update({ email }, { emailValidated: true });
 
     return this.findOne({ email });
   }
@@ -262,12 +262,12 @@ export class UserService {
       throw new InternalServerErrorException('Error occured while getting user data');
     }
 
-    if (user.status === UserStatus.PhoneValidated) {
-      throw new BadRequestException('Phone number is already validated');
+    if (!user.emailValidated) {
+      throw new BadRequestException('Email is not validated yet');
     }
 
-    if (user.status !== UserStatus.EmailValidated) {
-      throw new BadRequestException('Email is not validated yet');
+    if (user.phoneValidated) {
+      throw new BadRequestException('Phone number is already validated');
     }
 
     const country = await this.countryService.findCountryByName(body.country);
@@ -299,7 +299,7 @@ export class UserService {
       code,
     );
     if (res) {
-      await this.userRepository.update({ email: email }, { status: UserStatus.PhoneValidated });
+      await this.userRepository.update({ email }, { phoneValidated: true });
 
       return this.findOne({ email });
     }
@@ -312,7 +312,7 @@ export class UserService {
 
   async addPersonalUserInfo(email: string, body: AddPersonUserInfoDto): Promise<User> {
     const user = await this.findOne({ email });
-    if (user.status === UserStatus.PhoneValidated) {
+    if (user.phoneValidated) {
       await this.userRepository.update(
         { email },
         {
@@ -341,14 +341,20 @@ export class UserService {
     try {
       const encryptedPincode = await bcrypt.hash(pincode, 10);
 
-      await this.userRepository.update({ id: userId }, { pincode: encryptedPincode });
+      await this.userRepository.update(
+        { id: userId },
+        { pincode: encryptedPincode, pincodeSet: true },
+      );
     } catch (error) {
       throw error;
     }
   }
 
   async resetPincode(userId: number): Promise<void> {
-    const updatedUser = await this.userRepository.update({ id: userId }, { pincode: null });
+    const updatedUser = await this.userRepository.update(
+      { id: userId },
+      { pincode: null, pincodeSet: false },
+    );
 
     if (!updatedUser.affected) throw new Error('Error occured while resetting pincode');
   }

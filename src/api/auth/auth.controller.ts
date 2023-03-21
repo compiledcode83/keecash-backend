@@ -34,7 +34,7 @@ import { VerificationService } from '../verification/verification.service';
 import { ConfirmEmailVerificationCodeForAdminDto } from '../verification/dto/confirm-email-verification-for-admin.dto';
 import { PasswordResetDto } from '../user/dto/password-reset.dto';
 import { JwtService } from '@nestjs/jwt';
-import { SetPincodeDto } from './dto/set-pincode-dto';
+import { PincodeSetDto } from './dto/pincode-set-dto';
 import { PincodeVerificationDto } from './dto/pincode-verification.dto';
 import { PincodeVerificationResponseDto } from './dto/pincode-verification-response.dto';
 import { PincodeResetResponseDto } from './dto/pincode-reset-response.dto';
@@ -209,7 +209,7 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('set-pin-code')
-  async setPinCode(@Req() req, @Body() body: SetPincodeDto): Promise<PincodeSetResponseDto> {
+  async setPinCode(@Req() req, @Body() body: PincodeSetDto): Promise<PincodeSetResponseDto> {
     await this.userService.setPincode(req.user.id, body.pincode);
 
     return {

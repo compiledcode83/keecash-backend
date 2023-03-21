@@ -72,7 +72,9 @@ export class AuthService {
 
   async validateUserByPincode(userId, pincode): Promise<boolean> {
     const user = await this.userService.findOne({ id: userId });
-    if (!user) return null;
+    if (!user || !user.pincodeSet) {
+      return false;
+    }
 
     const isValidated = await bcrypt.compare(pincode, user.pincode);
 
