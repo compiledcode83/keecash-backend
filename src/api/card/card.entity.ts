@@ -59,6 +59,14 @@ export class Card {
   @Column({ type: 'enum', enum: CardTypeEnum })
   type: CardTypeEnum;
 
+  @ApiProperty({ description: 'Is card blocked' })
+  @Column({ type: 'boolean', default: false })
+  isBlocked: boolean;
+
+  @ApiProperty({ description: 'Is card expired' })
+  @Column({ type: 'boolean', default: false })
+  isExpired: boolean;
+
   @ApiProperty({ description: 'Created at date' })
   @CreateDateColumn()
   createdAt: Date;

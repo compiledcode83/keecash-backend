@@ -40,4 +40,18 @@ export class CardService {
 
     return result;
   }
+
+  async getCardListByUserId(userId: number): Promise<any> {
+    const cards = await this.cardRepository.getCardsDetailWithLastTransaction(userId);
+
+    return cards;
+  }
+
+  async setLockByUserId(userId: number, isBlocked: boolean): Promise<void> {
+    await this.cardRepository.blockByUserId(userId, isBlocked);
+  }
+
+  async removeByUserId(userId: number) {
+    await this.cardRepository.softDelete({ userId });
+  }
 }

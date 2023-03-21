@@ -6,7 +6,8 @@ import { PostDepositFeeDto } from './dto/post-deposit-fee.dto';
 import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
 import { CryptoCurrencyEnum, FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
 import { WithdrawalApplyDto } from './dto/withdrawal-apply.dto';
-import { GetDashboardItemsDto } from './dto/get-dashboard-items-response.dto';
+import { GetDashboardItemsResponseDto } from './dto/get-dashboard-items-response.dto';
+import { GetCardsResponseDto } from './dto/get-cards-response.dto';
 
 @Controller()
 export class CardController {
@@ -25,135 +26,61 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('get-dashboard-items')
-  async getDashboardItems(@Req() req, @Query() query): Promise<GetDashboardItemsDto> {
-    const transactions = [
-      {
-        amount: '200',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'income',
-      },
-      {
-        amount: '40',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'outgoing',
-      },
-      {
-        amount: '150',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'income',
-      },
-      {
-        amount: '19.57',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'outgoing',
-      },
-      {
-        amount: '120.5',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'income',
-      },
-      {
-        amount: '110',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'outgoing',
-      },
-      {
-        amount: '77',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'income',
-      },
-      {
-        amount: '65',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'outgoing',
-      },
-      {
-        amount: '240',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'income',
-      },
-      {
-        amount: '34',
-        currency: '$',
-        date: '2022-11-12 07:30',
-        from: 'From back',
-        to: 'Front',
-        type: 'outgoing',
-      },
-    ];
-    const wallets = [
-      {
-        balance: '1000',
-        currency: 'EUR',
-        cards: [
-          {
-            logo: '',
-            balance: '450',
-            currency: '€',
-            cardNumber: '12345 1334',
-            name: 'Cameleon',
-            date: '03/12',
-          },
-          {
-            logo: '',
-            balance: '550',
-            currency: '€',
-            cardNumber: '12345 1555',
-            name: 'test',
-            date: '02/12',
-          },
-        ],
-      },
-      {
-        balance: '1550',
-        currency: 'USD',
-        cards: [
-          {
-            logo: '', // !remove
-            balance: '1550',
-            currency: '$',
-            cardNumber: '5123446******1234', // ! changer le fonctionnement 5 visa 4 master
-            name: 'Pasquier',
-            date: '03/12',
-          },
-        ],
-      },
-    ];
-
-    const cards = await this.cardService.getCardDetailsByUserId(req.user.id);
+  async getDashboardItems(@Req() req, @Query() query): Promise<GetDashboardItemsResponseDto> {
+    const wallets = await this.cardService.getCardDetailsByUserId(req.user.id);
 
     return {
       isSuccess: true,
       wallets,
       recommended: FiatCurrencyEnum.EUR,
     };
+  }
+
+  @ApiOperation({ description: 'Get my cards' })
+  @ApiTags('Card Management')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('get-my-cards')
+  async getCards(@Req() req): Promise<GetCardsResponseDto> {
+    const cards = await this.cardService.getCardListByUserId(req.user.id);
+
+    return {
+      isSuccess: true,
+      myCards: cards,
+    };
+  }
+
+  @ApiOperation({ description: 'Block all my cards' })
+  @ApiTags('Card Management')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('card/block/my-card')
+  async blockMyCard(@Req() req) {
+    await this.cardService.setLockByUserId(req.user.id, true);
+
+    return { isSuccess: true };
+  }
+
+  @ApiOperation({ description: 'Unlock all my cards' })
+  @ApiTags('Card Management')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('card/unlock/my-card')
+  async unlockMyCard(@Req() req) {
+    await this.cardService.setLockByUserId(req.user.id, false);
+
+    return { isSuccess: true };
+  }
+
+  @ApiOperation({ description: 'Unlock all my cards' })
+  @ApiTags('Card Management')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('card/remove/my-card')
+  async removeMyCard(@Req() req) {
+    await this.cardService.removeByUserId(req.user.id);
+
+    return { isSuccess: true };
   }
 
   @ApiOperation({ description: 'Get deposit settings' })
