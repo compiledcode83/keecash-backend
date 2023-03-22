@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
 
-export class PostDepositFeeDto {
+export class GetDepositFeeDto {
   @ApiProperty({ example: '', description: 'Keecash wallet address' })
   @IsString()
   keecash_wallet: string;

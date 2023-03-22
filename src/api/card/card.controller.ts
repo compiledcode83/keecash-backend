@@ -2,24 +2,17 @@ import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nest
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
-import { PostDepositFeeDto } from './dto/post-deposit-fee.dto';
+import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
 import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
 import { CryptoCurrencyEnum, FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
 import { WithdrawalApplyDto } from './dto/withdrawal-apply.dto';
 import { GetDashboardItemsResponseDto } from './dto/get-dashboard-items-response.dto';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
+import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
 
 @Controller()
 export class CardController {
   constructor(private readonly cardService: CardService) {}
-
-  // @ApiOperation({ description: `Get my all cards` })
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
-  // @Get()
-  // async findAllPaginated(@Request() req) {
-  //   return;
-  // }
 
   @ApiOperation({ description: 'Get dashboard items' })
   @ApiTags('Dashboard')
@@ -88,124 +81,8 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/deposit/settings')
-  async depositSettings(@Req() req) {
-    const depositSettings = {
-      keecash_wallets: [
-        {
-          currency: 'EUR',
-          balance: '10',
-          is_checked: 'true', // the first element always true
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          currency: 'USD',
-          balance: '59.99',
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-      ],
-      deposit_methods: [
-        {
-          name: 'Bitcoin',
-          code: 'BTC',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '15000', // EUR
-            '14500', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '10',
-          after_decimal: '6',
-        },
-        {
-          name: 'Bitcoin Lightning',
-          code: 'BTC_LIGHTNING',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '15000', // EUR
-            '14500', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '10',
-          after_decimal: '6',
-        },
-        {
-          name: 'Ethereum',
-          code: 'ETH',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1500', // EUR
-            '1450', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '200',
-          after_decimal: '4',
-        },
-        {
-          name: 'Tether USD (TRC20)',
-          code: 'USDT_TRC20',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'Tether USD (ERC20)',
-          code: 'USDT_ERC20',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'USD Coin',
-          code: 'USDC',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'Binance Pay',
-          code: 'BINANCE',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-      ],
-      fix_fees: '0.99',
-      percent_fees: '0.01',
-    };
-
-    return depositSettings;
+  async getDepositSettings(@Req() req) {
+    return this.cardService.getDepositSettings(req.user.id);
   }
 
   @ApiOperation({ description: 'Post deposit fees' })
@@ -213,15 +90,8 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('/deposit/fees')
-  async depositFees(@Body() body: PostDepositFeeDto) {
-    const fees = {
-      fix_fees: 0.99,
-      percent_fees: 0.01,
-      fees_applied: 0.01,
-      total_to_pay: 101,
-    };
-
-    return fees;
+  async depositFees(@Body() body: GetDepositFeeDto) {
+    return this.cardService.getDepositFee(body);
   }
 
   @ApiOperation({ description: 'Post deposit payment link' })
@@ -241,123 +111,7 @@ export class CardController {
   @UseGuards(JwtAuthGuard)
   @Get('/withdrawal/settings')
   async withdrawalSettings(@Req() req) {
-    const withdrawalSettings = {
-      keecash_wallets: [
-        {
-          currency: 'EUR',
-          balance: '10',
-          is_checked: 'true', // the first element always true
-          min: '0',
-          max: '10',
-          after_decimal: '2',
-        },
-        {
-          currency: 'USD',
-          balance: '162.9',
-          is_checked: 'false',
-          min: '0',
-          max: '162.9',
-          after_decimal: '2',
-        },
-      ],
-      withdrawal_methods: [
-        {
-          name: 'Bitcoin',
-          code: 'BTC',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '15000', // EUR
-            '14500', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '10',
-          after_decimal: '6',
-        },
-        {
-          name: 'Bitcoin Lightning',
-          code: 'BTC_LIGHTNING',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '15000', // EUR
-            '14500', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '10',
-          after_decimal: '6',
-        },
-        {
-          name: 'Ethereum',
-          code: 'ETH',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1500', // EUR
-            '1450', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '200',
-          after_decimal: '4',
-        },
-        {
-          name: 'Tether USD (TRC20)',
-          code: 'USDT_TRC20',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'Tether USD (ERC20)',
-          code: 'USDT_ERC20',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'USD Coin',
-          code: 'USDC',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'Binance Pay',
-          code: 'BINANCE',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-      ],
-      fix_fees: '0.99',
-      percent_fees: '0.01',
-    };
-
-    return withdrawalSettings;
+    return this.cardService.getWithdrawalSettings(req.user.id);
   }
 
   @ApiOperation({ description: 'Get withdrawal beneficiaries' })
@@ -365,43 +119,8 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/withdrawal/beneficiaries/:wallet')
-  async getWithdrawalBeneficiaries(@Param('wallet') wallet) {
-    const withdrawalSettings = {
-      beneficiaries_wallet: [
-        {
-          name: 'My BTC wallet on Binance',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC on Trust Wallet',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC wallet on Binance',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC on Trust Wallet',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC wallet on Binance',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC on Trust Wallet',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-      ],
-    };
-
-    return withdrawalSettings;
+  async getBeneficiaryWallets(@Param('wallet') wallet) {
+    return this.cardService.getBeneficiaryWallets(wallet);
   }
 
   @ApiOperation({ description: 'Post withdrawal fees' })
@@ -409,15 +128,8 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('/withdrawal/fees')
-  async withdrawalFees(@Body() body: PostDepositFeeDto) {
-    const fees = {
-      fix_fees: 0.99,
-      percent_fees: 0.01,
-      fees_applied: 0.01,
-      total_to_pay: 101,
-    };
-
-    return fees;
+  async withdrawalFees(@Body() body: GetWithdrawalFeeDto) {
+    return this.cardService.getWithdrawalFee(body);
   }
 
   @ApiOperation({ description: 'Post withdrawal fees' })

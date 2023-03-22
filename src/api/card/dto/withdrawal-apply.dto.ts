@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsString } from 'class-validator';
 
 export class WithdrawalApplyDto {
   @ApiProperty({ example: '', description: 'Keecash wallet' })
@@ -25,6 +25,17 @@ export class WithdrawalApplyDto {
 
   @ApiProperty({ example: 200, description: 'Total to pay' })
   @IsNumber()
-  @IsString()
   total_to_pay: number;
+
+  @ApiProperty({ example: true, description: 'Option that whether you save it as a beneficiary' })
+  @IsBoolean()
+  to_save_as_beneficiary: boolean;
+
+  @ApiProperty({ example: true, description: 'Wallet name' })
+  @IsString()
+  wallet_name: string;
+
+  @ApiProperty({ example: true, description: 'Address' })
+  @IsString()
+  address: string;
 }
