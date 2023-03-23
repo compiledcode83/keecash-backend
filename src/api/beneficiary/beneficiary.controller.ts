@@ -13,7 +13,7 @@ import { VerifyUserExistDto } from './beneficiary-user/dto/verify-user-exist.dto
 import { VerifyUserExistResponseDto } from './beneficiary-user/dto/verify-user-exist-response.dto';
 import { VerifyWalletExistResponseDto } from './beneficiary-wallet/dto/verify-wallet-address-response.dto';
 
-@Controller()
+@Controller('beneficiary')
 @ApiTags('Manage beneficiaries')
 export class BeneficiaryController {
   constructor(

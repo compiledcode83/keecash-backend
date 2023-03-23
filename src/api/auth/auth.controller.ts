@@ -44,7 +44,7 @@ import { SendEmailVerificationCodeResponseDto } from '../verification/dto/send-e
 import { ConfirmEmailVerificationCodeResponseDto } from '../verification/dto/confirm-email-verification-response.dto';
 import { SendPhoneVerificationResponseDto } from '../verification/dto/send-phone-verification-response.dto';
 
-@Controller()
+@Controller('auth')
 @ApiTags('Authentication')
 export class AuthController {
   constructor(
