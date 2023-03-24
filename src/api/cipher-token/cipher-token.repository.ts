@@ -25,6 +25,7 @@ export class CipherTokenRepository extends Repository<CipherToken> {
       token: randomBytes(32).toString('hex'),
       userAgent: refreshTokenInfo.userAgent,
       ipAddress: refreshTokenInfo.ipAddress,
+      type: refreshTokenInfo.type,
       expireAt: DateTime.now()
         .plus({
           days: this.configService.get('jwtConfig.refreshTokenDurationDays'),

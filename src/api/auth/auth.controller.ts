@@ -104,6 +104,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @RealIP() ip: string,
   ): Promise<PincodeVerificationResponseDto> {
+    if (!req.headers.authorization)
+      throw new UnauthorizedException('Missing refresh token in the header');
+
     const bearerRefreshToken = req.headers.authorization.split(' ')[1];
 
     const userId = await this.cipherTokenService.checkIfExpired(bearerRefreshToken);
