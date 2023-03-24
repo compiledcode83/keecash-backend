@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CardHistory } from '@api/card-history/card-history.entity';
 import {
   Column,
   CreateDateColumn,
@@ -13,11 +12,16 @@ import {
 import { CardTypeEnum } from './card.types';
 import { User } from '../user/user.entity';
 import { FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
+import { Transaction } from '../transaction/transaction.entity';
 
 @Entity('card')
 export class Card {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
+
+  @ApiProperty({ description: 'Owner Id', maximum: 64, required: true })
+  @Column({ type: 'int', nullable: false })
+  userId: number;
 
   @ApiProperty({ example: 'Chameleon', description: 'Card name' })
   @Column({ type: 'varchar', nullable: false })
@@ -27,12 +31,24 @@ export class Card {
   @Column({ type: 'enum', enum: FiatCurrencyEnum, default: FiatCurrencyEnum.EUR })
   currency: FiatCurrencyEnum;
 
-  @ApiProperty({ example: '12345 1334', description: 'Card number' })
+  @ApiProperty({ example: '1234 1334 1234 1234', description: 'Card number' })
   @Column({ type: 'varchar', nullable: false })
   cardNumber: string;
 
-  @ApiProperty({ example: '', description: 'Logo' })
+  @ApiProperty({ example: 'John Doe', description: 'Cardholder name' })
   @Column({ type: 'varchar', nullable: false })
+  cardholderName: string;
+
+  @ApiProperty({ example: '928', description: 'Card Verification Value(CVV) number' })
+  @Column({ type: 'varchar', nullable: false })
+  cvvNumber: string;
+
+  @ApiProperty({ example: '09/25', description: 'Card expiration date: MM/YY' })
+  @Column({ type: 'varchar', nullable: false })
+  expiryDate: string;
+
+  @ApiProperty({ example: 'https://logo.com/logo.png', description: 'Logo image URL' })
+  @Column({ type: 'varchar', nullable: true })
   logo: string;
 
   @ApiProperty({ description: 'Keecash card Id' })
@@ -43,17 +59,13 @@ export class Card {
   @Column({ type: 'varchar', nullable: false })
   providerCardId: string;
 
-  @ApiProperty({ description: 'Encrypted cc number' })
+  @ApiProperty({ description: 'Encrypted card number' })
   @Column({ type: 'varchar', nullable: false })
-  encryptedCcNumber: string;
+  encryptedCardNumber: string;
 
   @ApiProperty({ description: 'Encrypted cvv number' })
   @Column({ type: 'varchar', nullable: false })
   encryptedCvvNumber: string;
-
-  @ApiProperty({ description: 'Card expiration date' })
-  @Column({ type: 'varchar', nullable: false })
-  expiryDate: string;
 
   @ApiProperty({ description: 'Card type - Unique or Multiple' })
   @Column({ type: 'enum', enum: CardTypeEnum })
@@ -79,12 +91,8 @@ export class Card {
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedAt: Date;
 
-  @OneToMany(() => CardHistory, (history) => history.card)
-  history: CardHistory[];
-
-  @ApiProperty({ description: 'User Id', maximum: 64, required: true })
-  @Column({ type: 'int', nullable: false })
-  userId: number;
+  @OneToMany(() => Transaction, (transaction) => transaction.card)
+  transaction: Transaction[];
 
   @ManyToOne(() => User, (user) => user.cards)
   user: User;

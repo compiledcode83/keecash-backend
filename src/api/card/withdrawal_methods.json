@@ -1,0 +1,65 @@
+[
+  {
+    "name": "Bitcoin",
+    "code": "BTC",
+    "exchange_rate": ["15000", "14500"],
+    "is_checked": "false",
+    "min": "0",
+    "max": "10",
+    "after_decimal": "6"
+  },
+  {
+    "name": "Bitcoin Lightning",
+    "code": "BTC_LIGHTNING",
+    "exchange_rate": ["15000", "14500"],
+    "is_checked": "false",
+    "min": "0",
+    "max": "10",
+    "after_decimal": "6"
+  },
+  {
+    "name": "Ethereum",
+    "code": "ETH",
+    "exchange_rate": ["1500", "1450"],
+    "is_checked": "false",
+    "min": "0",
+    "max": "200",
+    "after_decimal": "4"
+  },
+  {
+    "name": "Tether USD (TRC20)",
+    "code": "USDT_TRC20",
+    "exchange_rate": ["1.121", "0.994"],
+    "is_checked": "false",
+    "min": "0",
+    "max": "100000",
+    "after_decimal": "2"
+  },
+  {
+    "name": "Tether USD (ERC20)",
+    "code": "USDT_ERC20",
+    "exchange_rate": ["1.121", "0.994"],
+    "is_checked": "false",
+    "min": "0",
+    "max": "100000",
+    "after_decimal": "2"
+  },
+  {
+    "name": "USD Coin",
+    "code": "USDC",
+    "exchange_rate": ["1.121", "0.994"],
+    "is_checked": "false",
+    "min": "0",
+    "max": "100000",
+    "after_decimal": "2"
+  },
+  {
+    "name": "Binance Pay",
+    "code": "BINANCE",
+    "exchange_rate": ["1.121", "0.994"],
+    "is_checked": "false",
+    "min": "0",
+    "max": "100000",
+    "after_decimal": "2"
+  }
+]

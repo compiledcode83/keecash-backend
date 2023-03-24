@@ -1,320 +1,200 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CardRepository } from './card.repository';
 import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
 import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 import qs = require('qs');
 import { CryptoCurrencyEnum } from '../crypto-tx/crypto-tx.types';
 import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
+import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
+import { TransactionService } from '../transaction/transaction.service';
+import deposit_methods from './deposit_methods.json';
+import withdrawal_methods from './withdrawal_methods.json';
 
 @Injectable()
 export class CardService {
-  constructor(private readonly cardRepository: CardRepository) {}
+  constructor(
+    private readonly cardRepository: CardRepository,
+    private readonly transactionService: TransactionService,
+  ) {}
 
   async findAllPaginated(searchParams: any): Promise<any> {
     return;
     // return this.getPaginatedQueryBuilder({ ...searchParams, userId });
   }
 
-  async getCardDetailsByUserId(userId: number): Promise<any> {
-    const cards = await this.cardRepository.getCardDetailsByUserId(userId);
+  // -------------- MANAGE CARD -------------------
 
-    let usdTotal = 0;
-    let eurTotal = 0;
+  async getDashboardItemsByUserId(userId: number): Promise<any> {
+    const balance = await this.transactionService.getBalanceForUser(userId);
 
-    const usdCards = [];
-    const eurCards = [];
+    const cards = await this.cardRepository.getCardsWithBalance(userId);
 
-    for (const card of cards) {
-      switch (card.currency) {
-        case 'USD':
-          usdTotal += card.balance;
-          usdCards.push(card);
-          break;
-
-        case 'EUR':
-          eurTotal += card.balance;
-          eurCards.push(card);
-          break;
-      }
-    }
+    const eurCards = cards
+      .filter(({ card_currency }) => card_currency === 'EUR')
+      .map(({ balance, card_currency, card_card_number, card_name, card_expiry_date }) => ({
+        balance,
+        currency: card_currency,
+        cardNumber: card_card_number,
+        name: card_name,
+        date: card_expiry_date,
+      }));
+    const usdCards = cards
+      .filter(({ card_currency }) => card_currency === 'USD')
+      .map(({ balance, card_currency, card_card_number, card_name, card_expiry_date }) => ({
+        balance,
+        currency: card_currency,
+        cardNumber: card_card_number,
+        name: card_name,
+        date: card_expiry_date,
+      }));
 
     const result = [
-      { balance: usdTotal, currency: 'USD', cards: usdCards },
-      { balance: eurTotal, currency: 'EUR', cards: eurCards },
+      {
+        balance: balance.eur,
+        currency: 'EUR',
+        cards: eurCards,
+      },
+      {
+        balance: balance.usd,
+        currency: 'USD',
+        cards: usdCards,
+      },
     ];
 
     return result;
   }
 
   async getCardListByUserId(userId: number): Promise<any> {
-    const cards = await this.cardRepository.getCardsDetailWithLastTransaction(userId);
+    const cards = await this.cardRepository.getCardsWithBalance(userId, false);
 
-    return cards;
+    const result = cards.map((card) => ({
+      balance: card.balance,
+      currency: card.card_currency,
+      isBlock: card.card_is_blocked,
+      isExpired: card.card_is_expired,
+      cardNumber: card.card_card_number,
+      name: card.card_name,
+      date: card.card_expiry_date,
+      holderLastName: card.card_cardholder_name.split(' ')[-1],
+      holderFirstName: card.card_cardholder_name.split(' ')[0],
+    }));
+
+    return result;
   }
 
-  async setLockByUserId(userId: number, isBlocked: boolean): Promise<void> {
-    await this.cardRepository.blockByUserId(userId, isBlocked);
+  async setLock(userId: number, cardId: number, isBlocked: boolean): Promise<void> {
+    const card = await this.cardRepository.findOne({ where: { id: cardId } });
+
+    if (card.userId !== userId) {
+      throw new UnauthorizedException('Not the owner of the card');
+    }
+
+    await this.cardRepository.setBlock(cardId, isBlocked);
   }
 
-  async removeByUserId(userId: number) {
-    await this.cardRepository.softDelete({ userId });
+  async removeOne(userId: number, cardId: number) {
+    const card = await this.cardRepository.findOne({ where: { id: cardId } });
+
+    if (card.userId !== userId) {
+      throw new UnauthorizedException('Not the owner of the card');
+    }
+
+    await this.cardRepository.softDelete({ id: cardId });
   }
+
+  // -------------- GET SETTINGS -------------------
 
   async getDepositSettings(userId: number) {
-    const cards = await this.cardRepository.getBalancesForAllCurrencies(userId);
+    const balance = await this.transactionService.getBalanceForUser(userId);
 
-    let eurBalance = 0;
-    let usdBalance = 0;
-
-    cards.map((card) => {
-      if (card.currency === 'EUR') eurBalance += card.balance;
-      if (card.currency === 'USD') usdBalance += card.balance;
-    });
+    const keecash_wallets = [
+      {
+        balance: balance.eur,
+        currency: 'EUR',
+        is_checked: true,
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+      {
+        balance: balance.usd,
+        currency: 'USD',
+        is_checked: false,
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+    ];
 
     return {
-      keecash_wallets: [
-        {
-          currency: 'EUR',
-          balance: eurBalance,
-          is_checked: true,
-          min: 0,
-          max: 100000,
-          after_decimal: 2,
-        },
-        {
-          currency: 'USD',
-          balance: usdBalance,
-          is_checked: false,
-          min: 0,
-          max: 100000,
-          after_decimal: 2,
-        },
-      ],
-      deposit_methods: [
-        {
-          name: 'Bitcoin',
-          code: 'BTC',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '15000', // EUR
-            '14500', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '10',
-          after_decimal: '6',
-        },
-        {
-          name: 'Bitcoin Lightning',
-          code: 'BTC_LIGHTNING',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '15000', // EUR
-            '14500', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '10',
-          after_decimal: '6',
-        },
-        {
-          name: 'Ethereum',
-          code: 'ETH',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1500', // EUR
-            '1450', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '200',
-          after_decimal: '4',
-        },
-        {
-          name: 'Tether USD (TRC20)',
-          code: 'USDT_TRC20',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'Tether USD (ERC20)',
-          code: 'USDT_ERC20',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'USD Coin',
-          code: 'USDC',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'Binance Pay',
-          code: 'BINANCE',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-      ],
-      fix_fees: '0.99',
-      percent_fees: '0.01',
+      keecash_wallets,
+      deposit_methods,
+      fix_fees: 0.99,
+      percent_fees: 0.01,
     };
   }
 
   async getWithdrawalSettings(userId: number) {
-    const cards = await this.cardRepository.getBalancesForAllCurrencies(userId);
+    const balance = await this.transactionService.getBalanceForUser(userId);
 
-    let eurBalance = 0;
-    let usdBalance = 0;
-
-    cards.map((card) => {
-      if (card.currency === 'EUR') eurBalance += card.balance;
-      if (card.currency === 'USD') usdBalance += card.balance;
-    });
+    const keecash_wallets = [
+      {
+        balance: balance.eur,
+        currency: 'EUR',
+        is_checked: true,
+        min: 0,
+        max: balance.eur,
+        after_decimal: 2,
+      },
+      {
+        balance: balance.usd,
+        currency: 'USD',
+        is_checked: false,
+        min: 0,
+        max: balance.usd,
+        after_decimal: 2,
+      },
+    ];
 
     return {
-      keecash_wallets: [
-        {
-          currency: 'EUR',
-          balance: eurBalance,
-          is_checked: true,
-          min: 0,
-          max: eurBalance,
-          after_decimal: 2,
-        },
-        {
-          currency: 'USD',
-          balance: usdBalance,
-          is_checked: false,
-          min: 0,
-          max: usdBalance,
-          after_decimal: 2,
-        },
-      ],
-      withdrawal_methods: [
-        {
-          name: 'Bitcoin',
-          code: 'BTC',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '15000', // EUR
-            '14500', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '10',
-          after_decimal: '6',
-        },
-        {
-          name: 'Bitcoin Lightning',
-          code: 'BTC_LIGHTNING',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '15000', // EUR
-            '14500', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '10',
-          after_decimal: '6',
-        },
-        {
-          name: 'Ethereum',
-          code: 'ETH',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1500', // EUR
-            '1450', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '200',
-          after_decimal: '4',
-        },
-        {
-          name: 'Tether USD (TRC20)',
-          code: 'USDT_TRC20',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'Tether USD (ERC20)',
-          code: 'USDT_ERC20',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'USD Coin',
-          code: 'USDC',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-        {
-          name: 'Binance Pay',
-          code: 'BINANCE',
-          exchange_rate: [
-            // same size than keecash_wallets and ordonnate in the same currency fiat
-            '1.121', // EUR
-            '0.994', // USD
-          ],
-          is_checked: 'false',
-          min: '0',
-          max: '100000',
-          after_decimal: '2',
-        },
-      ],
-      fix_fees: '0.99',
-      percent_fees: '0.01',
+      keecash_wallets,
+      withdrawal_methods,
+      fix_fees: 0.99,
+      percent_fees: 0.01,
     };
   }
+
+  async getTransferSettings(userId: number, keecashId: string) {
+    const balance = await this.transactionService.getBalanceForUser(userId);
+
+    const keecash_wallets = [
+      {
+        balance: balance.eur,
+        currency: 'EUR',
+        is_checked: true,
+        min: 0,
+        max: balance.eur,
+        after_decimal: 2,
+      },
+      {
+        balance: balance.usd,
+        currency: 'USD',
+        is_checked: false,
+        min: 0,
+        max: balance.usd,
+        after_decimal: 2,
+      },
+    ];
+
+    return {
+      keecash_wallets,
+      keecash_id: keecashId,
+      fix_fees: 0.99,
+      percent_fees: 0.01,
+    };
+  }
+
+  // -------------- GET FEE -------------------
 
   async getDepositFee(body: GetDepositFeeDto) {
     const fixFees = 0.99;
@@ -441,6 +321,23 @@ export class CardService {
       total_to_pay: totalToPay,
     };
   }
+
+  async getTransferFee(body: GetTransferFeeDto) {
+    const fixFees = 0.99;
+    const percentFees = 0.01;
+
+    const feesApplied = body.desired_amount * percentFees + fixFees;
+    const totalToPay = body.desired_amount - feesApplied;
+
+    return {
+      fix_fees: fixFees,
+      percent_fees: percentFees,
+      fees_applied: feesApplied,
+      total_to_pay: totalToPay,
+    };
+  }
+
+  // -------------- GET BENEFICIARY -------------------
 
   async getBeneficiaryWallets(wallet: string) {
     const withdrawalSettings = {

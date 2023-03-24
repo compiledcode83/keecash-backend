@@ -13,11 +13,11 @@ import { AuthRefreshToken } from '@api/auth-refresh-token/auth-refresh-token.ent
 import { PersonProfile } from './person-profile/person-profile.entity';
 import { Document } from './document/document.entity';
 import { EnterpriseProfile } from './enterprise-profile/enterprise-profile.entity';
-import { CryptoTx } from '@api/crypto-tx/crypto-tx.entity';
 import { BeneficiaryUser } from '@api/beneficiary/beneficiary-user/beneficiary-user.entity';
 import { AccountType, Language, UserStatus, VerificationStatus } from './user.types';
 import { BeneficiaryWallet } from '@api/beneficiary/beneficiary-wallet/beneficiary-wallet.entity';
 import { Card } from '../card/card.entity';
+import { Transaction } from '../transaction/transaction.entity';
 
 @Entity('user')
 export class User {
@@ -123,13 +123,13 @@ export class User {
   @OneToOne(() => EnterpriseProfile, (enterpriseProfile) => enterpriseProfile.user)
   enterpriseProfile: EnterpriseProfile;
 
-  @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.userSender)
-  @JoinColumn({ name: 'id', referencedColumnName: 'user_sender_id' })
-  sender: CryptoTx[];
+  @OneToMany(() => Transaction, (transaction) => transaction.sender)
+  @JoinColumn({ name: 'id', referencedColumnName: 'sender_id' })
+  sender: Transaction[];
 
-  @OneToMany(() => CryptoTx, (cryptoTx) => cryptoTx.userReceiver)
-  @JoinColumn({ name: 'id', referencedColumnName: 'user_receiver_id' })
-  receiver: CryptoTx[];
+  @OneToMany(() => Transaction, (transaction) => transaction.receiver)
+  @JoinColumn({ name: 'id', referencedColumnName: 'receiver_id' })
+  receiver: Transaction[];
 
   @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.payer)
   payer: BeneficiaryUser[];
