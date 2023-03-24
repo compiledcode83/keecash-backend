@@ -1,16 +1,10 @@
 import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
-import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
-import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
 import { FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
-import { WithdrawalApplyDto } from './dto/withdrawal-apply.dto';
 import { GetDashboardItemsResponseDto } from './dto/get-dashboard-items-response.dto';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
-import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
-import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
-import { TransferApplyDto } from './dto/transfer-apply.dto';
 import { ManageCardDto } from './dto/manage-card.dto';
 
 @Controller()
@@ -81,101 +75,120 @@ export class CardController {
     return { isSuccess: true };
   }
 
-  // -------------- DEPOSIT -------------------
+  // -------------- HISTORY -------------------
 
-  @ApiOperation({ description: 'Get deposit settings' })
-  @ApiTags('Deposit')
+  @ApiOperation({ description: 'Get history of 30 days' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get('/deposit/settings')
-  async getDepositSettings(@Req() req) {
-    return this.cardService.getDepositSettings(req.user.id);
+  @Get('/history/get-init-history')
+  async getInitHistory(@Req() req) {
+    return this.cardService.getInitHistory(req.user.id);
   }
 
-  @ApiOperation({ description: 'Post deposit fees' })
-  @ApiTags('Deposit')
+  @ApiOperation({ description: '' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Post('/deposit/fees')
-  async depositFees(@Body() body: GetDepositFeeDto) {
-    return this.cardService.getDepositFee(body);
+  @Post('/keecash-wallet/:keecash_wallet_currency/transactions')
+  @ApiParam({ name: 'keecash_wallet_currency', required: true, description: 'Currency of wallet' })
+  async getKeecashWalletTransactions(
+    @Req() req,
+    @Param('keecash_wallet_currency') currency: FiatCurrencyEnum,
+  ) {
+    return this.cardService.getKeecashWalletTransactions(req.user.id, currency);
   }
 
-  @ApiOperation({ description: 'Post deposit payment link' })
-  @ApiTags('Deposit')
+  @ApiOperation({ description: '' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Post('/deposit/payment-link')
-  async depositPaymentLink(@Body() body: DepositPaymentLinkDto) {
-    return {
+  @Get('/keecash-wallet/:keecash_wallet_currency/transactions/:reference/invoice')
+  @ApiParam({ name: 'keecash_wallet_currency', required: true, description: 'Currency of wallet' })
+  @ApiParam({ name: 'reference', required: true, description: 'Reference' })
+  async getKeecashWalletTransactionInvoice(
+    @Req() req,
+    @Param('keecash_wallet_currency') currency: FiatCurrencyEnum,
+  ) {
+    const result = {
       link: '',
     };
+
+    return result;
   }
 
-  // -------------- WITHDRAWAL -------------------
-
-  @ApiOperation({ description: 'Get deposit settings' })
-  @ApiTags('Withdrawal')
+  @ApiOperation({ description: 'Get card transaction invoices' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get('/withdrawal/settings')
-  async withdrawalSettings(@Req() req) {
-    return this.cardService.getWithdrawalSettings(req.user.id);
+  @Get('/card/:card_name/transactions/:reference/invoice')
+  @ApiParam({ name: 'card_name', required: true, description: 'Card name' })
+  @ApiParam({ name: 'reference', required: true, description: 'Reference' })
+  async getCardInvoices(@Param() param) {
+    const result = {
+      link: '',
+    };
+
+    return result;
   }
 
-  @ApiOperation({ description: 'Get withdrawal beneficiaries' })
-  @ApiTags('Withdrawal')
+  @ApiOperation({ description: 'Get card transactions' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get('/withdrawal/beneficiaries/:wallet')
-  async getBeneficiaryWallets(@Param('wallet') wallet) {
-    return this.cardService.getBeneficiaryWallets(wallet);
-  }
+  @Post('/card/:card_name/transactions/')
+  @ApiParam({ name: 'card_name', required: true, description: 'Card name' })
+  async getCardTransactions(@Req() req, @Param('card_name') card_name: string) {
+    const result = [
+      {
+        currency: 'EUR',
+        date: '2023-02-01T14:36:27.106Z',
+        from: 'Cameleon', // KEECASH_WALLET_EUR|BTC|ETH|...|Cameleon|Business  exemple BTC,
+        to: 'NetFlix irland FRX2453', // merchant_name|KEECASH_WALLET_EUR,
+        merchant_logo:
+          'https://icones.pro/wp-content/uploads/2021/04/icone-netflix-symbole-logo-original.png', // a store link of the logo for NetFlix for example , or keecash logo directly ...,
+        amount: '20.0',
+        amount_fx: '19.55',
+        currency_fx: 'EUR',
+        fix_fees: '0.99',
+        percent_fees: '1.0',
+        fees_applied: '1.71',
+        cashback_fix_fee: '0.0',
+        cashback_percent_fee: '0.0',
+        cashback_fees_applied: '0.0',
+        type: 'DEBIT', // DEBIT|CREDIT,
+        status: 'PERFORMED', // PERFORMED|IN_PROGRESS|REFUSED|REFUND,
+        reference: 'KCXXXXX',
+        exchange_rate: '15000.0',
+        reason: '',
+        beneficiary_name: '',
+        beneficiary_url_avatar: '',
+        blockchain_txid_link: '',
+        metadata: { a: 'b' },
+      },
+      {
+        currency: 'EUR',
+        date: '2023-02-01T14:36:27.106Z',
+        from: 'Cameleon', // KEECASH_WALLET_EUR|BTC|ETH|...|Cameleon|Business  exemple BTC,
+        to: 'Google En plus', // merchant_name|KEECASH_WALLET_EUR,
+        merchant_logo:
+          'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/768px-Google_%22G%22_Logo.svg.png', // a store link of the logo for NetFlix for example , or keecash logo directly ...,
+        amount: '100.0',
+        amount_fx: '19.55',
+        currency_fx: 'EUR',
+        fix_fees: '0.99',
+        percent_fees: '1.0',
+        fees_applied: '1.71',
+        cashback_fix_fee: '0.0',
+        cashback_percent_fee: '0.0',
+        cashback_fees_applied: '0.0',
+        type: 'DEBIT', // DEBIT|CREDIT,
+        status: 'PERFORMED', // PERFORMED|IN_PROGRESS|REFUSED|REFUND,
+        reference: 'KCXXXXX',
+        exchange_rate: '15000.0',
+        reason: '',
+        beneficiary_name: '',
+        beneficiary_url_avatar: '',
+        blockchain_txid_link: '',
+        metadata: { a: 'b' },
+      },
+    ];
 
-  @ApiOperation({ description: 'Post withdrawal fees' })
-  @ApiTags('Withdrawal')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('/withdrawal/fees')
-  async withdrawalFees(@Body() body: GetWithdrawalFeeDto) {
-    return this.cardService.getWithdrawalFee(body);
-  }
-
-  @ApiOperation({ description: 'Apply withdrawal' })
-  @ApiTags('Withdrawal')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('/withdrawal/apply')
-  async applyWithdrawal(@Body() body: WithdrawalApplyDto): Promise<string> {
-    return 'ok';
-  }
-
-  // -------------- TRANSFER -------------------
-
-  @ApiOperation({ description: 'Get transfer settings' })
-  @ApiTags('Transfer')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('/transfer/settings')
-  async transferSettings(@Req() req) {
-    return this.cardService.getTransferSettings(req.user.id, req.user.referralId);
-  }
-
-  @ApiOperation({ description: 'Get transfer fees' })
-  @ApiTags('Transfer')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('/transfer/fees')
-  async transferFees(@Body() body: GetTransferFeeDto) {
-    return this.cardService.getTransferFee(body);
-  }
-
-  @ApiOperation({ description: 'Apply transfer' })
-  @ApiTags('Transfer')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('/transfer/apply')
-  async applyTransfer(@Body() body: TransferApplyDto): Promise<string> {
-    return 'ok';
+    return result;
   }
 }

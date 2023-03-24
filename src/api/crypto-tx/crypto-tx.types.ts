@@ -17,4 +17,9 @@ export enum TxTypeEnum {
   Deposit = 'DEPOSIT',
   Withdrawal = 'WITHDRAWAL',
   Transfer = 'TRANSFER',
+  CardCreateFee = 'CARD_CREATE_FEE', // $10.00
+  CardTopup = 'CARD_TOPUP',
+  CardTopupFee = 'CARD_TOPUP_FEE', // 1.5% + $0.99
+  CardWithdrawal = 'CARD_WITHDRAWAL',
+  CardWithdrawalFee = 'CARD_WITHDRAWAL_FEE', // 1.5% + $0.99
 }

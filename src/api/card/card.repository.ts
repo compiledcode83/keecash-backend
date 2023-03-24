@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { TransactionStatusEnum } from '@api/transaction/transaction.types';
 import { Card } from './card.entity';
+import { Transaction } from '../transaction/transaction.entity';
 
 @Injectable()
 export class CardRepository extends Repository<Card> {
@@ -33,19 +34,19 @@ export class CardRepository extends Repository<Card> {
       .execute();
   }
 
-  async getBalancesForAllCurrencies(userId: number) {
-    const result = await this.createQueryBuilder('card')
-      .leftJoinAndSelect('card.history', 'history')
-      .where('card.userId = :userId', { userId })
-      .select([
-        `card.currency AS currency`,
-        `SUM(CASE WHEN history.status = :status THEN history.amount ELSE 0 END) AS balance`,
-      ])
-      .andWhere('history.status = :status', { status: TransactionStatusEnum.Performed })
-      .groupBy('card.currency, card.id')
-      .orderBy('balance', 'DESC')
-      .getRawMany();
+  // async getBalancesForAllCurrencies(userId: number) {
+  //   const result = await this.createQueryBuilder('card')
+  //     .leftJoinAndSelect('card.history', 'history')
+  //     .where('card.userId = :userId', { userId })
+  //     .select([
+  //       `card.currency AS currency`,
+  //       `SUM(CASE WHEN history.status = :status THEN history.amount ELSE 0 END) AS balance`,
+  //     ])
+  //     .andWhere('history.status = :status', { status: TransactionStatusEnum.Performed })
+  //     .groupBy('card.currency, card.id')
+  //     .orderBy('balance', 'DESC')
+  //     .getRawMany();
 
-    return result;
-  }
+  //   return result;
+  // }
 }

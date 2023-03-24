@@ -60,9 +60,9 @@ export class CryptoTx {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.sender)
-  userSender: User;
+  // @ManyToOne(() => User, (user) => user.sender)
+  // userSender: User;
 
-  @ManyToOne(() => User, (user) => user.receiver)
-  userReceiver: User;
+  // @ManyToOne(() => User, (user) => user.receiver)
+  // userReceiver: User;
 }
