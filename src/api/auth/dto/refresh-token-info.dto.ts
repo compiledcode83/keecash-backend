@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MaxLength } from 'class-validator';
+import { TokenTypeEnum } from '@src/api/cipher-token/cipher-token.types';
+import { IsEnum, IsString, MaxLength } from 'class-validator';
 
 export class RefreshTokenInfo {
   @ApiProperty({
@@ -21,4 +22,8 @@ export class RefreshTokenInfo {
   @IsString()
   @MaxLength(255)
   ipAddress: string;
+
+  @ApiProperty({ example: TokenTypeEnum.AuthRefresh, description: 'Token type', required: true })
+  @IsEnum(TokenTypeEnum)
+  type: TokenTypeEnum;
 }

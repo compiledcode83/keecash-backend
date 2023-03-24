@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { AuthRefreshTokenService } from '@api/auth-refresh-token/auth-refresh-token.service';
+import { CipherTokenService } from '@src/api/cipher-token/cipher-token.service';
 import {
   ValidationArguments,
   ValidatorConstraint,
@@ -8,10 +8,10 @@ import {
 
 @ValidatorConstraint({ name: 'refreshTokenValidator', async: true })
 export class RefreshTokenValidator implements ValidatorConstraintInterface {
-  constructor(private readonly authRefreshTokenService: AuthRefreshTokenService) {}
+  constructor(private readonly cipherTokenService: CipherTokenService) {}
 
   async validate(token: string, args: ValidationArguments): Promise<boolean> {
-    const refreshToken = await this.authRefreshTokenService.findOneBy({ token });
+    const refreshToken = await this.cipherTokenService.findOneBy({ token });
 
     return refreshToken && DateTime.fromJSDate(refreshToken.expireAt) > DateTime.now();
   }

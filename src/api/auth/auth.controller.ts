@@ -44,7 +44,8 @@ import { CreateUserResponseDto } from '../user/dto/create-user-response.dto';
 import { SendEmailVerificationCodeResponseDto } from '../verification/dto/send-email-verification-code-response.dto';
 import { ConfirmEmailVerificationCodeResponseDto } from '../verification/dto/confirm-email-verification-response.dto';
 import { SendPhoneVerificationResponseDto } from '../verification/dto/send-phone-verification-response.dto';
-import { AuthRefreshTokenService } from '../auth-refresh-token/auth-refresh-token.service';
+import { CipherTokenService } from '../cipher-token/cipher-token.service';
+import { TokenTypeEnum } from '../cipher-token/cipher-token.types';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -55,7 +56,7 @@ export class AuthController {
     private readonly userService: UserService,
     private readonly verificationService: VerificationService,
     private readonly jwtService: JwtService,
-    private readonly authRefreshTokenService: AuthRefreshTokenService,
+    private readonly cipherTokenService: CipherTokenService,
   ) {}
 
   @ApiOperation({ description: `User login` })
@@ -72,6 +73,7 @@ export class AuthController {
     const refreshTokenInfo: RefreshTokenInfo = {
       userAgent: req.headers['user-agent'],
       ipAddress: ip,
+      type: TokenTypeEnum.AuthRefresh,
     };
 
     const { token: refreshToken } = await this.authService.createRefreshToken(
@@ -104,7 +106,7 @@ export class AuthController {
   ): Promise<PincodeVerificationResponseDto> {
     const bearerRefreshToken = req.headers.authorization.split(' ')[1];
 
-    const userId = await this.authRefreshTokenService.checkIfExpired(bearerRefreshToken);
+    const userId = await this.cipherTokenService.checkIfExpired(bearerRefreshToken);
 
     if (!userId) throw new UnauthorizedException();
 
@@ -115,6 +117,7 @@ export class AuthController {
     const refreshTokenInfo: RefreshTokenInfo = {
       userAgent: req.headers['user-agent'],
       ipAddress: ip,
+      type: TokenTypeEnum.AuthRefresh,
     };
 
     const { accessToken, refreshToken } = await this.authService.login(
@@ -148,6 +151,7 @@ export class AuthController {
     const refreshTokenInfo: RefreshTokenInfo = {
       userAgent: req.headers['user-agent'],
       ipAddress: ip,
+      type: TokenTypeEnum.AuthRefresh,
     };
     const authData = await this.authService.refreshTokens(params, refreshTokenInfo);
 

@@ -9,7 +9,7 @@ import {
   JoinColumn,
   OneToOne,
 } from 'typeorm';
-import { AuthRefreshToken } from '@api/auth-refresh-token/auth-refresh-token.entity';
+import { CipherToken } from '@src/api/cipher-token/cipher-token.entity';
 import { PersonProfile } from './person-profile/person-profile.entity';
 import { Document } from './document/document.entity';
 import { EnterpriseProfile } from './enterprise-profile/enterprise-profile.entity';
@@ -105,9 +105,9 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   rejectedAt: Date;
 
-  @OneToMany(() => AuthRefreshToken, (authRefreshToken) => authRefreshToken.user)
+  @OneToMany(() => CipherToken, (authRefreshToken) => authRefreshToken.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
-  refreshTokens: AuthRefreshToken[];
+  refreshTokens: CipherToken[];
 
   @OneToMany(() => Card, (card) => card.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })

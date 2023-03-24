@@ -3,9 +3,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@api/user/user.entity';
 import { UserService } from '@api/user/user.service';
-import { AuthRefreshTokenService } from '@api/auth-refresh-token/auth-refresh-token.service';
+import { CipherTokenService } from '@src/api/cipher-token/cipher-token.service';
 import { UserAccessTokenInterface } from './auth.type';
-import { AuthRefreshToken } from '@api/auth-refresh-token/auth-refresh-token.entity';
+import { CipherToken } from '@src/api/cipher-token/cipher-token.entity';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
 import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
@@ -17,19 +17,20 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly authRefreshTokenService: AuthRefreshTokenService,
+    private readonly cipherTokenService: CipherTokenService,
     private readonly verificationService: VerificationService,
   ) {}
 
   async login(user: Partial<User>, refreshTokenInfo: RefreshTokenInfo): Promise<TokensResponseDto> {
-    const oldRefreshToken = await this.authRefreshTokenService.findOneBy({
+    const oldRefreshToken = await this.cipherTokenService.findOneBy({
       userId: user.id,
       userAgent: refreshTokenInfo.userAgent,
       ipAddress: refreshTokenInfo.ipAddress,
+      type: refreshTokenInfo.type,
     });
 
     if (oldRefreshToken) {
-      await this.authRefreshTokenService.deleteByToken(oldRefreshToken.token);
+      await this.cipherTokenService.deleteByToken(oldRefreshToken.token);
     }
 
     const accessToken = await this.createAccessToken(user);
@@ -95,7 +96,7 @@ export class AuthService {
   }
 
   async logout(refreshToken: string): Promise<void> {
-    await this.authRefreshTokenService.deleteByToken(refreshToken);
+    await this.cipherTokenService.deleteByToken(refreshToken);
   }
 
   async createAccessToken(user: Partial<User>): Promise<string> {
@@ -115,15 +116,15 @@ export class AuthService {
   async createRefreshToken(
     user: Partial<User>,
     refreshTokenInfo: RefreshTokenInfo,
-  ): Promise<AuthRefreshToken> {
-    return this.authRefreshTokenService.create(user, refreshTokenInfo);
+  ): Promise<CipherToken> {
+    return this.cipherTokenService.create(user, refreshTokenInfo);
   }
 
   async refreshTokens(
     params: RefreshTokensDto,
     refreshTokenInfo: RefreshTokenInfo,
   ): Promise<TokensResponseDto> {
-    const oldRefreshToken = await this.authRefreshTokenService.findOneBy({
+    const oldRefreshToken = await this.cipherTokenService.findOneBy({
       token: params.refreshToken,
     });
 
@@ -131,7 +132,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    await this.authRefreshTokenService.deleteByToken(params.refreshToken);
+    await this.cipherTokenService.deleteByToken(params.refreshToken);
     const user = await this.userService.findOne({ id: oldRefreshToken.userId });
 
     const accessToken = await this.createAccessToken(user);

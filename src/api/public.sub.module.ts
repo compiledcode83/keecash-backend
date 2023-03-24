@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UserModule } from '@api/user/user.module';
 import { AuthModule } from '@api/auth/auth.module';
-import { AuthRefreshTokenModule } from '@api/auth-refresh-token/auth-refresh-token.module';
+import { CipherTokenModule } from '@src/api/cipher-token/cipher-token.module';
 import { VerificationModule } from '@api/verification/verification.module';
 import { StorageModule } from '@api/storage/storage.module';
 import { CryptoTxModule } from '@api/crypto-tx/crypto-tx.module';
@@ -21,7 +21,7 @@ import { TransactionModule } from '@api/transaction/transaction.module';
 @Module({
   imports: [
     AuthModule,
-    AuthRefreshTokenModule,
+    CipherTokenModule,
     StorageModule,
     CryptoTxModule,
     ShareholderModule,

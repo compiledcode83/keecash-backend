@@ -13,7 +13,7 @@ export class LocalPinStrategy extends PassportStrategy(Strategy, 'local-pin') {
   async validate(username: string, pincode: string, req: Request): Promise<any> {
     const bearerRefreshToken = req.headers.authorization.split(' ')[1];
 
-    const userId = await this.authRefreshTokenService.checkIfExpired(bearerRefreshToken);
+    const userId = await this.cipherTokenService.checkIfExpired(bearerRefreshToken);
 
     if (!userId) throw new UnauthorizedException();
 
