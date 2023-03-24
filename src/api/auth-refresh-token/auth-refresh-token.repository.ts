@@ -17,14 +17,14 @@ export class AuthRefreshTokenRepository extends Repository<AuthRefreshToken> {
   }
 
   async createRefreshToken(
-    user: User,
+    user: Partial<User>,
     refreshTokenInfo: RefreshTokenInfo,
   ): Promise<AuthRefreshToken> {
     const refreshToken = this.create({
       userId: user.id,
       token: randomBytes(32).toString('hex'),
-      useragent: refreshTokenInfo.useragent,
-      ipaddress: refreshTokenInfo.ipaddress,
+      userAgent: refreshTokenInfo.userAgent,
+      ipAddress: refreshTokenInfo.ipAddress,
       expireAt: DateTime.now()
         .plus({
           days: this.configService.get('jwtConfig.refreshTokenDurationDays'),

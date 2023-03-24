@@ -5,6 +5,7 @@ export interface UserAccessTokenInterface {
   firstName: string;
   secondName: string;
   email: string;
+  referralId: string;
   status: UserStatus;
   type: string;
 }

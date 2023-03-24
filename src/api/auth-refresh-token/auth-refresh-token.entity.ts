@@ -13,11 +13,11 @@ export class AuthRefreshToken {
 
   @ApiProperty({ description: 'Ip address', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false })
-  ipaddress: string;
+  ipAddress: string;
 
   @ApiProperty({ description: 'User agent', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false })
-  useragent: string;
+  userAgent: string;
 
   @ApiProperty({ description: 'Token', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })

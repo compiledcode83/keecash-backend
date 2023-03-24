@@ -10,6 +10,7 @@ import {
   HttpCode,
   Req,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from '@api/auth/auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -43,6 +44,7 @@ import { CreateUserResponseDto } from '../user/dto/create-user-response.dto';
 import { SendEmailVerificationCodeResponseDto } from '../verification/dto/send-email-verification-code-response.dto';
 import { ConfirmEmailVerificationCodeResponseDto } from '../verification/dto/confirm-email-verification-response.dto';
 import { SendPhoneVerificationResponseDto } from '../verification/dto/send-phone-verification-response.dto';
+import { AuthRefreshTokenService } from '../auth-refresh-token/auth-refresh-token.service';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -53,6 +55,7 @@ export class AuthController {
     private readonly userService: UserService,
     private readonly verificationService: VerificationService,
     private readonly jwtService: JwtService,
+    private readonly authRefreshTokenService: AuthRefreshTokenService,
   ) {}
 
   @ApiOperation({ description: `User login` })
@@ -67,13 +70,16 @@ export class AuthController {
     @RealIP() ip: string,
   ) {
     const refreshTokenInfo: RefreshTokenInfo = {
-      useragent: req.headers['user-agent'],
-      ipaddress: ip,
+      userAgent: req.headers['user-agent'],
+      ipAddress: ip,
     };
 
-    const authData = await this.authService.login(req.user, refreshTokenInfo);
+    const { token: refreshToken } = await this.authService.createRefreshToken(
+      req.user,
+      refreshTokenInfo,
+    );
 
-    res.cookie('refreshToken', authData.refreshToken, {
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
       secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
       maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
@@ -81,9 +87,52 @@ export class AuthController {
     });
 
     return {
-      accessToken: authData.accessToken,
+      refreshToken: refreshToken,
       status: 'registered',
       isUserExist: true,
+    };
+  }
+
+  @ApiOperation({ description: 'Verify PIN code' })
+  @ApiBearerAuth()
+  @Post('pin-code-verification')
+  async verifyPinCode(
+    @Req() req,
+    @Body() body: PincodeVerificationDto,
+    @Res({ passthrough: true }) res: Response,
+    @RealIP() ip: string,
+  ): Promise<PincodeVerificationResponseDto> {
+    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
+
+    const userId = await this.authRefreshTokenService.checkIfExpired(bearerRefreshToken);
+
+    if (!userId) throw new UnauthorizedException();
+
+    const validatedUser = await this.authService.validateUserByPincode(userId, body.pincode);
+
+    if (!validatedUser) throw new UnauthorizedException();
+
+    const refreshTokenInfo: RefreshTokenInfo = {
+      userAgent: req.headers['user-agent'],
+      ipAddress: ip,
+    };
+
+    const { accessToken, refreshToken } = await this.authService.login(
+      validatedUser,
+      refreshTokenInfo,
+    );
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
+      secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
+      maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
+      domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
+    });
+
+    return {
+      isConfirm: true,
+      accessToken,
+      status: 'pin_code_set',
     };
   }
 
@@ -97,8 +146,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<any> {
     const refreshTokenInfo: RefreshTokenInfo = {
-      useragent: req.headers['user-agent'],
-      ipaddress: ip,
+      userAgent: req.headers['user-agent'],
+      ipAddress: ip,
     };
     const authData = await this.authService.refreshTokens(params, refreshTokenInfo);
 
@@ -214,27 +263,6 @@ export class AuthController {
 
     return {
       isSet: true,
-    };
-  }
-
-  @ApiOperation({ description: 'Verify PIN code' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('pin-code-verification')
-  async verifyPinCode(
-    @Req() req,
-    @Body() body: PincodeVerificationDto,
-  ): Promise<PincodeVerificationResponseDto> {
-    const isValidated = await this.authService.validateUserByPincode(req.user.id, body.pincode);
-
-    if (!isValidated) {
-      throw new BadRequestException('Pincode is incorrect');
-    }
-
-    return {
-      isConfirm: true,
-      accessToken: req.headers.accessToken,
-      status: 'pin_code_set',
     };
   }
 

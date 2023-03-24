@@ -21,11 +21,11 @@ export class AuthService {
     private readonly verificationService: VerificationService,
   ) {}
 
-  async login(user: User, refreshTokenInfo: RefreshTokenInfo): Promise<TokensResponseDto> {
+  async login(user: Partial<User>, refreshTokenInfo: RefreshTokenInfo): Promise<TokensResponseDto> {
     const oldRefreshToken = await this.authRefreshTokenService.findOneBy({
       userId: user.id,
-      useragent: refreshTokenInfo.useragent,
-      ipaddress: refreshTokenInfo.ipaddress,
+      userAgent: refreshTokenInfo.userAgent,
+      ipAddress: refreshTokenInfo.ipAddress,
     });
 
     if (oldRefreshToken) {
@@ -61,6 +61,7 @@ export class AuthService {
         id: user.id,
         firstName: user.firstName,
         secondName: user.secondName,
+        referralId: user.referralId,
         email: user.email,
         status: user.status,
         type: user.type,
@@ -70,26 +71,39 @@ export class AuthService {
     return null;
   }
 
-  async validateUserByPincode(userId, pincode): Promise<boolean> {
+  async validateUserByPincode(userId, pincode): Promise<Partial<User>> {
     const user = await this.userService.findOne({ id: userId });
     if (!user || !user.pincodeSet) {
-      return false;
+      return null;
     }
 
     const isValidated = await bcrypt.compare(pincode, user.pincode);
 
-    return isValidated;
+    if (isValidated) {
+      return {
+        id: user.id,
+        firstName: user.firstName,
+        secondName: user.secondName,
+        referralId: user.referralId,
+        email: user.email,
+        status: user.status,
+        type: user.type,
+      };
+    }
+
+    return null;
   }
 
   async logout(refreshToken: string): Promise<void> {
     await this.authRefreshTokenService.deleteByToken(refreshToken);
   }
 
-  async createAccessToken(user: User): Promise<string> {
+  async createAccessToken(user: Partial<User>): Promise<string> {
     const payload: UserAccessTokenInterface = {
       id: user.id,
       firstName: user.firstName,
       secondName: user.secondName,
+      referralId: user.referralId,
       email: user.email,
       status: user.status,
       type: user.type,
@@ -99,7 +113,7 @@ export class AuthService {
   }
 
   async createRefreshToken(
-    user: User,
+    user: Partial<User>,
     refreshTokenInfo: RefreshTokenInfo,
   ): Promise<AuthRefreshToken> {
     return this.authRefreshTokenService.create(user, refreshTokenInfo);

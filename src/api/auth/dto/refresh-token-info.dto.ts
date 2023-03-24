@@ -10,7 +10,7 @@ export class RefreshTokenInfo {
     description: 'E-mail',
   })
   @MaxLength(255)
-  useragent: string;
+  userAgent: string;
 
   @ApiProperty({
     example: '127.0.0.1',
@@ -20,5 +20,5 @@ export class RefreshTokenInfo {
   })
   @IsString()
   @MaxLength(255)
-  ipaddress: string;
+  ipAddress: string;
 }
