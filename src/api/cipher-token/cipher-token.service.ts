@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { RefreshTokenInfo } from '@api/auth/dto/refresh-token-info.dto';
 import { User } from '@api/user/user.entity';
 import { CipherToken } from './cipher-token.entity';
@@ -18,18 +18,31 @@ export class CipherTokenService {
     return deleteResult.affected === 1;
   }
 
-  async create(user: Partial<User>, refreshTokenInfo: RefreshTokenInfo): Promise<CipherToken> {
+  async createRefreshToken(
+    user: Partial<User>,
+    refreshTokenInfo: RefreshTokenInfo,
+  ): Promise<CipherToken> {
     return this.cipherTokenRepository.createRefreshToken(user, refreshTokenInfo);
   }
 
-  async checkIfExpired(token: string): Promise<number | boolean> {
-    const { userId, expireAt } = await this.cipherTokenRepository.findOneBy({ token });
+  async createResetPasswordToken(userId: number): Promise<any> {
+    return this.cipherTokenRepository.createResetPasswordToken(userId);
+  }
 
-    const expiryDate = new Date(expireAt);
+  async checkIfValid(token: string): Promise<number> {
+    const cipherToken = await this.cipherTokenRepository.findOneBy({ token });
+    
+    if (!cipherToken) {
+      throw new UnauthorizedException('Token is invalid');
+    }
+
+    const expiryDate = new Date(cipherToken.expireAt);
     const now = new Date();
 
-    if (expiryDate.getTime() < now.getTime()) return false;
+    if (expiryDate.getTime() < now.getTime()) {
+      throw new UnauthorizedException('Token is expired');
+    }
 
-    return userId;
+    return cipherToken.userId;
   }
 }

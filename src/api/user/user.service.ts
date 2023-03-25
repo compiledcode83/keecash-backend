@@ -71,8 +71,8 @@ export class UserService {
     return referredUsers;
   }
 
-  async resetPassword(email: string, password: string): Promise<boolean> {
-    await this.userRepository.update({ email }, { password: await bcrypt.hash(password, 10) });
+  async resetPassword(userId: number, password: string): Promise<boolean> {
+    await this.userRepository.update({id: userId}, { password: await bcrypt.hash(password, 10) });
 
     return true;
   }
@@ -228,14 +228,14 @@ export class UserService {
         return 'Email verification code was successfully sent';
       }
     }
-    throw new BadRequestException('Sorry, Can not send verification code');
+    throw new BadRequestException('Cannot send verification code');
   }
 
   async confirmEmailOtp(email: string, code: string): Promise<User> {
     const res = await this.verificationService.confirmEmailVerificationCode(email, code);
 
     if (!res) {
-      throw new BadRequestException('Sorry, Cannot confirm email verification code');
+      throw new BadRequestException('Cannot confirm email verification code');
     }
 
     await this.userRepository.update({ email }, { emailValidated: true });
@@ -243,16 +243,12 @@ export class UserService {
     return this.findOne({ email });
   }
 
-  async confirmEmailOtpForForgotPassword(email: string, code: string): Promise<User> {
+  async confirmEmailOtpForForgotPassword(email: string, code: string): Promise<void> {
     const res = await this.verificationService.confirmEmailVerificationCode(email, code);
 
     if (!res) {
-      throw new BadRequestException('Sorry, Cannot confirm email verification code');
+      throw new BadRequestException('Cannot confirm email verification code');
     }
-
-    await this.userRepository.update({ email }, { password: 'xyz' });
-
-    return this.findOne({ email });
   }
 
   async sendPhoneOtp(email: string, body: SendPhoneNumberVerificationCodeDto): Promise<boolean> {

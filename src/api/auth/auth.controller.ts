@@ -45,7 +45,6 @@ import { SendEmailVerificationCodeResponseDto } from '../verification/dto/send-e
 import { ConfirmEmailVerificationCodeResponseDto } from '../verification/dto/confirm-email-verification-response.dto';
 import { SendPhoneVerificationResponseDto } from '../verification/dto/send-phone-verification-response.dto';
 import { CipherTokenService } from '../cipher-token/cipher-token.service';
-import { TokenTypeEnum } from '../cipher-token/cipher-token.types';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -73,7 +72,6 @@ export class AuthController {
     const refreshTokenInfo: RefreshTokenInfo = {
       userAgent: req.headers['user-agent'],
       ipAddress: ip,
-      type: TokenTypeEnum.AuthRefresh,
     };
 
     const { token: refreshToken } = await this.authService.createRefreshToken(
@@ -104,14 +102,15 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @RealIP() ip: string,
   ): Promise<PincodeVerificationResponseDto> {
-    if (!req.headers.authorization)
+    if (!req.headers.authorization) {
       throw new UnauthorizedException('Missing refresh token in the header');
+    }
 
     const bearerRefreshToken = req.headers.authorization.split(' ')[1];
 
-    const userId = await this.cipherTokenService.checkIfExpired(bearerRefreshToken);
+    const userId = await this.cipherTokenService.checkIfValid(bearerRefreshToken);
 
-    if (!userId) throw new UnauthorizedException();
+    if (!userId) throw new UnauthorizedException('Refresh token is invalid or expired');
 
     const validatedUser = await this.authService.validateUserByPincode(userId, body.pincode);
 
@@ -120,7 +119,6 @@ export class AuthController {
     const refreshTokenInfo: RefreshTokenInfo = {
       userAgent: req.headers['user-agent'],
       ipAddress: ip,
-      type: TokenTypeEnum.AuthRefresh,
     };
 
     const { accessToken, refreshToken } = await this.authService.login(
@@ -154,7 +152,6 @@ export class AuthController {
     const refreshTokenInfo: RefreshTokenInfo = {
       userAgent: req.headers['user-agent'],
       ipAddress: ip,
-      type: TokenTypeEnum.AuthRefresh,
     };
     const authData = await this.authService.refreshTokens(params, refreshTokenInfo);
 
@@ -286,43 +283,54 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Send email verification code for forgot password` })
+  @HttpCode(HttpStatus.OK)
   @Post('send-email-verification-code-for-forgot-password')
   async sendEmailVerificationCodeForForgotPassword(
     @Body() body: SendEmailVerificationCodeDto,
   ): Promise<SendEmailVerificationCodeResponseDto> {
     const user = await this.userService.findOne({ email: body.email });
 
-    if (user) {
-      const res = await this.verificationService.sendEmailVerificationCode(body.email);
+    if (!user) return { isSent: false };
 
-      if (!res) {
-        throw new BadRequestException('Failed to send verification code');
-      }
+    const res = await this.verificationService.sendEmailVerificationCode(body.email);
 
-      return {
-        isSent: true,
-      };
+    if (!res) {
+      throw new BadRequestException('Failed to send verification code');
     }
+
+    return {
+      isSent: true,
+    };
   }
 
   @ApiOperation({ description: `Confirm email verification code for forgot password` })
   @Post('confirm-email-verification-code-for-forgot-password')
   async confirmEmailForForgotPassword(@Body() body: ConfirmEmailVerificationCodeForAdminDto) {
-    const updatedUser = await this.userService.confirmEmailOtpForForgotPassword(
-      body.email,
-      body.code,
-    );
+    await this.userService.confirmEmailOtpForForgotPassword(body.email, body.code);
 
-    const accessToken = await this.authService.createAccessToken(updatedUser);
+    const { id } = await this.userService.findOne({ email: body.email });
 
-    return { accessToken };
+    const resetPasswordToken = await this.authService.createResetPasswordToken(id);
+
+    return { resetPasswordToken };
   }
 
   @ApiOperation({ description: `Reset password` })
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
   @Post('password-reset')
-  async passwordReset(@Body() body: PasswordResetDto) {
-    const payload: any = this.jwtService.verify(body.token);
-    await this.userService.resetPassword(payload.email, body.password);
+  async passwordReset(@Req() req, @Body() body: PasswordResetDto) {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing reset-password token in the header');
+    }
+
+    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
+
+    const userId = await this.cipherTokenService.checkIfValid(bearerRefreshToken);
+
+    await this.cipherTokenService.deleteByToken(bearerRefreshToken);
+
+    await this.userService.resetPassword(userId, body.password);
 
     return {
       isReset: true,

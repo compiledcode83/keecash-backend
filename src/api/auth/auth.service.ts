@@ -26,7 +26,6 @@ export class AuthService {
       userId: user.id,
       userAgent: refreshTokenInfo.userAgent,
       ipAddress: refreshTokenInfo.ipAddress,
-      type: refreshTokenInfo.type,
     });
 
     if (oldRefreshToken) {
@@ -42,10 +41,7 @@ export class AuthService {
     };
   }
 
-  async validateUserByPassword(
-    emailOrPhoneNumber,
-    password,
-  ): Promise<UserAccessTokenInterface | null> {
+  async validateUserByPassword(emailOrPhoneNumber, password): Promise<UserAccessTokenInterface> {
     let user: User;
 
     if (isEmail(emailOrPhoneNumber)) {
@@ -117,7 +113,11 @@ export class AuthService {
     user: Partial<User>,
     refreshTokenInfo: RefreshTokenInfo,
   ): Promise<CipherToken> {
-    return this.cipherTokenService.create(user, refreshTokenInfo);
+    return this.cipherTokenService.createRefreshToken(user, refreshTokenInfo);
+  }
+
+  async createResetPasswordToken(userId: number) {
+    return this.cipherTokenService.createResetPasswordToken(userId);
   }
 
   async refreshTokens(
