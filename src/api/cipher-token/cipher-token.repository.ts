@@ -44,7 +44,7 @@ export class CipherTokenRepository extends Repository<CipherToken> {
       type: TokenTypeEnum.ResetPassword,
       expireAt: DateTime.now()
         .plus({
-          minutes: 30,
+          minutes: 15,
         })
         .toJSDate(),
     });
