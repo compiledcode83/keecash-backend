@@ -11,15 +11,15 @@ export class Country {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({ description: 'Country name', maximum: 128, required: false })
+  @ApiProperty({ description: 'Country name', maximum: 128, required: true })
   @Column({ type: 'varchar', nullable: false, length: 128 })
   name: string;
 
-  @ApiProperty({ description: 'Country code', maximum: 128, required: false })
+  @ApiProperty({ description: 'Country code', maximum: 128, required: true })
   @Column({ type: 'varchar', nullable: false, length: 128 })
   countryCode: string;
 
-  @ApiProperty({ description: 'Phone code', maximum: 128, required: false })
+  @ApiProperty({ description: 'Phone code', maximum: 128, required: true })
   @Column({ type: 'varchar', nullable: false, length: 128 })
   phoneCode: string;
 

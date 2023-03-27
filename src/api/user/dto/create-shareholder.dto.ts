@@ -20,5 +20,5 @@ export class CreateShareholderDto {
   })
   @IsString()
   @MinLength(1)
-  secondName: string;
+  lastName: string;
 }

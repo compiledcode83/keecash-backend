@@ -27,7 +27,7 @@ export class UpdateUserInfoDto {
   @IsString()
   @MinLength(1)
   @MaxLength(128)
-  secondName: string;
+  lastName: string;
 
   @ApiProperty({ description: 'Address', maximum: 64, required: true })
   @IsOptional()

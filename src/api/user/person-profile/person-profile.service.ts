@@ -28,7 +28,7 @@ export class PersonProfileService {
       .select([
         'user.id as id',
         'user.firstName as first_name',
-        'user.secondName as second_name',
+        'user.lastName as second_name',
         'user.referralId as referral_id',
         'user.referralAppliedId as referral_applied_id',
         'user.email as email',

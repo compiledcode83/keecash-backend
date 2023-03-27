@@ -57,7 +57,7 @@ export class AuthService {
       return {
         id: user.id,
         firstName: user.firstName,
-        secondName: user.secondName,
+        lastName: user.lastName,
         referralId: user.referralId,
         email: user.email,
         status: user.status,
@@ -80,7 +80,7 @@ export class AuthService {
       return {
         id: user.id,
         firstName: user.firstName,
-        secondName: user.secondName,
+        lastName: user.lastName,
         referralId: user.referralId,
         email: user.email,
         status: user.status,
@@ -99,7 +99,7 @@ export class AuthService {
     const payload: UserAccessTokenInterface = {
       id: user.id,
       firstName: user.firstName,
-      secondName: user.secondName,
+      lastName: user.lastName,
       referralId: user.referralId,
       email: user.email,
       status: user.status,

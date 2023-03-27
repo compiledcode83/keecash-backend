@@ -43,7 +43,7 @@ export class CreateEnterpriseUserDto {
   @IsString()
   @MinLength(1)
   @MaxLength(128)
-  secondName: string;
+  lastName: string;
 
   @ApiProperty({
     example: 'Doe',

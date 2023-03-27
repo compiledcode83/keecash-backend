@@ -16,7 +16,7 @@ export class BeneficiaryUserRepository extends Repository<BeneficiaryUser> {
 
     if (!isAdmin) {
       queryBuilder.select([
-        `CONCAT(payee.firstName, ' ', payee.secondName) as name`,
+        `CONCAT(payee.firstName, ' ', payee.lastName) as name`,
         'payee.urlAvatar as url_avatar',
         'payee.referral_id as beneficiary_user_id',
       ]);
