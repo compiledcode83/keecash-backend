@@ -1,4 +1,4 @@
-import { Controller, Request, UseGuards, Get } from '@nestjs/common';
+import { Controller, Req, UseGuards, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
@@ -13,7 +13,7 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('referral')
-  async getReferral(@Request() req): Promise<GetReferralResponseDto> {
+  async getReferral(@Req() req): Promise<GetReferralResponseDto> {
     const { referralId } = await this.userService.findOne({ id: req.user.id });
     const referredUsers = await this.userService.getReferredUsersByReferralId(referralId);
 
@@ -21,6 +21,16 @@ export class UserController {
       referral_id: referralId,
       godsons: referredUsers,
     };
+  }
+
+  @ApiOperation({ description: 'Get all referred users' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('account/settings')
+  async getAccountSettings(@Req() req) {
+    const settings = await this.userService.getAccountSettings(req.user.id);
+
+    return settings;
   }
 
   // @ApiOperation({ description: `Check if referral id exists` })

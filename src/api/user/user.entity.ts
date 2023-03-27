@@ -18,6 +18,7 @@ import { AccountType, Language, UserStatus, VerificationStatus } from './user.ty
 import { BeneficiaryWallet } from '@api/beneficiary/beneficiary-wallet/beneficiary-wallet.entity';
 import { Card } from '../card/card.entity';
 import { Transaction } from '../transaction/transaction.entity';
+import { UserClosureReason } from '../closure-reason/user-closure-reason.entity';
 
 @Entity('user')
 export class User {
@@ -29,9 +30,9 @@ export class User {
   @Column({ type: 'varchar', nullable: true, length: 128 })
   firstName: string;
 
-  @ApiProperty({ description: 'Second name', maximum: 128, required: true })
+  @ApiProperty({ description: 'Last name', maximum: 128, required: true })
   @Column({ type: 'varchar', nullable: true, length: 128 })
-  secondName: string;
+  lastName: string;
 
   @ApiProperty({ description: 'Referral id', maximum: 8, required: true })
   @Column({ type: 'varchar', nullable: false, length: 8 })
@@ -93,6 +94,10 @@ export class User {
   @Column({ type: 'boolean', default: false })
   pincodeSet: boolean;
 
+  @ApiProperty({ description: 'Message that user leaves while closing account' })
+  @Column({ type: 'varchar', nullable: true, length: 255 })
+  leavingMessage: string;
+
   @ApiProperty({ description: 'Date when the user was created', required: true })
   @CreateDateColumn()
   registeredAt: Date;
@@ -139,4 +144,7 @@ export class User {
 
   @OneToMany(() => BeneficiaryWallet, (beneficiaryWallet) => beneficiaryWallet.user)
   beneficiaryWallet: BeneficiaryWallet[];
+
+  @OneToMany(() => UserClosureReason, (userClosureReason) => userClosureReason.user)
+  userClosureReason: UserClosureReason[];
 }

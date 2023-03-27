@@ -15,7 +15,10 @@ import { CreatePersonUserDto } from './dto/create-person-user.dto';
 import { SendPhoneNumberVerificationCodeDto } from '../verification/dto/send-phone-verification.dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
-import { AccountType, UserStatus } from './user.types';
+import { AccountType, Language, UserStatus } from './user.types';
+import { ClosureReasonService } from '../closure-reason/closure-reason.service';
+
+const closure_reasons = require('../closure-reason/closure-reasons.json');
 
 const REFERRAL_ID_LENGTH = 7;
 
@@ -29,6 +32,7 @@ export class UserService {
     private readonly shareholderservice: ShareholderService,
     private readonly verificationService: VerificationService,
     private readonly userRepository: UserRepository,
+    private readonly closureReasonService: ClosureReasonService,
   ) {}
 
   async findOne(params: any): Promise<User> {
@@ -72,7 +76,7 @@ export class UserService {
   }
 
   async resetPassword(userId: number, password: string): Promise<boolean> {
-    await this.userRepository.update({id: userId}, { password: await bcrypt.hash(password, 10) });
+    await this.userRepository.update({ id: userId }, { password: await bcrypt.hash(password, 10) });
 
     return true;
   }
@@ -82,7 +86,7 @@ export class UserService {
 
     const res = await this.userRepository.save({
       firstName: body.firstName,
-      secondName: body.secondName,
+      lastName: body.lastName,
       referralId,
       referralAppliedId: body?.referralAppliedId,
       email: body.email,
@@ -115,7 +119,7 @@ export class UserService {
 
     const newUser = await this.userRepository.save({
       firstName: body.firstName,
-      secondName: body.secondName,
+      lastName: body.lastName,
       referralId,
       referralAppliedId: body?.referralAppliedId,
       email: body.email,
@@ -144,7 +148,7 @@ export class UserService {
     for (const shareholderItem of body.shareholders) {
       await this.shareholderservice.save({
         firstName: shareholderItem.firstName,
-        secondName: shareholderItem.secondName,
+        lastName: shareholderItem.lastName,
         enterpriseProfileId: enterpriseProfile.id,
       });
     }
@@ -187,7 +191,7 @@ export class UserService {
   async updatePersonalUser(body: UpdateUserInfoDto) {
     await this.userRepository.update(body.userId, {
       firstName: body.firstName,
-      secondName: body.secondName,
+      lastName: body.lastName,
       type: body.accountType,
       language: body.language,
     });
@@ -313,7 +317,7 @@ export class UserService {
         { email },
         {
           firstName: body.firstName,
-          secondName: body.secondName,
+          lastName: body.lastName,
           status: UserStatus.Completed,
         },
       );
@@ -353,5 +357,36 @@ export class UserService {
     );
 
     if (!updatedUser.affected) throw new Error('Error occured while resetting pincode');
+  }
+
+  async getAccountSettings(userId: number): Promise<any> {
+    const user = await this.userRepository.findOneBy({ id: userId });
+
+    const defaultReasons = closure_reasons;
+
+    if (user.status === UserStatus.Closed) {
+      const reasonIds = await this.closureReasonService.getClosureReasonsByUserId(userId);
+
+      reasonIds.map((reasonId) => {
+        console.log({ reasonId });
+        defaultReasons[reasonId - 1].is_checked = true;
+      });
+    }
+
+    const userSetting = {
+      firstname: user.firstName,
+      lastname: user.lastName,
+      url_avatar: user.urlAvatar,
+      email: user.email,
+      phone_number: user.phoneNumber,
+      account_level: user.type,
+      list_lang: [
+        { lang: 'fr', is_checked: user.language === Language.French },
+        { lang: 'en', is_checked: user.language === Language.English },
+      ],
+      list_reason_to_close_account: defaultReasons,
+    };
+
+    return userSetting;
   }
 }

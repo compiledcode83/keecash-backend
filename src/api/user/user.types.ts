@@ -11,9 +11,8 @@ export enum AccountType {
 export enum UserStatus {
   Registered = 'REGISTERED',
   Completed = 'COMPLETED',
-  Rejected = 'REJECTED',
   Disabled = 'DISABLED',
-  Deleted = 'DELETED',
+  Closed = 'CLOSED',
 }
 
 export enum VerificationStatus {

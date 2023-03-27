@@ -17,6 +17,8 @@ import { BeneficiaryUserModule } from '@api/beneficiary/beneficiary-user/benefic
 import { BeneficiaryWalletModule } from '@api/beneficiary/beneficiary-wallet/beneficiary-wallet.module';
 import { CardModule } from '@api/card/card.module';
 import { TransactionModule } from '@api/transaction/transaction.module';
+import { ClosureReasonModule } from '@api/closure-reason/closure-reason.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { TransactionModule } from '@api/transaction/transaction.module';
     CountryActivationModule,
     CountryFeeModule,
     VerificationModule,
+    ClosureReasonModule,
+    NotificationModule,
   ],
 })
 export class PublicSubModule {}
