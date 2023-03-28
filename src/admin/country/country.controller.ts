@@ -23,7 +23,7 @@ export class AdminCountryController {
   @UseGuards(JwtAdminAuthGuard)
   @Get()
   async findOneByName(@Query('name') name: string): Promise<Country> {
-    const country = await this.countryService.findOneByName(name);
+    const country = await this.countryService.findOne({ name });
 
     if (!country.activation || !country.fee) {
       throw new NotFoundException('Requested country has missing activation or fee data');

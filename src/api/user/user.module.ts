@@ -13,6 +13,8 @@ import { EnterpriseProfileModule } from '@api/user/enterprise-profile/enterprise
 import { PersonProfileModule } from '@api/user/person-profile/person-profile.module';
 import { ShareholderModule } from '@api/shareholder/shareholder.module';
 import { ClosureReasonModule } from '../closure-reason/closure-reason.module';
+import { TransactionModule } from '../transaction/transaction.module';
+import { CardModule } from '../card/card.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { ClosureReasonModule } from '../closure-reason/closure-reason.module';
     PersonProfileModule,
     ShareholderModule,
     ClosureReasonModule,
+    TransactionModule,
+    CardModule,
   ],
   controllers: [UserController],
   providers: [

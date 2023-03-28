@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateCountryDto } from '@admin/admin/dto/update-country.dto';
-import { UpdateResult } from 'typeorm';
 import { Country } from './country.entity';
 import { CountryRepository } from './country.repository';
 
@@ -8,19 +7,19 @@ import { CountryRepository } from './country.repository';
 export class CountryService {
   constructor(private readonly countryRepository: CountryRepository) {}
 
-  async findCountryByName(name: string): Promise<Country> {
-    const country = await this.countryRepository.findOne({
-      where: { name },
-    });
-
-    return country;
+  async findOne(param: Partial<Country>): Promise<Country> {
+    return this.countryRepository.findOneBy(param);
   }
 
   async getNameList(): Promise<any> {
     return this.countryRepository.getNameList();
   }
 
-  async findOneByName(name: string, withActivation = true, withFee = true): Promise<Country> {
+  async findOneWithActivationAndFee(
+    name: string,
+    withActivation = true,
+    withFee = true,
+  ): Promise<Country> {
     return this.countryRepository.findOneWithActivationAndFee(name, withActivation, withFee);
   }
 

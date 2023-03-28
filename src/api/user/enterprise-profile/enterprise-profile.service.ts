@@ -16,4 +16,10 @@ export class EnterpriseProfileService {
       where: { id: resEnterpriseProfile.id },
     });
   }
+
+  async getByUserId(userId: number): Promise<EnterpriseProfile> {
+    const enterpriseProfile = await this.enterpriseProfileRepository.findOne({ where: { userId } });
+
+    return enterpriseProfile;
+  }
 }

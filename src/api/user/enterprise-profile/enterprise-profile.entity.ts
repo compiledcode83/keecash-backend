@@ -14,16 +14,12 @@ export class EnterpriseProfile {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @ApiProperty({
-    description: 'Document Type',
-    maximum: 255,
-    required: true,
-  })
-  @Column({
-    type: 'enum',
-    enum: Position,
-    default: Position.SECRETARY,
-  })
+  @ApiProperty({ description: 'User Id', maximum: 64, required: true })
+  @Column({ type: 'int', nullable: true })
+  userId: number;
+
+  @ApiProperty({ description: 'Document Type', maximum: 255, required: true })
+  @Column({ type: 'enum', enum: Position, default: Position.SECRETARY })
   position: Position;
 
   @ApiProperty({ description: 'Entity Type', maximum: 64, required: true })
@@ -38,11 +34,7 @@ export class EnterpriseProfile {
   @Column({ type: 'int', nullable: false })
   countryId: number;
 
-  @ApiProperty({
-    description: 'Country Registeration Number',
-    maximum: 64,
-    required: true,
-  })
+  @ApiProperty({ description: 'Country Registeration Number', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
   companyRegisterationNumber: string;
 

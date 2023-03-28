@@ -9,8 +9,8 @@ import { CountryService } from '@api/country/country.service';
 export class CountryExistsByNameValidator implements ValidatorConstraintInterface {
   constructor(private readonly countryService: CountryService) {}
 
-  async validate(country: string, args: ValidationArguments): Promise<boolean> {
-    const countryExists = await this.countryService.findCountryByName(country);
+  async validate(countryName: string, args: ValidationArguments): Promise<boolean> {
+    const countryExists = await this.countryService.findOne({ name: countryName });
 
     return Boolean(countryExists);
   }

@@ -6,12 +6,18 @@ import { FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
 export class TransactionService {
   constructor(private readonly transactionRepository: TransactionRepository) {}
 
-  async getBalanceForUser(userId: number) {
-    const wallets = await this.transactionRepository.getBalancesForUser(userId);
+  async getBalanceArrayByCurrency(
+    userId: number,
+  ): Promise<{ currency: FiatCurrencyEnum; balance: number }[]> {
+    return this.transactionRepository.getBalancesForUser(userId);
+  }
+
+  async getBalanceForUser(userId: number): Promise<{ eur: number; usd: number }> {
+    const wallets = await this.getBalanceArrayByCurrency(userId);
 
     return {
-      eur: wallets.find(({ balance }) => balance === 'EUR').balance,
-      usd: wallets.find(({ balance }) => balance === 'USD').balance,
+      eur: wallets.find(({ currency }) => currency === FiatCurrencyEnum.EUR).balance,
+      usd: wallets.find(({ currency }) => currency === FiatCurrencyEnum.USD).balance,
     };
   }
 

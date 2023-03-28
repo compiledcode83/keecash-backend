@@ -17,6 +17,8 @@ import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { AccountType, Language, UserStatus } from './user.types';
 import { ClosureReasonService } from '../closure-reason/closure-reason.service';
+import { TransactionService } from '../transaction/transaction.service';
+import { CardService } from '../card/card.service';
 
 const closure_reasons = require('../closure-reason/closure-reasons.json');
 
@@ -25,14 +27,16 @@ const REFERRAL_ID_LENGTH = 7;
 @Injectable()
 export class UserService {
   constructor(
+    private readonly userRepository: UserRepository,
     private readonly countryService: CountryService,
     private readonly documentService: DocumentService,
     private readonly enterpriseProfileService: EnterpriseProfileService,
     private readonly personProfileService: PersonProfileService,
     private readonly shareholderservice: ShareholderService,
     private readonly verificationService: VerificationService,
-    private readonly userRepository: UserRepository,
     private readonly closureReasonService: ClosureReasonService,
+    private readonly transactionService: TransactionService,
+    private readonly cardService: CardService,
   ) {}
 
   async findOne(params: any): Promise<User> {
@@ -129,7 +133,7 @@ export class UserService {
     });
 
     const savedUser = await this.findOne({ id: newUser.id });
-    const country = await this.countryService.findCountryByName(body.country);
+    const country = await this.countryService.findOne({ name: body.country });
 
     const enterpriseProfile = await this.enterpriseProfileService.save({
       position: body.position,
@@ -270,7 +274,7 @@ export class UserService {
       throw new BadRequestException('Phone number is already validated');
     }
 
-    const country = await this.countryService.findCountryByName(body.country);
+    const country = await this.countryService.findOne({ name: body.country });
 
     if (!body.phoneNumber.startsWith(country.phoneCode)) {
       throw new BadRequestException('Phone number format is incorrect');
@@ -322,7 +326,7 @@ export class UserService {
         },
       );
 
-      const country = await this.countryService.findCountryByName(body.country);
+      const country = await this.countryService.findOne({ name: body.country });
 
       await this.personProfileService.save({
         address1: body.address1,
@@ -362,6 +366,22 @@ export class UserService {
   async getAccountSettings(userId: number): Promise<any> {
     const user = await this.userRepository.findOneBy({ id: userId });
 
+    let countryId;
+
+    switch (user.type) {
+      case AccountType.Person:
+        const personProfile = await this.personProfileService.getByUserId(userId);
+        countryId = personProfile.countryId;
+        break;
+
+      case AccountType.Enterprise:
+        const enterpriseProfile = await this.enterpriseProfileService.getByUserId(userId);
+        countryId = enterpriseProfile.countryId;
+        break;
+    }
+
+    const { countryCode } = await this.countryService.findOne({ id: countryId });
+
     const defaultReasons = closure_reasons;
 
     if (user.status === UserStatus.Closed) {
@@ -373,11 +393,16 @@ export class UserService {
       });
     }
 
+    const keecash_wallets = await this.transactionService.getBalanceArrayByCurrency(userId);
+
+    const cards = await this.cardService.getCardListByUserId(userId);
+
     const userSetting = {
       firstname: user.firstName,
       lastname: user.lastName,
       url_avatar: user.urlAvatar,
       email: user.email,
+      country_code: countryCode,
       phone_number: user.phoneNumber,
       account_level: user.type,
       list_lang: [
@@ -385,6 +410,13 @@ export class UserService {
         { lang: 'en', is_checked: user.language === Language.English },
       ],
       list_reason_to_close_account: defaultReasons,
+      keecash_wallets,
+      cards: cards.map(({ name, balance, currency, brand }) => ({
+        card_name: name,
+        balance,
+        currency,
+        card_brand: brand,
+      })),
     };
 
     return userSetting;

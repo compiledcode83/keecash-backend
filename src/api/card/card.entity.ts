@@ -31,6 +31,10 @@ export class Card {
   @Column({ type: 'enum', enum: FiatCurrencyEnum, default: FiatCurrencyEnum.EUR })
   currency: FiatCurrencyEnum;
 
+  @ApiProperty({ example: 'Mastercard', description: 'Card Brand', required: false })
+  @Column({ type: 'varchar', nullable: true })
+  brand: string;
+
   @ApiProperty({ example: '1234 1334 1234 1234', description: 'Card number' })
   @Column({ type: 'varchar', nullable: false })
   cardNumber: string;
