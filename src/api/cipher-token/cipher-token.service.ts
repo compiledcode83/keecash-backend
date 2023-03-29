@@ -31,7 +31,7 @@ export class CipherTokenService {
 
   async checkIfValid(token: string): Promise<number> {
     const cipherToken = await this.cipherTokenRepository.findOneBy({ token });
-    
+
     if (!cipherToken) {
       throw new UnauthorizedException('Token is invalid');
     }

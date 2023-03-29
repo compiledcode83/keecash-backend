@@ -19,12 +19,12 @@ import { CloseAccountDto } from './dto/close-account.dto';
 import { ConfirmEmailChangeOtpDto } from './dto/confirm-email-change-otp.dto';
 
 @Controller()
-@ApiTags('Users Info')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiOperation({ description: 'Get all referred users' })
   @ApiBearerAuth()
+  @ApiTags('Get referrals')
   @UseGuards(JwtAuthGuard)
   @Get('referral')
   async getReferral(@Req() req): Promise<GetReferralResponseDto> {
@@ -39,6 +39,7 @@ export class UserController {
 
   @ApiOperation({ description: 'Get all referred users' })
   @ApiBearerAuth()
+  @ApiTags('Account management')
   @UseGuards(JwtAuthGuard)
   @Get('account/settings')
   async getAccountSettings(@Req() req) {
@@ -49,6 +50,7 @@ export class UserController {
 
   @ApiOperation({ description: 'Upload picture' })
   @ApiBearerAuth()
+  @ApiTags('Account management')
   @UseGuards(JwtAuthGuard)
   @Post('account/upload-picture')
   async uploadPicture() {
@@ -57,6 +59,7 @@ export class UserController {
 
   @ApiOperation({ description: 'Change languaeg setting' })
   @ApiBearerAuth()
+  @ApiTags('Account management')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Patch('account/set-language')
@@ -70,6 +73,7 @@ export class UserController {
 
   @ApiOperation({ description: 'Request changing email & send OTP' })
   @ApiBearerAuth()
+  @ApiTags('Account management')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('account/request-email-change')
@@ -79,6 +83,7 @@ export class UserController {
 
   @ApiOperation({ description: 'Confirm OTP & change email' })
   @ApiBearerAuth()
+  @ApiTags('Account management')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('account/confirm-email-change-otp')
@@ -90,6 +95,7 @@ export class UserController {
 
   @ApiOperation({ description: 'Close account' })
   @ApiBearerAuth()
+  @ApiTags('Account management')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('account/remove')
