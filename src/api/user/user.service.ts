@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UpdateUserInfoDto } from '@admin/admin/dto/update-user-info.dto';
 import { CountryService } from '@api/country/country.service';
 import { DocumentService } from '@api/user/document/document.service';
@@ -19,6 +24,7 @@ import { AccountType, Language, UserStatus } from './user.types';
 import { ClosureReasonService } from '../closure-reason/closure-reason.service';
 import { TransactionService } from '../transaction/transaction.service';
 import { CardService } from '../card/card.service';
+import { CloseAccountDto } from './dto/close-account.dto';
 
 const closure_reasons = require('../closure-reason/closure-reasons.json');
 
@@ -77,6 +83,10 @@ export class UserService {
       .getRawMany();
 
     return referredUsers;
+  }
+
+  async update(id: number, data: Partial<User>) {
+    return this.userRepository.update(id, data);
   }
 
   async resetPassword(userId: number, password: string): Promise<boolean> {
@@ -385,7 +395,7 @@ export class UserService {
     const defaultReasons = closure_reasons;
 
     if (user.status === UserStatus.Closed) {
-      const reasonIds = await this.closureReasonService.getClosureReasonsByUserId(userId);
+      const reasonIds = await this.closureReasonService.findByUserId(userId);
 
       reasonIds.map((reasonId) => {
         console.log({ reasonId });
@@ -420,5 +430,43 @@ export class UserService {
     };
 
     return userSetting;
+  }
+
+  async closeAccount(
+    userId: number,
+    closureReasons: string[],
+    leavingMessage: string,
+    password: string,
+  ) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    console.log('user.password:', user.password);
+    console.log('password:', password);
+
+    const isPasswordValidated = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValidated) throw new UnauthorizedException('Incorrect password');
+
+    await this.userRepository.update(userId, { status: UserStatus.Closed, leavingMessage });
+
+    await this.closureReasonService.createMany(userId, closureReasons);
+  }
+
+  async findUserAndSendOtp(params: Partial<User>) {
+    const user = await this.userRepository.findOne({ where: params });
+
+    if (!user) throw new UnauthorizedException('Cannot find user');
+
+    await this.verificationService.sendEmailVerificationCode(user.email);
+  }
+
+  async confirmEmailChangeOtp(userId: number, newEmail: string, otp: string) {
+    const res = await this.verificationService.confirmEmailVerificationCode(newEmail, otp);
+
+    if (!res) {
+      throw new BadRequestException('Cannot confirm email verification code');
+    }
+
+    await this.userRepository.update(userId, { email: newEmail });
   }
 }
