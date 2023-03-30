@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserClosureReasonRepository } from './user-closure-reason.repository';
-
-const closure_reasons = require('./closure-reasons.json');
+import closure_reasons from './closure-reasons.json';
 
 @Injectable()
 export class ClosureReasonService {
