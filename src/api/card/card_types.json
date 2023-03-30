@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Multiple use card",
+    "type": "MULTIPLE",
+    "description": "Topped up multiple time",
+    "is_checked": "true",
+    "price": "10.00",
+    "cardValidity": "2 years"
+  },
+  {
+    "name": "Single use card",
+    "type": "SINGLE",
+    "description": "Topped up one time",
+    "is_checked": "false",
+    "price": "10.00",
+    "cardValidity": "2 years"
+  }
+]

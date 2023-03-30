@@ -6,6 +6,7 @@ import { FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
 import { GetDashboardItemsResponseDto } from './dto/get-dashboard-items-response.dto';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
 import { ManageCardDto } from './dto/manage-card.dto';
+import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 
 @Controller()
 export class CardController {
@@ -78,6 +79,7 @@ export class CardController {
   // -------------- HISTORY -------------------
 
   @ApiOperation({ description: 'Get history of 30 days' })
+  @ApiTags('Transaction History')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/history/get-init-history')
@@ -86,6 +88,7 @@ export class CardController {
   }
 
   @ApiOperation({ description: '' })
+  @ApiTags('Transaction History')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('/keecash-wallet/:keecash_wallet_currency/transactions')
@@ -98,6 +101,7 @@ export class CardController {
   }
 
   @ApiOperation({ description: '' })
+  @ApiTags('Transaction History')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/keecash-wallet/:keecash_wallet_currency/transactions/:reference/invoice')
@@ -115,6 +119,7 @@ export class CardController {
   }
 
   @ApiOperation({ description: 'Get card transaction invoices' })
+  @ApiTags('Transaction History')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/card/:card_name/transactions/:reference/invoice')
@@ -129,6 +134,7 @@ export class CardController {
   }
 
   @ApiOperation({ description: 'Get card transactions' })
+  @ApiTags('Transaction History')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('/card/:card_name/transactions/')
@@ -190,5 +196,34 @@ export class CardController {
     ];
 
     return result;
+  }
+
+  // -------------- CREATE CARD -------------------
+
+  @ApiOperation({ description: 'Get create card settings' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiTags('Create Card')
+  @Get('create-card/get-settings')
+  async getCreateCardSettings(@Req() req) {
+    return this.cardService.getCreateCardSettings(req.user.id);
+  }
+
+  @ApiOperation({ description: 'Get fees while creating card' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiTags('Create Card')
+  @Post('create-card/get-fees-applied-total-to-pay')
+  async getFeesAppliedTotalToPay(@Body() body: GetCreateCardTotalFeeDto) {
+    return this.cardService.getFeesAppliedTotalToPay(body);
+  }
+
+  @ApiOperation({ description: 'Create card' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiTags('Create Card')
+  @Post('create-card/apply')
+  async applyCreateCard(@Req() req, @Body() body) {
+    return 'ok';
   }
 }

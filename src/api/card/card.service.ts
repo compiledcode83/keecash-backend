@@ -9,6 +9,8 @@ import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
 import { TransactionService } from '../transaction/transaction.service';
 import deposit_methods from './deposit_methods.json';
 import withdrawal_methods from './withdrawal_methods.json';
+import cardTypes from './card_types.json';
+import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 
 @Injectable()
 export class CardService {
@@ -395,5 +397,45 @@ export class CardService {
     const transactions = await this.transactionService.getAllTransactions(userId, currency);
 
     return transactions;
+  }
+
+  async getCreateCardSettings(userId: number) {
+    const balance = await this.transactionService.getBalanceForUser(userId);
+
+    const keecashWallets = [
+      {
+        balance: balance.eur,
+        currency: 'EUR',
+        is_checked: true,
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+      {
+        balance: balance.usd,
+        currency: 'USD',
+        is_checked: false,
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+    ];
+
+    return {
+      keecashWallets,
+      cardTypes,
+      fixFees: 0.99,
+      percentFees: 0.0015,
+    };
+  }
+
+  async getFeesAppliedTotalToPay(body: GetCreateCardTotalFeeDto) {
+    const feesApplied = body.desiredAmount * 0.15 + 0.99;
+
+    const cardPrice = cardTypes.find((card) => card.type === body.cardType).price;
+
+    const totalToPay = cardPrice + body.desiredAmount + feesApplied;
+
+    return { feesApplied, totalToPay };
   }
 }
