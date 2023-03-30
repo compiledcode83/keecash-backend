@@ -6,9 +6,10 @@ import { TransactionModule } from '@api/transaction/transaction.module';
 import { TransferController } from './transfer.controller';
 import { DepositController } from './deposit.controller';
 import { WithdrawalController } from './withdrawal.controller';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [TransactionModule],
+  imports: [TransactionModule, NotificationModule],
   controllers: [CardController, DepositController, WithdrawalController, TransferController],
   providers: [CardService, CardRepository],
   exports: [CardService],

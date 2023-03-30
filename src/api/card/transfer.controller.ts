@@ -4,10 +4,15 @@ import { CardService } from './card.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
 import { TransferApplyDto } from './dto/transfer-apply.dto';
+import { NotificationType } from '../notification/notification.types';
+import { NotificationService } from '../notification/notification.service';
 
 @Controller('transfer')
 export class TransferController {
-  constructor(private readonly cardService: CardService) {}
+  constructor(
+    private readonly cardService: CardService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   @ApiOperation({ description: 'Get transfer settings' })
   @ApiTags('Transfer')
@@ -32,7 +37,22 @@ export class TransferController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('apply')
-  async applyTransfer(@Body() body: TransferApplyDto): Promise<string> {
+  async applyTransfer(@Req() req, @Body() body: TransferApplyDto): Promise<string> {
+    // Create a notification for the transaction
+    await this.notificationService.createOne({
+      userId: req.user.id,
+      type: NotificationType.TransferSent,
+      amount: body.desired_amount,
+      currency: body.currency,
+    });
+
+    await this.notificationService.createOne({
+      userId: body.beneficiary_user_id,
+      type: NotificationType.TransferReceived,
+      amount: body.desired_amount,
+      currency: body.currency,
+    });
+
     return 'ok';
   }
 }

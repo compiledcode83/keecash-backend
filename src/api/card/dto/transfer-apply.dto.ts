@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsInt, IsNumber, IsString } from 'class-validator';
 
 export class TransferApplyDto {
   @ApiProperty({ example: '', description: 'Keecash wallet' })
@@ -30,4 +30,8 @@ export class TransferApplyDto {
   @ApiProperty({ example: true, description: 'Address' })
   @IsString()
   address: string;
+
+  @ApiProperty({ example: 2, description: 'ID of beneficiary user' })
+  @IsInt()
+  beneficiary_user_id: number;
 }

@@ -4,10 +4,15 @@ import { CardService } from './card.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
 import { WithdrawalApplyDto } from './dto/withdrawal-apply.dto';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/notification.types';
 
 @Controller('withdrawal')
 export class WithdrawalController {
-  constructor(private readonly cardService: CardService) {}
+  constructor(
+    private readonly cardService: CardService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   @ApiOperation({ description: 'Get deposit settings' })
   @ApiTags('Withdrawal')
@@ -41,7 +46,14 @@ export class WithdrawalController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('apply')
-  async applyWithdrawal(@Body() body: WithdrawalApplyDto): Promise<string> {
+  async applyWithdrawal(@Req() req, @Body() body: WithdrawalApplyDto): Promise<string> {
+    await this.notificationService.createOne({
+      userId: req.user.id,
+      type: NotificationType.Withdrawal,
+      amount: body.desired_amount,
+      currency: body.currency,
+    });
+
     return 'ok';
   }
 }

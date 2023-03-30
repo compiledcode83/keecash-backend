@@ -23,8 +23,8 @@ export class Notification {
   @Column({ type: 'enum', enum: NotificationType, nullable: false })
   type: NotificationType;
 
-  @ApiProperty({ description: 'Notification message', maximum: 256, required: true })
-  @Column({ type: 'varchar', nullable: false, length: 256 })
+  @ApiProperty({ description: 'Notification message', maximum: 256, required: false })
+  @Column({ type: 'varchar', nullable: true, length: 256 })
   message: string;
 
   @ApiProperty({ description: 'Amount of funds', required: false })

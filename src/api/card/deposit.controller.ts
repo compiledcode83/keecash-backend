@@ -4,13 +4,18 @@ import { CardService } from './card.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
 import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/notification.types';
 
 @Controller('deposit')
+@ApiTags('Deposit')
 export class DepositController {
-  constructor(private readonly cardService: CardService) {}
+  constructor(
+    private readonly cardService: CardService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   @ApiOperation({ description: 'Get deposit settings' })
-  @ApiTags('Deposit')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('settings')
@@ -19,7 +24,6 @@ export class DepositController {
   }
 
   @ApiOperation({ description: 'Post deposit fees' })
-  @ApiTags('Deposit')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('fees')
@@ -28,11 +32,18 @@ export class DepositController {
   }
 
   @ApiOperation({ description: 'Post deposit payment link' })
-  @ApiTags('Deposit')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('payment-link')
-  async depositPaymentLink(@Body() body: DepositPaymentLinkDto) {
+  async depositPaymentLink(@Req() req, @Body() body: DepositPaymentLinkDto) {
+    // Create a notification for the transaction
+    const notification = await this.notificationService.createOne({
+      userId: req.user.id,
+      type: NotificationType.Deposit,
+      amount: body.desired_amount,
+      currency: body.currency,
+    });
+
     return {
       link: '',
     };
