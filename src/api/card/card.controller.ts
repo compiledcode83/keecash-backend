@@ -7,6 +7,7 @@ import { GetDashboardItemsResponseDto } from './dto/get-dashboard-items-response
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
 import { ManageCardDto } from './dto/manage-card.dto';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
+import { GetCardHistoryFilterDto } from './dto/get-card-history-filter.dto';
 
 @Controller()
 export class CardController {
@@ -139,7 +140,11 @@ export class CardController {
   @UseGuards(JwtAuthGuard)
   @Post('/card/:card_name/transactions/')
   @ApiParam({ name: 'card_name', required: true, description: 'Card name' })
-  async getCardTransactions(@Req() req, @Param('card_name') card_name: string) {
+  async getCardTransactions(
+    @Req() req,
+    @Param('card_name') card_name: string,
+    @Body() body: GetCardHistoryFilterDto,
+  ) {
     const result = [
       {
         currency: 'EUR',
