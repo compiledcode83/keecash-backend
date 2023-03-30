@@ -12,6 +12,7 @@ import { AdminCryptoTxModule } from './admin/crypto-tx/crypto-tx.module';
 import { AdminCardModule } from './admin/card/card.module';
 import { AdminBeneficiaryModule } from './admin/beneficiary/beneficiary.module';
 import { TransactionModule } from './api/transaction/transaction.module';
+import { NotificationModule } from './api/notification/notification.module';
 
 export class SwaggerManager {
   static setSwaggerDefaults(app: INestApplication): INestApplication {
@@ -32,7 +33,14 @@ export class SwaggerManager {
       .build();
 
     const publicDocument = SwaggerModule.createDocument(app, publicApiConfig, {
-      include: [AuthModule, CardModule, TransactionModule, UserModule, BeneficiaryModule],
+      include: [
+        AuthModule,
+        CardModule,
+        TransactionModule,
+        UserModule,
+        BeneficiaryModule,
+        NotificationModule,
+      ],
     });
     const adminDocument = SwaggerModule.createDocument(app, adminApiConfig, {
       include: [
