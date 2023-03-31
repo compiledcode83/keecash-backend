@@ -18,10 +18,14 @@ import { SetLanguageDto } from './dto/set-language.dto';
 import { RequestEmailChangeDto } from './dto/request-email-change.dto';
 import { CloseAccountDto } from './dto/close-account.dto';
 import { ConfirmEmailChangeOtpDto } from './dto/confirm-email-change-otp.dto';
+import { VerificationService } from '../verification/verification.service';
 
 @Controller()
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly verificationService: VerificationService,
+  ) {}
 
   @ApiOperation({ description: 'Get all referred users' })
   @ApiBearerAuth()
@@ -79,7 +83,7 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @Post('account/request-email-change')
   async requestEmailChange(@Req() req, @Body() body: RequestEmailChangeDto): Promise<void> {
-    await this.userService.findUserAndSendOtp({ email: body.email });
+    await this.verificationService.sendEmailVerificationCode(body.email);
   }
 
   @ApiOperation({ description: 'Confirm OTP & change email' })

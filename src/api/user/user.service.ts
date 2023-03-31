@@ -440,9 +440,6 @@ export class UserService {
   ) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
-    console.log('user.password:', user.password);
-    console.log('password:', password);
-
     const isPasswordValidated = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValidated) throw new UnauthorizedException('Incorrect password');
@@ -450,14 +447,6 @@ export class UserService {
     await this.userRepository.update(userId, { status: UserStatus.Closed, leavingMessage });
 
     await this.closureReasonService.createMany(userId, closureReasons);
-  }
-
-  async findUserAndSendOtp(params: Partial<User>) {
-    const user = await this.userRepository.findOne({ where: params });
-
-    if (!user) throw new UnauthorizedException('Cannot find user');
-
-    await this.verificationService.sendEmailVerificationCode(user.email);
   }
 
   async confirmEmailChangeOtp(userId: number, newEmail: string, otp: string) {
