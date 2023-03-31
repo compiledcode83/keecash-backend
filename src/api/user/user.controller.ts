@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Patch,
   Post,
+  Delete,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
@@ -76,7 +77,7 @@ export class UserController {
   @ApiTags('Account management')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get('account/request-email-change')
+  @Post('account/request-email-change')
   async requestEmailChange(@Req() req, @Body() body: RequestEmailChangeDto): Promise<void> {
     await this.userService.findUserAndSendOtp({ email: body.email });
   }
@@ -86,7 +87,7 @@ export class UserController {
   @ApiTags('Account management')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get('account/confirm-email-change-otp')
+  @Post('account/confirm-email-change-otp')
   async confirmEmailChangeOtp(@Req() req, @Body() body: ConfirmEmailChangeOtpDto): Promise<void> {
     await this.userService.confirmEmailChangeOtp(req.user.id, body.email, body.otp);
 
@@ -98,7 +99,7 @@ export class UserController {
   @ApiTags('Account management')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get('account/remove')
+  @Delete('account/remove')
   async closeAccount(@Req() req, @Body() body: CloseAccountDto): Promise<void> {
     await this.userService.closeAccount(
       req.user.id,
