@@ -15,9 +15,12 @@ export class TransactionService {
   async getBalanceForUser(userId: number): Promise<{ eur: number; usd: number }> {
     const wallets = await this.getBalanceArrayByCurrency(userId);
 
+    const eurWallet = wallets.find(({ currency }) => currency === FiatCurrencyEnum.EUR);
+    const usdWallet = wallets.find(({ currency }) => currency === FiatCurrencyEnum.USD);
+
     return {
-      eur: wallets.find(({ currency }) => currency === FiatCurrencyEnum.EUR).balance,
-      usd: wallets.find(({ currency }) => currency === FiatCurrencyEnum.USD).balance,
+      eur: eurWallet ? eurWallet.balance : 0,
+      usd: usdWallet ? usdWallet.balance : 0,
     };
   }
 
