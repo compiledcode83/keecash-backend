@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { UpdateUserInfoDto } from '@admin/admin/dto/update-user-info.dto';
 import { CountryService } from '@api/country/country.service';
@@ -25,6 +27,7 @@ import { ClosureReasonService } from '../closure-reason/closure-reason.service';
 import { TransactionService } from '../transaction/transaction.service';
 import { CardService } from '../card/card.service';
 import { CloseAccountDto } from './dto/close-account.dto';
+import { BridgecardService } from '../card/bridgecard.service';
 
 const closure_reasons = require('../closure-reason/closure-reasons.json');
 
@@ -42,11 +45,14 @@ export class UserService {
     private readonly verificationService: VerificationService,
     private readonly closureReasonService: ClosureReasonService,
     private readonly transactionService: TransactionService,
+    @Inject(forwardRef(() => CardService))
     private readonly cardService: CardService,
+    @Inject(forwardRef(() => BridgecardService))
+    private readonly bridgecardService: BridgecardService,
   ) {}
 
-  async findOne(params: any): Promise<User> {
-    return this.userRepository.findOne({ where: params });
+  async findOne(param: any): Promise<User> {
+    return this.userRepository.findOne({ where: param });
   }
 
   async findByEmailPhoneNumberReferralId(userInfo: string): Promise<User | null> {
@@ -61,6 +67,14 @@ export class UserService {
     if (userByReferralId) return userByReferralId;
 
     return null;
+  }
+
+  async findOneWithProfileAndDocumments(
+    userId: number,
+    withProfile: boolean,
+    withDocuments: boolean,
+  ) {
+    return this.userRepository.findOneWithProfileAndDocumments(userId, withProfile, withDocuments);
   }
 
   async getReferralUserId(userId: number): Promise<number | null> {
@@ -85,8 +99,25 @@ export class UserService {
     return referredUsers;
   }
 
-  async update(id: number, data: Partial<User>) {
-    return this.userRepository.update(id, data);
+  async create(body: CreateUserDto): Promise<User> {
+    const referralId = await this.generateReferralId();
+
+    const user: Partial<User> = {
+      referralId,
+      referralAppliedId: body.referralAppliedId,
+      email: body.email,
+      language: body.language,
+      type: AccountType.Person,
+      password: await bcrypt.hash(body.password, 10),
+    };
+
+    const newUser = await this.userRepository.save(user);
+
+    return newUser;
+  }
+
+  async update(param: any, data: Partial<User>) {
+    return this.userRepository.update(param, data);
   }
 
   async resetPassword(userId: number, password: string): Promise<boolean> {
@@ -221,44 +252,34 @@ export class UserService {
     return this.personProfileService.getPersonUserInfo(body.userId);
   }
 
-  async createAccount(body: CreateUserDto) {
-    const referralId = await this.generateReferralId();
+  async sendEmailOtp(userId: number): Promise<boolean> {
+    const user = await this.findOne({ id: userId });
 
-    const user: Partial<User> = {
-      referralId,
-      referralAppliedId: body.referralAppliedId,
-      email: body.email,
-      language: body.language,
-      type: AccountType.Person,
-      password: await bcrypt.hash(body.password, 10),
-    };
-
-    const newUser = await this.userRepository.save(user);
-
-    return newUser;
-  }
-
-  async sendEmailOtp(email: string): Promise<string> {
-    const user = await this.findOne({ email });
-    if (user.status === UserStatus.Registered) {
-      const res = await this.verificationService.sendEmailVerificationCode(email);
-      if (res === true) {
-        return 'Email verification code was successfully sent';
-      }
+    if (user.emailValidated) {
+      throw new BadRequestException('Email is already validated');
     }
-    throw new BadRequestException('Cannot send verification code');
+
+    const res = await this.verificationService.sendEmailVerificationCode(user.email);
+
+    if (!res) {
+      throw new BadRequestException('Cannot send email OTP');
+    }
+
+    return true;
   }
 
-  async confirmEmailOtp(email: string, code: string): Promise<User> {
+  async confirmEmailOtp(email: string, code: string): Promise<boolean> {
     const res = await this.verificationService.confirmEmailVerificationCode(email, code);
 
     if (!res) {
       throw new BadRequestException('Cannot confirm email verification code');
     }
 
-    await this.userRepository.update({ email }, { emailValidated: true });
+    const updatedUser = await this.userRepository.update({ email }, { emailValidated: true });
 
-    return this.findOne({ email });
+    if (updatedUser.affected) return true;
+
+    return false;
   }
 
   async confirmEmailOtpForForgotPassword(email: string, code: string): Promise<void> {
@@ -269,8 +290,8 @@ export class UserService {
     }
   }
 
-  async sendPhoneOtp(email: string, body: SendPhoneNumberVerificationCodeDto): Promise<boolean> {
-    const user = await this.findOne({ email });
+  async sendPhoneOtp(userId: number, body: SendPhoneNumberVerificationCodeDto): Promise<boolean> {
+    const user = await this.findOne({ id: userId });
 
     if (!user) {
       throw new InternalServerErrorException('Error occured while getting user data');
@@ -296,59 +317,60 @@ export class UserService {
       throw new InternalServerErrorException('Error occured while getting user data');
     }
 
-    const updatedUser = await this.userRepository.update(
-      { email },
-      { phoneNumber: body.phoneNumber },
-    );
+    const updatedUser = await this.userRepository.update(userId, { phoneNumber: body.phoneNumber });
 
     if (updatedUser.affected) return true;
 
     return false;
   }
 
-  async confirmPhoneOtp(email: string, code: string): Promise<User> {
-    const user = await this.findOne({ email });
+  async confirmPhoneOtp(userId: number, code: string): Promise<boolean> {
+    const user = await this.findOne({ id: userId });
+
     const res = await this.verificationService.confirmPhoneNumberVerificationCode(
       user.phoneNumber,
       code,
     );
-    if (res) {
-      await this.userRepository.update({ email }, { phoneValidated: true });
 
-      return this.findOne({ email });
+    if (!res) {
+      throw new BadRequestException('Sorry, Can not confirm phone number');
     }
-    throw new BadRequestException('Sorry, Can not confirm phone number');
+
+    const updatedUser = await this.userRepository.update(userId, { phoneValidated: true });
+
+    if (updatedUser.affected) return true;
+
+    return false;
   }
 
   async getSumsubAccessToken() {
     return this.verificationService.createSumsubAccessToken('JamesBond007');
   }
 
-  async addPersonalUserInfo(email: string, body: AddPersonUserInfoDto): Promise<User> {
-    const user = await this.findOne({ email });
-    if (user.phoneValidated) {
-      await this.userRepository.update(
-        { email },
-        {
-          firstName: body.firstName,
-          lastName: body.lastName,
-          status: UserStatus.Completed,
-        },
-      );
+  async addPersonalUserInfo(id: string, body: AddPersonUserInfoDto): Promise<User> {
+    const user = await this.findOne({ id });
 
-      const country = await this.countryService.findOne({ name: body.country });
-
-      await this.personProfileService.save({
-        address1: body.address1,
-        address2: body.address2,
-        city: body.city,
-        countryId: country.id,
-        user: user,
-      });
-
-      return this.findOne({ email });
+    if (!user.emailValidated || !user.phoneValidated) {
+      throw new BadRequestException('Validation is not completed yet');
     }
-    throw new BadRequestException('Please complete last steps');
+
+    const { id: countryId } = await this.countryService.findOne({ name: body.country });
+
+    await this.personProfileService.save({
+      address1: body.address1,
+      address2: body.address2,
+      city: body.city,
+      countryId,
+      user: user,
+    });
+
+    await this.userRepository.update(id, {
+      firstName: body.firstName,
+      lastName: body.lastName,
+      status: UserStatus.Completed,
+    });
+
+    return this.findOne({ id });
   }
 
   async setPincode(userId: number, pincode: string): Promise<void> {
@@ -362,15 +384,6 @@ export class UserService {
     } catch (error) {
       throw error;
     }
-  }
-
-  async resetPincode(userId: number): Promise<void> {
-    const updatedUser = await this.userRepository.update(
-      { id: userId },
-      { pincode: null, pincodeSet: false },
-    );
-
-    if (!updatedUser.affected) throw new Error('Error occured while resetting pincode');
   }
 
   async getAccountSettings(userId: number): Promise<any> {

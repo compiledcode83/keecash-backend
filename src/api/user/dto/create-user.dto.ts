@@ -31,7 +31,7 @@ export class CreateUserDto {
   @MaxLength(255)
   password: string;
 
-  @ApiProperty({ example: 'ENGLISH', description: 'Language', maximum: 255, required: true })
+  @ApiProperty({ example: 'en', description: 'Language', maximum: 255, required: true })
   @IsEnum(Language)
   language: Language;
 }

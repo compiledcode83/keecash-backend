@@ -1,6 +1,6 @@
 export enum Language {
-  English = 'ENGLISH',
-  French = 'FRENCH',
+  English = 'en',
+  French = 'fr',
 }
 
 export enum AccountType {

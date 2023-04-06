@@ -9,7 +9,6 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
-import { LocalPinStrategy } from './strategies/local-pin.strategy';
 
 @Module({
   imports: [
@@ -29,7 +28,7 @@ import { LocalPinStrategy } from './strategies/local-pin.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, LocalPinStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -1,8 +1,7 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { RefreshTokenInfo } from '@api/auth/dto/refresh-token-info.dto';
-import { User } from '@api/user/user.entity';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CipherToken } from './cipher-token.entity';
 import { CipherTokenRepository } from './cipher-token.repository';
+import { TokenTypeEnum } from './cipher-token.types';
 
 @Injectable()
 export class CipherTokenService {
@@ -18,19 +17,35 @@ export class CipherTokenService {
     return deleteResult.affected === 1;
   }
 
-  async createRefreshToken(
-    user: Partial<User>,
-    refreshTokenInfo: RefreshTokenInfo,
-  ): Promise<CipherToken> {
-    return this.cipherTokenRepository.createRefreshToken(user, refreshTokenInfo);
+  async generateRefreshToken(tokenData: Partial<CipherToken>): Promise<string> {
+    return this.cipherTokenRepository.generateRefreshToken(tokenData);
   }
 
-  async createResetPasswordToken(userId: number): Promise<any> {
-    return this.cipherTokenRepository.createResetPasswordToken(userId);
+  async generateResetPasswordToken(userId: number): Promise<string> {
+    return this.cipherTokenRepository.generateResetPasswordToken(userId);
   }
 
-  async checkIfValid(token: string): Promise<number> {
-    const cipherToken = await this.cipherTokenRepository.findOneBy({ token });
+  async generateResetPincodeToken(userId: number): Promise<string> {
+    return this.cipherTokenRepository.generateResetPincodeToken(userId);
+  }
+
+  async generateCreateAccountToken(userId: number): Promise<string> {
+    const doesExist = await this.cipherTokenRepository.findOne({
+      where: {
+        userId,
+        type: TokenTypeEnum.CreateAccount,
+      },
+    });
+
+    if (doesExist) {
+      throw new BadRequestException('Account is already registered: CreateAccountToken exists');
+    }
+
+    return this.cipherTokenRepository.generateCreateAccountToken(userId);
+  }
+
+  async checkIfValid(token: string, type: TokenTypeEnum): Promise<number> {
+    const cipherToken = await this.cipherTokenRepository.findOneBy({ token, type });
 
     if (!cipherToken) {
       throw new UnauthorizedException('Token is invalid');

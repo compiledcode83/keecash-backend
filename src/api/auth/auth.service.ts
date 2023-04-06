@@ -1,16 +1,14 @@
 import * as bcrypt from 'bcrypt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { isEmail } from 'class-validator';
 import { User } from '@api/user/user.entity';
 import { UserService } from '@api/user/user.service';
 import { CipherTokenService } from '@src/api/cipher-token/cipher-token.service';
 import { UserAccessTokenInterface } from './auth.type';
-import { CipherToken } from '@src/api/cipher-token/cipher-token.entity';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
-import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
 import { VerificationService } from '@api/verification/verification.service';
-import { isEmail } from 'class-validator';
 
 @Injectable()
 export class AuthService {
@@ -21,11 +19,15 @@ export class AuthService {
     private readonly verificationService: VerificationService,
   ) {}
 
-  async login(user: Partial<User>, refreshTokenInfo: RefreshTokenInfo): Promise<TokensResponseDto> {
+  async login(
+    user: Partial<User>,
+    userAgent: string,
+    ipAddress: string,
+  ): Promise<TokensResponseDto> {
     const oldRefreshToken = await this.cipherTokenService.findOneBy({
       userId: user.id,
-      userAgent: refreshTokenInfo.userAgent,
-      ipAddress: refreshTokenInfo.ipAddress,
+      userAgent,
+      ipAddress,
     });
 
     if (oldRefreshToken) {
@@ -33,11 +35,15 @@ export class AuthService {
     }
 
     const accessToken = await this.createAccessToken(user);
-    const refreshToken = await this.createRefreshToken(user, refreshTokenInfo);
+    const refreshToken = await this.cipherTokenService.generateRefreshToken({
+      userId: user.id,
+      userAgent,
+      ipAddress,
+    });
 
     return {
       accessToken,
-      refreshToken: refreshToken.token,
+      refreshToken,
     };
   }
 
@@ -109,38 +115,32 @@ export class AuthService {
     return this.jwtService.signAsync(payload);
   }
 
-  async createRefreshToken(
-    user: Partial<User>,
-    refreshTokenInfo: RefreshTokenInfo,
-  ): Promise<CipherToken> {
-    return this.cipherTokenService.createRefreshToken(user, refreshTokenInfo);
-  }
-
-  async createResetPasswordToken(userId: number) {
-    return this.cipherTokenService.createResetPasswordToken(userId);
-  }
-
   async refreshTokens(
-    params: RefreshTokensDto,
-    refreshTokenInfo: RefreshTokenInfo,
+    tokenData: RefreshTokensDto,
+    userAgent: string,
+    ipAddress: string,
   ): Promise<TokensResponseDto> {
     const oldRefreshToken = await this.cipherTokenService.findOneBy({
-      token: params.refreshToken,
+      token: tokenData.refreshToken,
     });
 
     if (!oldRefreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    await this.cipherTokenService.deleteByToken(params.refreshToken);
+    await this.cipherTokenService.deleteByToken(tokenData.refreshToken);
     const user = await this.userService.findOne({ id: oldRefreshToken.userId });
 
     const accessToken = await this.createAccessToken(user);
-    const refreshToken = await this.createRefreshToken(user, refreshTokenInfo);
+    const refreshToken = await this.cipherTokenService.generateRefreshToken({
+      userId: user.id,
+      userAgent,
+      ipAddress,
+    });
 
     return {
-      accessToken: accessToken,
-      refreshToken: refreshToken.token,
+      accessToken,
+      refreshToken,
     };
   }
 

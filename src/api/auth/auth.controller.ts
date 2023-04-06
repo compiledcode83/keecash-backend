@@ -11,6 +11,7 @@ import {
   Req,
   BadRequestException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from '@api/auth/auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -22,29 +23,25 @@ import { Request, Response } from 'express';
 import { CookieToBodyInterceptor } from '@common/interceptors/cookie-to-body.interceptor';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { RealIP } from 'nestjs-real-ip';
-import { RefreshTokenInfo } from './dto/refresh-token-info.dto';
 import { ApiResponseHelper } from '@common/helpers/api-response.helper';
 import { User } from '@api/user/user.entity';
-import { CreateUserDto } from '../user/dto/create-user.dto';
-import { UserService } from '../user/user.service';
-import { ConfirmEmailVerificationCodeDto } from '../verification/dto/confirm-email-verification.dto';
-import { SendPhoneNumberVerificationCodeDto } from '../verification/dto/send-phone-verification.dto';
-import { ConfirmPhoneNumberVerificationCodeDto } from '../verification/dto/confirm-phone-verification.dto';
-import { SendEmailVerificationCodeDto } from '../verification/dto/send-email-verification.dto';
-import { VerificationService } from '../verification/verification.service';
-import { ConfirmEmailVerificationCodeForAdminDto } from '../verification/dto/confirm-email-verification-for-admin.dto';
+import { CreateUserDto } from '@api/user/dto/create-user.dto';
+import { UserService } from '@api/user/user.service';
+import { ConfirmEmailVerificationCodeDto } from '@api/verification/dto/confirm-email-verification.dto';
+import { SendPhoneNumberVerificationCodeDto } from '@api/verification/dto/send-phone-verification.dto';
+import { ConfirmPhoneNumberVerificationCodeDto } from '@api/verification/dto/confirm-phone-verification.dto';
+import { VerificationService } from '@api/verification/verification.service';
+import { ConfirmEmailVerificationCodeForAdminDto } from '@api/verification/dto/confirm-email-verification-for-admin.dto';
 import { PasswordResetDto } from '../user/dto/password-reset.dto';
-import { JwtService } from '@nestjs/jwt';
 import { PincodeSetDto } from './dto/pincode-set-dto';
 import { PincodeVerificationDto } from './dto/pincode-verification.dto';
 import { PincodeVerificationResponseDto } from './dto/pincode-verification-response.dto';
 import { PincodeResetResponseDto } from './dto/pincode-reset-response.dto';
 import { PincodeSetResponseDto } from './dto/pincode-set-response.dto';
-import { CreateUserResponseDto } from '../user/dto/create-user-response.dto';
-import { SendEmailVerificationCodeResponseDto } from '../verification/dto/send-email-verification-code-response.dto';
-import { ConfirmEmailVerificationCodeResponseDto } from '../verification/dto/confirm-email-verification-response.dto';
-import { SendPhoneVerificationResponseDto } from '../verification/dto/send-phone-verification-response.dto';
-import { CipherTokenService } from '../cipher-token/cipher-token.service';
+import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
+import { UserStatus } from '@api/user/user.types';
+import { TokenTypeEnum } from '../cipher-token/cipher-token.types';
+import { SendEmailVerificationCodeDto } from '../verification/dto/send-email-verification.dto';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -54,9 +51,23 @@ export class AuthController {
     private readonly configService: ConfigService,
     private readonly userService: UserService,
     private readonly verificationService: VerificationService,
-    private readonly jwtService: JwtService,
     private readonly cipherTokenService: CipherTokenService,
   ) {}
+
+  @ApiOperation({ description: `Create account` })
+  @Post('create-account')
+  async createAccount(@Body() body: CreateUserDto): Promise<any> {
+    const user = await this.userService.create(body);
+
+    const createAccountToken = await this.cipherTokenService.generateCreateAccountToken(user.id);
+
+    await this.userService.sendEmailOtp(user.id);
+
+    return {
+      isCreated: true,
+      token: createAccountToken,
+    };
+  }
 
   @ApiOperation({ description: `User login` })
   @ApiResponse(ApiResponseHelper.success(User))
@@ -69,74 +80,44 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @RealIP() ip: string,
   ) {
-    const refreshTokenInfo: RefreshTokenInfo = {
-      userAgent: req.headers['user-agent'],
-      ipAddress: ip,
-    };
+    let token: string;
 
-    const { token: refreshToken } = await this.authService.createRefreshToken(
-      req.user,
-      refreshTokenInfo,
-    );
+    switch (req.user.status) {
+      case UserStatus.Registered:
+        const { token: createAccountToken } = await this.cipherTokenService.findOneBy({
+          userId: req.user.id,
+          type: TokenTypeEnum.CreateAccount,
+        });
+        token = createAccountToken;
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
-      secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
-      maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
-      domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
-    });
+        break;
 
-    return {
-      refreshToken: refreshToken,
-      status: 'registered',
-      isUserExist: true,
-    };
-  }
+      case UserStatus.Completed:
+        const refreshToken = await this.cipherTokenService.generateRefreshToken({
+          userId: req.user.id,
+          userAgent: req.headers['user-agent'],
+          ipAddress: ip,
+        });
+        token = refreshToken;
 
-  @ApiOperation({ description: 'Verify PIN code' })
-  @ApiBearerAuth()
-  @Post('pin-code-verification')
-  async verifyPinCode(
-    @Req() req,
-    @Body() body: PincodeVerificationDto,
-    @Res({ passthrough: true }) res: Response,
-    @RealIP() ip: string,
-  ): Promise<PincodeVerificationResponseDto> {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing refresh token in the header');
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
+          secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
+          maxAge:
+            this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
+          domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
+        });
+
+        break;
+
+      default:
+        break;
     }
 
-    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
-
-    const userId = await this.cipherTokenService.checkIfValid(bearerRefreshToken);
-
-    if (!userId) throw new UnauthorizedException('Refresh token is invalid or expired');
-
-    const validatedUser = await this.authService.validateUserByPincode(userId, body.pincode);
-
-    if (!validatedUser) throw new UnauthorizedException();
-
-    const refreshTokenInfo: RefreshTokenInfo = {
-      userAgent: req.headers['user-agent'],
-      ipAddress: ip,
-    };
-
-    const { accessToken, refreshToken } = await this.authService.login(
-      validatedUser,
-      refreshTokenInfo,
-    );
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
-      secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
-      maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
-      domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
-    });
-
     return {
-      isConfirm: true,
-      accessToken,
-      status: 'pin_code_set',
+      token,
+      status: req.user.status,
+      isUserExist: true,
     };
   }
 
@@ -145,15 +126,15 @@ export class AuthController {
   @Post('refresh-tokens')
   async refreshTokens(
     @Req() req,
-    @RealIP() ip: string,
-    @Body() params: RefreshTokensDto,
+    @RealIP() ipAddress: string,
+    @Body() tokenData: RefreshTokensDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<any> {
-    const refreshTokenInfo: RefreshTokenInfo = {
-      userAgent: req.headers['user-agent'],
-      ipAddress: ip,
-    };
-    const authData = await this.authService.refreshTokens(params, refreshTokenInfo);
+    const authData = await this.authService.refreshTokens(
+      tokenData,
+      req.headers['user-agent'],
+      ipAddress,
+    );
 
     res.cookie('refreshToken', authData.refreshToken, {
       httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
@@ -174,64 +155,90 @@ export class AuthController {
     return req.user;
   }
 
-  @ApiOperation({ description: `Create account` })
-  @Post('create-account')
-  async createAccount(@Body() body: CreateUserDto): Promise<CreateUserResponseDto> {
-    const createdAccount = await this.userService.createAccount(body);
-    const accessToken = await this.authService.createAccessToken(createdAccount);
-
-    await this.userService.sendEmailOtp(body.email);
-
-    return {
-      isCreated: true,
-      accessToken,
-    };
-  }
-
   @ApiOperation({ description: `Send email verification code` })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post('send-email-verification-code')
-  async sendEmailVerificationCode(
-    @Req() req,
-    @Body() body: SendEmailVerificationCodeDto,
-  ): Promise<SendEmailVerificationCodeResponseDto> {
-    console.log({ req: req.headers });
-    await this.userService.sendEmailOtp(req.user.email);
+  async sendEmailVerificationCode(@Req() req) {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing CreateAccountToken in the header');
+    }
+
+    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
+
+    const token = await this.cipherTokenService.findOneBy({
+      token: bearerCreateAccountToken,
+      type: TokenTypeEnum.CreateAccount,
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('CreateAccountToken is invalid');
+    }
+
+    await this.userService.sendEmailOtp(token.userId);
 
     return {
       isSent: true,
-      accessToken: req.headers.authorization.slice(7),
     };
   }
 
   @ApiOperation({ description: `Confirm email verification code` })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post('confirm-email-verification-code')
   async confirmEmailVerificationCode(
     @Req() req,
     @Body() body: ConfirmEmailVerificationCodeDto,
-  ): Promise<ConfirmEmailVerificationCodeResponseDto> {
-    const updatedUser = await this.userService.confirmEmailOtp(req.user.email, body.code);
+  ): Promise<any> {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing CreateAccountToken in the header');
+    }
 
-    // const accessToken = await this.authService.createAccessToken(updatedUser);
+    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
+
+    const token = await this.cipherTokenService.findOneBy({
+      token: bearerCreateAccountToken,
+      type: TokenTypeEnum.CreateAccount,
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('CreateAccountToken is invalid');
+    }
+
+    const user = await this.userService.findOne({ id: token.userId });
+
+    const res = await this.userService.confirmEmailOtp(user.email, body.code);
+
+    if (!res) {
+      throw new BadRequestException('Email verification failed');
+    }
 
     return {
       isConfirmed: true,
-      accessToken: req.headers.authorization.slice(7),
     };
   }
 
   @ApiOperation({ description: `Send phone number verification code` })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post('send-phone-verification-code')
   async sendPhoneVerificationCode(
     @Req() req,
     @Body() body: SendPhoneNumberVerificationCodeDto,
-  ): Promise<SendPhoneVerificationResponseDto> {
-    const res = await this.userService.sendPhoneOtp(req.user.email, body);
+  ): Promise<any> {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing CreateAccountToken in the header');
+    }
+
+    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
+
+    const token = await this.cipherTokenService.findOneBy({
+      token: bearerCreateAccountToken,
+      type: TokenTypeEnum.CreateAccount,
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('CreateAccountToken is invalid');
+    }
+
+    const res = await this.userService.sendPhoneOtp(token.userId, body);
 
     if (!res) {
       return { isSent: false };
@@ -239,43 +246,181 @@ export class AuthController {
 
     return {
       isSent: true,
-      accessToken: req.headers.authorization.slice(7),
     };
   }
 
   @ApiOperation({ description: `Confirm phone number verification code` })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post('confirm-phone-verification-code')
   async confirmPhoneNumberVerificationCode(
     @Req() req,
     @Body() body: ConfirmPhoneNumberVerificationCodeDto,
   ) {
-    const updatedUser = await this.userService.confirmPhoneOtp(req.user.email, body.code);
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing create-account token in the header');
+    }
 
-    const accessToken = await this.authService.createAccessToken(updatedUser);
+    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
 
-    return { accessToken };
+    const token = await this.cipherTokenService.findOneBy({
+      token: bearerCreateAccountToken,
+      type: TokenTypeEnum.CreateAccount,
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('CreateAccountToken is invalid');
+    }
+
+    const res = await this.userService.confirmPhoneOtp(token.userId, body.code);
+
+    if (!res) {
+      throw new BadRequestException('Phone number verification failed');
+    }
+
+    return {
+      isConfirmed: true,
+    };
   }
 
   @ApiOperation({ description: `Set PIN code` })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post('set-pin-code')
   async setPinCode(@Req() req, @Body() body: PincodeSetDto): Promise<PincodeSetResponseDto> {
-    await this.userService.setPincode(req.user.id, body.pincode);
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing refresh token in the header');
+    }
+
+    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
+
+    const userId = await this.cipherTokenService.checkIfValid(
+      bearerRefreshToken,
+      TokenTypeEnum.AuthRefresh,
+    );
+
+    await this.userService.setPincode(userId, body.pincode);
 
     return {
       isSet: true,
     };
   }
 
+  @ApiOperation({ description: 'Verify PIN code' })
+  @ApiBearerAuth()
+  @Post('pin-code-verification')
+  async verifyPinCode(
+    @Req() req,
+    @Body() body: PincodeVerificationDto,
+    @Res({ passthrough: true }) res: Response,
+    @RealIP() ipAddress: string,
+  ): Promise<PincodeVerificationResponseDto> {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing refresh token in the header');
+    }
+
+    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
+
+    const userId = await this.cipherTokenService.checkIfValid(
+      bearerRefreshToken,
+      TokenTypeEnum.AuthRefresh,
+    );
+
+    const validatedUser = await this.authService.validateUserByPincode(userId, body.pincode);
+
+    if (!validatedUser) throw new UnauthorizedException('Pincode is incorrect');
+
+    const { accessToken, refreshToken } = await this.authService.login(
+      validatedUser,
+      req.headers['user-agent'],
+      ipAddress,
+    );
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
+      secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
+      maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
+      domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
+    });
+
+    return {
+      isConfirm: true,
+      accessToken,
+      status: 'pin_code_set',
+    };
+  }
+
+  @ApiOperation({ description: `Send email verification code for forgot pincode` })
+  @ApiBearerAuth()
+  @Post('send-email-verification-code-for-forgot-pincode')
+  async sendEmailVerificationCodeForForgotPincode(@Req() req): Promise<any> {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing refresh token in the header');
+    }
+
+    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
+
+    const userId = await this.cipherTokenService.checkIfValid(
+      bearerRefreshToken,
+      TokenTypeEnum.AuthRefresh,
+    );
+
+    const { email } = await this.userService.findOne({ id: userId });
+
+    const res = await this.verificationService.sendEmailVerificationCode(email);
+
+    if (!res) {
+      throw new BadRequestException('Failed to send verification code');
+    }
+
+    return {
+      isSent: true,
+    };
+  }
+
+  @ApiOperation({ description: `Confirm email verification code for forgot pincode` })
+  @ApiBearerAuth()
+  @Post('confirm-email-verification-code-for-forgot-pincode')
+  async confirmEmailVerificationCodeForForgotPincode(
+    @Req() req,
+    @Body() body: ConfirmEmailVerificationCodeDto,
+  ) {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing refresh token in the header');
+    }
+
+    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
+
+    const userId = await this.cipherTokenService.checkIfValid(
+      bearerRefreshToken,
+      TokenTypeEnum.AuthRefresh,
+    );
+
+    const { email } = await this.userService.findOne({ id: userId });
+
+    await this.userService.confirmEmailOtpForForgotPassword(email, body.code);
+
+    const resetPasswordToken = await this.cipherTokenService.generateResetPincodeToken(userId);
+
+    return { resetPasswordToken };
+  }
+
   @ApiOperation({ description: 'Reset PIN code' })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post('reset-pin-code')
-  async resetPinCode(@Req() req): Promise<PincodeResetResponseDto> {
-    await this.userService.resetPincode(req.user.id);
+  async resetPinCode(@Req() req, @Body() body: PincodeSetDto): Promise<PincodeResetResponseDto> {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing reset-pincode token in the header');
+    }
+
+    const bearerResetPincodeToken = req.headers.authorization.split(' ')[1];
+
+    const userId = await this.cipherTokenService.checkIfValid(
+      bearerResetPincodeToken,
+      TokenTypeEnum.ResetPincode,
+    );
+
+    await this.userService.setPincode(userId, body.pincode);
+
+    await this.cipherTokenService.deleteByToken(bearerResetPincodeToken);
 
     return {
       isReset: true,
@@ -287,10 +432,12 @@ export class AuthController {
   @Post('send-email-verification-code-for-forgot-password')
   async sendEmailVerificationCodeForForgotPassword(
     @Body() body: SendEmailVerificationCodeDto,
-  ): Promise<SendEmailVerificationCodeResponseDto> {
+  ): Promise<any> {
     const user = await this.userService.findOne({ email: body.email });
 
-    if (!user) return { isSent: false };
+    if (!user) {
+      throw new NotFoundException('User not found with this email');
+    }
 
     const res = await this.verificationService.sendEmailVerificationCode(body.email);
 
@@ -310,7 +457,7 @@ export class AuthController {
 
     const { id } = await this.userService.findOne({ email: body.email });
 
-    const resetPasswordToken = await this.authService.createResetPasswordToken(id);
+    const resetPasswordToken = await this.cipherTokenService.generateResetPasswordToken(id);
 
     return { resetPasswordToken };
   }
@@ -324,11 +471,14 @@ export class AuthController {
       throw new UnauthorizedException('Missing reset-password token in the header');
     }
 
-    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
+    const bearerResetPasswordToken = req.headers.authorization.split(' ')[1];
 
-    const userId = await this.cipherTokenService.checkIfValid(bearerRefreshToken);
+    const userId = await this.cipherTokenService.checkIfValid(
+      bearerResetPasswordToken,
+      TokenTypeEnum.AuthRefresh,
+    );
 
-    await this.cipherTokenService.deleteByToken(bearerRefreshToken);
+    await this.cipherTokenService.deleteByToken(bearerResetPasswordToken);
 
     await this.userService.resetPassword(userId, body.password);
 

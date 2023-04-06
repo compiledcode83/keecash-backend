@@ -3,9 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { DataSource, Repository } from 'typeorm';
 import { DateTime } from 'luxon';
 import { randomBytes } from 'node:crypto';
-import { User } from '@api/user/user.entity';
 import { CipherToken } from './cipher-token.entity';
-import { RefreshTokenInfo } from '@api/auth/dto/refresh-token-info.dto';
 import { TokenTypeEnum } from './cipher-token.types';
 
 @Injectable()
@@ -17,15 +15,12 @@ export class CipherTokenRepository extends Repository<CipherToken> {
     super(CipherToken, dataSource.manager);
   }
 
-  async createRefreshToken(
-    user: Partial<User>,
-    refreshTokenInfo: RefreshTokenInfo,
-  ): Promise<CipherToken> {
+  async generateRefreshToken(tokenData: Partial<CipherToken>): Promise<string> {
     const refreshToken = this.create({
-      userId: user.id,
+      userId: tokenData.userId,
       token: randomBytes(32).toString('hex'),
-      userAgent: refreshTokenInfo.userAgent,
-      ipAddress: refreshTokenInfo.ipAddress,
+      userAgent: tokenData.userAgent,
+      ipAddress: tokenData.ipAddress,
       type: TokenTypeEnum.AuthRefresh,
       expireAt: DateTime.now()
         .plus({
@@ -34,22 +29,53 @@ export class CipherTokenRepository extends Repository<CipherToken> {
         .toJSDate(),
     });
 
-    return this.save(refreshToken);
+    const { token } = await this.save(refreshToken);
+
+    return token;
   }
 
-  async createResetPasswordToken(userId: number): Promise<string> {
+  async generateResetPasswordToken(userId: number): Promise<string> {
     const resetPasswordToken = this.create({
       userId,
       token: randomBytes(32).toString('hex'),
       type: TokenTypeEnum.ResetPassword,
       expireAt: DateTime.now()
         .plus({
-          minutes: 15,
+          minutes: this.configService.get('jwtConfig.resetPasswordTokenDurationMinutes'),
         })
         .toJSDate(),
     });
 
     const { token } = await this.save(resetPasswordToken);
+
+    return token;
+  }
+
+  async generateResetPincodeToken(userId: number): Promise<string> {
+    const resetPincodeToken = this.create({
+      userId,
+      token: randomBytes(32).toString('hex'),
+      type: TokenTypeEnum.ResetPincode,
+      expireAt: DateTime.now()
+        .plus({
+          minutes: this.configService.get('jwtConfig.resetPasswordTokenDurationMinutes'),
+        })
+        .toJSDate(),
+    });
+
+    const { token } = await this.save(resetPincodeToken);
+
+    return token;
+  }
+
+  async generateCreateAccountToken(userId: number): Promise<string> {
+    const createAccountToken = this.create({
+      userId,
+      token: randomBytes(32).toString('hex'),
+      type: TokenTypeEnum.CreateAccount,
+    });
+
+    const { token } = await this.save(createAccountToken);
 
     return token;
   }

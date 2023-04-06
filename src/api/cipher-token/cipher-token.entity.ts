@@ -32,8 +32,8 @@ export class CipherToken {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ApiProperty({ description: 'Expire at date', required: true })
-  @Column({ type: 'timestamptz', nullable: false })
+  @ApiProperty({ description: 'Expire at date', required: false })
+  @Column({ type: 'timestamptz', nullable: true })
   expireAt: Date;
 
   @ManyToOne(() => User, (user) => user.refreshTokens)
