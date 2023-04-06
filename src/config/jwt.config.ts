@@ -8,4 +8,5 @@ export default registerAs('jwtConfig', () => ({
   refreshTokenDurationDays: process.env.JWT_REFRESH_TOKEN_DURATION_DAYS,
   refreshTokenMaxSessions: process.env.JWT_REFRESH_TOKEN_MAX_SESSIONS,
   accessTokenDurationMinutes: process.env.JWT_ACCESS_TOKEN_DURATION_MINUTES,
+  resetPasswordTokenDurationMinutes: process.env.RESET_PASSWORD_TOKEN_DURATION_MINUTES,
 }));

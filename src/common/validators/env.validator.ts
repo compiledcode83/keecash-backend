@@ -79,6 +79,10 @@ class EnvironmentVariables {
   JWT_ACCESS_TOKEN_DURATION_MINUTES: string;
 
   @IsString()
+  @MinLength(1)
+  RESET_PASSWORD_TOKEN_DURATION_MINUTES: string;
+
+  @IsString()
   @IsIn(['true', 'false'])
   JWT_REFRESH_TOKEN_COOKIE_SECURE: 'true' | 'false';
 
