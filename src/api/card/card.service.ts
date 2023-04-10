@@ -1,8 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  forwardRef,
+} from '@nestjs/common';
 import { CardRepository } from './card.repository';
 import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
-import axios, { AxiosRequestConfig, AxiosError } from 'axios';
-import qs = require('qs');
 import { CryptoCurrencyEnum, FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
 import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
 import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
@@ -11,12 +16,23 @@ import deposit_methods from './deposit_methods.json';
 import withdrawal_methods from './withdrawal_methods.json';
 import cardTypes from './card_types.json';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
+import { Card } from './card.entity';
+import { CountryFeeService } from '@api/country/country-fee/country-fee.service';
+import { UserService } from '../user/user.service';
+import { CreateCardDto } from './dto/create-card.dto';
+import { BridgecardService } from '../bridgecard/bridgecard.service';
+import { CardBrandEnum } from './card.types';
 
 @Injectable()
 export class CardService {
+  private readonly logger = new Logger(BridgecardService.name);
+
   constructor(
     private readonly cardRepository: CardRepository,
     private readonly transactionService: TransactionService,
+    private readonly countryFeeService: CountryFeeService,
+    private readonly bridgecardService: BridgecardService,
+    @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
   ) {}
 
   async findAllPaginated(searchParams: any): Promise<any> {
@@ -24,41 +40,78 @@ export class CardService {
     // return this.getPaginatedQueryBuilder({ ...searchParams, userId });
   }
 
+  async create(data: Partial<Card>) {
+    const cardEntity = await this.cardRepository.create(data);
+
+    return this.cardRepository.save(cardEntity);
+  }
+
+  async delete(param: Partial<Card>): Promise<boolean> {
+    const { affected } = await this.cardRepository.softDelete(param);
+
+    if (affected) return true;
+    else return false;
+  }
+
   // -------------- MANAGE CARD -------------------
 
-  async getDashboardItemsByUserId(userId: number): Promise<any> {
-    const balance = await this.transactionService.getBalanceForUser(userId);
+  async createBridgecard(userId: number, body: CreateCardDto) {
+    const { balance } = await this.transactionService.getBalanceArrayByCurrency(
+      userId,
+      body.keecashWallet,
+    );
 
-    const cards = await this.cardRepository.getCardsWithBalance(userId);
+    if (balance < body.totalToPay) {
+      throw new BadRequestException('Total pay amount exceeds current wallet balance');
+    }
+
+    const { cardholderId } = await this.userService.findOne({ id: userId });
+
+    await this.bridgecardService.createCard({
+      userId,
+      cardholderId,
+      type: body.cardType,
+      brand: CardBrandEnum.Visa, // default
+      currency: body.keecashWallet,
+      cardName: body.name,
+    });
+  }
+
+  async getDashboardItemsByUserId(userId: number): Promise<any> {
+    const walletBalance = await this.transactionService.getBalanceForUser(userId);
+
+    const { cardholderId } = await this.userService.findOne({ id: userId });
+
+    const cards = await this.bridgecardService.getAllCardholderCards(cardholderId);
 
     const eurCards = cards
-      .filter(({ card_currency }) => card_currency === 'EUR')
-      .map(({ balance, card_currency, card_card_number, card_name, card_expiry_date }) => ({
+      .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.EUR)
+      .map(({ balance, card_currency, card_number, expiry_month, expiry_year, meta_data }) => ({
         balance,
         currency: card_currency,
-        cardNumber: card_card_number,
-        name: card_name,
-        date: card_expiry_date,
+        cardNumber: card_number,
+        name: meta_data.keecash_card_name,
+        date: { expiry_month, expiry_year },
       }));
     const usdCards = cards
-      .filter(({ card_currency }) => card_currency === 'USD')
-      .map(({ balance, card_currency, card_card_number, card_name, card_expiry_date }) => ({
+      .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.USD)
+      .map(({ balance, card_currency, card_number, expiry_month, expiry_year, meta_data }) => ({
         balance,
         currency: card_currency,
-        cardNumber: card_card_number,
-        name: card_name,
-        date: card_expiry_date,
+        cardNumber: card_number,
+        name: meta_data.keecash_card_name,
+        date: { expiry_month, expiry_year },
       }));
 
     const result = [
       {
-        balance: balance.eur,
-        currency: 'EUR',
+        balance: walletBalance.eur,
+        currency: FiatCurrencyEnum.EUR,
         cards: eurCards,
       },
       {
-        balance: balance.usd,
-        currency: 'USD',
+        balance: walletBalance.usd,
+        currency: FiatCurrencyEnum.USD,
         cards: usdCards,
       },
     ];
@@ -67,47 +120,53 @@ export class CardService {
   }
 
   async getCardListByUserId(userId: number): Promise<any> {
-    const cards = await this.cardRepository.getCardsWithBalance(userId, false);
+    const { cardholderId } = await this.userService.findOne({ id: userId });
+
+    const cards = await this.bridgecardService.getAllCardholderCards(cardholderId);
 
     const result = cards.map((card) => ({
       balance: card.balance,
       currency: card.card_currency,
-      isBlock: card.card_is_blocked,
-      isExpired: card.card_is_expired,
-      cardNumber: card.card_card_number,
-      name: card.card_name,
-      date: card.card_expiry_date,
-      holderLastName: card.card_cardholder_name.split(' ')[-1],
-      holderFirstName: card.card_cardholder_name.split(' ')[0],
+      isBlock: !card.is_active,
+      isExpired: !card.is_active, // TODO: get decrypted data
+      cardNumber: card.card_number,
+      name: card.meta_data.keecash_card_name,
+      date: {
+        month: card.expiry_month,
+        year: card.expiry_year,
+      },
+      cardholderName: card.card_name,
     }));
 
     return result;
   }
 
-  async setLock(userId: number, cardId: number, isBlocked: boolean): Promise<void> {
-    const card = await this.cardRepository.findOne({ where: { id: cardId } });
+  async blockCard(userId: number, cardId: string): Promise<void> {
+    const card = this.cardRepository.findOne({ where: { userId, bridgecardId: cardId } });
 
-    if (card.userId !== userId) {
-      throw new UnauthorizedException('Not the owner of the card');
+    if (!card) {
+      throw new UnauthorizedException('User does not have right to access the card');
     }
 
-    await this.cardRepository.setBlock(cardId, isBlocked);
+    await this.bridgecardService.freezeCard(cardId);
   }
 
-  async removeOne(userId: number, cardId: number) {
-    const card = await this.cardRepository.findOne({ where: { id: cardId } });
+  async unlockCard(userId: number, cardId: string): Promise<void> {
+    const card = this.cardRepository.findOne({ where: { userId, bridgecardId: cardId } });
 
-    if (card.userId !== userId) {
-      throw new UnauthorizedException('Not the owner of the card');
+    if (!card) {
+      throw new UnauthorizedException('User does not have right to access the card');
     }
 
-    await this.cardRepository.softDelete({ id: cardId });
+    await this.bridgecardService.unfreezeCard(cardId);
   }
 
   // -------------- GET SETTINGS -------------------
 
   async getDepositSettings(userId: number) {
     const balance = await this.transactionService.getBalanceForUser(userId);
+
+    const user = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
 
     const keecash_wallets = [
       {
@@ -437,5 +496,56 @@ export class CardService {
     const totalToPay = cardPrice + body.desiredAmount + feesApplied;
 
     return { feesApplied, totalToPay };
+  }
+
+  // ------------------ Bridgecard Webhook Handler ----------------------
+
+  async handleWebhookEvent(event: string, data: any) {
+    switch (event) {
+      case 'cardholder_verification.successful':
+        await this.userService.update(
+          { cardholderId: data.cardholder_id },
+          { cardholderVerified: true },
+        );
+        this.logger.log(`Cardholder: ${data.cardholder_id} is verified successfully`);
+        break;
+
+      case 'cardholder_verification.failed':
+        this.logger.log(`Verification failed for cardholder: ${data.cardholder_id}`);
+        break;
+
+      case 'card_creation_event.successful':
+        const { id: userId } = await this.userService.findOne({ cardholderId: data.cardholder_id });
+        await this.create({
+          userId: userId,
+          bridgecardId: data.card_id,
+          currency: data.currency,
+        });
+        break;
+
+      case 'card_creation_event.failed':
+        break;
+
+      case 'card_credit_event.successful':
+        break;
+
+      case 'card_credit_event.failed':
+        break;
+
+      case 'card_debit_event.successful':
+        break;
+
+      case 'card_debit_event.declined':
+        break;
+
+      case 'card_reversal_event.successful':
+        break;
+
+      case '3d_secure_otp_event.generated':
+        break;
+
+      default:
+        break;
+    }
   }
 }

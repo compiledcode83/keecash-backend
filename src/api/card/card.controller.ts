@@ -1,13 +1,25 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
-import { FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
+import { FiatCurrencyEnum } from '@api/crypto-tx/crypto-tx.types';
 import { GetDashboardItemsResponseDto } from './dto/get-dashboard-items-response.dto';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
-import { ManageCardDto } from './dto/manage-card.dto';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 import { GetCardHistoryFilterDto } from './dto/get-card-history-filter.dto';
+import { CreateCardDto } from './dto/create-card.dto';
+import { BridgecardWebhookResponseDto } from './dto/bridgecard-webhook-response.dto';
 
 @Controller()
 export class CardController {
@@ -45,34 +57,37 @@ export class CardController {
   }
 
   @ApiOperation({ description: 'Block my cards' })
+  @ApiParam({ name: 'card_id', required: true, description: 'Bridgecard ID' })
   @ApiTags('Card Management')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get('card/block/my-card')
-  async blockMyCard(@Req() req, @Body() body: ManageCardDto) {
-    await this.cardService.setLock(req.user.id, body.cardId, true);
+  @Patch('card/block/:card_id')
+  async blockCard(@Req() req, @Param('card_id') cardId: string) {
+    await this.cardService.blockCard(req.user.id, cardId);
 
     return { isSuccess: true };
   }
 
   @ApiOperation({ description: 'Unlock my cards' })
+  @ApiParam({ name: 'card_id', required: true, description: 'Bridgecard ID' })
   @ApiTags('Card Management')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get('card/unlock/my-card')
-  async unlockMyCard(@Req() req, @Body() body: ManageCardDto) {
-    await this.cardService.setLock(req.user.id, body.cardId, false);
+  @Patch('card/unlock/my-card')
+  async unlockCard(@Req() req, @Param('card_id') cardId: string) {
+    await this.cardService.unlockCard(req.user.id, cardId);
 
     return { isSuccess: true };
   }
 
   @ApiOperation({ description: 'Remove all my cards' })
+  @ApiParam({ name: 'card_id', required: true, description: 'Bridgecard ID' })
   @ApiTags('Card Management')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get('card/remove/my-card')
-  async removeMyCard(@Req() req, @Body() body: ManageCardDto) {
-    await this.cardService.removeOne(req.user.id, body.cardId);
+  @Delete('card/remove/my-card')
+  async removeMyCard(@Req() req, @Param('card_id') cardId: string) {
+    await this.cardService.delete({ userId: req.user.id, bridgecardId: cardId });
 
     return { isSuccess: true };
   }
@@ -89,11 +104,11 @@ export class CardController {
   }
 
   @ApiOperation({ description: '' })
+  @ApiParam({ name: 'keecash_wallet_currency', required: true, description: 'Currency of wallet' })
   @ApiTags('Transaction History')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('/keecash-wallet/:keecash_wallet_currency/transactions')
-  @ApiParam({ name: 'keecash_wallet_currency', required: true, description: 'Currency of wallet' })
   async getKeecashWalletTransactions(
     @Req() req,
     @Param('keecash_wallet_currency') currency: FiatCurrencyEnum,
@@ -102,12 +117,12 @@ export class CardController {
   }
 
   @ApiOperation({ description: '' })
+  @ApiParam({ name: 'keecash_wallet_currency', required: true, description: 'Currency of wallet' })
+  @ApiParam({ name: 'reference', required: true, description: 'Reference' })
   @ApiTags('Transaction History')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/keecash-wallet/:keecash_wallet_currency/transactions/:reference/invoice')
-  @ApiParam({ name: 'keecash_wallet_currency', required: true, description: 'Currency of wallet' })
-  @ApiParam({ name: 'reference', required: true, description: 'Reference' })
   async getKeecashWalletTransactionInvoice(
     @Req() req,
     @Param('keecash_wallet_currency') currency: FiatCurrencyEnum,
@@ -120,12 +135,12 @@ export class CardController {
   }
 
   @ApiOperation({ description: 'Get card transaction invoices' })
+  @ApiParam({ name: 'card_name', required: true, description: 'Card name' })
+  @ApiParam({ name: 'reference', required: true, description: 'Reference' })
   @ApiTags('Transaction History')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/card/:card_name/transactions/:reference/invoice')
-  @ApiParam({ name: 'card_name', required: true, description: 'Card name' })
-  @ApiParam({ name: 'reference', required: true, description: 'Reference' })
   async getCardInvoices(@Param() param) {
     const result = {
       link: '',
@@ -135,11 +150,11 @@ export class CardController {
   }
 
   @ApiOperation({ description: 'Get card transactions' })
+  @ApiParam({ name: 'card_name', required: true, description: 'Card name' })
   @ApiTags('Transaction History')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('/card/:card_name/transactions/')
-  @ApiParam({ name: 'card_name', required: true, description: 'Card name' })
   async getCardTransactions(
     @Req() req,
     @Param('card_name') card_name: string,
@@ -228,7 +243,16 @@ export class CardController {
   @UseGuards(JwtAuthGuard)
   @ApiTags('Create Card')
   @Post('create-card/apply')
-  async applyCreateCard(@Req() req, @Body() body) {
-    return 'ok';
+  async applyCreateCard(@Req() req, @Body() body: CreateCardDto) {
+    return this.cardService.createBridgecard(req.user.id, body);
+  }
+
+  @Post('bridgedard/webhook')
+  async handleWebhookEvent(@Body() body: BridgecardWebhookResponseDto) {
+    const { event, data } = body;
+
+    console.log({ event, data });
+
+    await this.cardService.handleWebhookEvent(event, data);
   }
 }
