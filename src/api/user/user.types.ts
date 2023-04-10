@@ -16,6 +16,7 @@ export enum UserStatus {
 }
 
 export enum VerificationStatus {
+  NotStarted = 'NOT_STARTED',
   Pending = 'PENDING',
   Validated = 'VALIDATED',
   Rejected = 'REJECTED',

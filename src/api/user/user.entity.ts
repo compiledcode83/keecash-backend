@@ -75,11 +75,11 @@ export class User {
   status: UserStatus;
 
   @ApiProperty({ description: 'KYC verification status' })
-  @Column({ type: 'enum', enum: VerificationStatus, default: VerificationStatus.Pending })
+  @Column({ type: 'enum', enum: VerificationStatus, default: VerificationStatus.NotStarted })
   kycStatus: VerificationStatus;
 
   @ApiProperty({ description: 'KYB verification status' })
-  @Column({ type: 'enum', enum: VerificationStatus, default: VerificationStatus.Pending })
+  @Column({ type: 'enum', enum: VerificationStatus, default: VerificationStatus.NotStarted })
   kybStatus: VerificationStatus;
 
   @ApiProperty({ description: 'Is email validated' })
@@ -109,6 +109,14 @@ export class User {
   @ApiProperty({ description: 'Date when user was rejected', required: false })
   @Column({ type: 'timestamptz', nullable: true })
   rejectedAt: Date;
+
+  @ApiProperty({ description: 'Bridgecard cardholder ID', required: false })
+  @Column({ type: 'varchar', nullable: true, length: 255, unique: true })
+  cardholderId: string;
+
+  @ApiProperty({ description: 'Is Bridgecard cardholder profile verified' })
+  @Column({ type: 'boolean', default: false })
+  cardholderVerified: boolean;
 
   @OneToMany(() => CipherToken, (authRefreshToken) => authRefreshToken.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })

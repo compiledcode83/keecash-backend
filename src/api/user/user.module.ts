@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { VerificationModule } from '@api/verification/verification.module';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
@@ -15,6 +15,8 @@ import { ShareholderModule } from '@api/shareholder/shareholder.module';
 import { ClosureReasonModule } from '../closure-reason/closure-reason.module';
 import { TransactionModule } from '../transaction/transaction.module';
 import { CardModule } from '../card/card.module';
+import { BridgecardModule } from '../bridgecard/bridgecard.module';
+import { CipherTokenModule } from '../cipher-token/cipher-token.module';
 
 @Module({
   imports: [
@@ -26,7 +28,9 @@ import { CardModule } from '../card/card.module';
     ShareholderModule,
     ClosureReasonModule,
     TransactionModule,
-    CardModule,
+    forwardRef(() => CardModule),
+    BridgecardModule,
+    CipherTokenModule,
   ],
   controllers: [UserController],
   providers: [

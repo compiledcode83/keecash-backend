@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Delete,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
@@ -19,13 +20,20 @@ import { RequestEmailChangeDto } from './dto/request-email-change.dto';
 import { CloseAccountDto } from './dto/close-account.dto';
 import { ConfirmEmailChangeOtpDto } from './dto/confirm-email-change-otp.dto';
 import { VerificationService } from '../verification/verification.service';
+import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
+import { CipherTokenService } from '../cipher-token/cipher-token.service';
+import { TokenTypeEnum } from '../cipher-token/cipher-token.types';
+import { VerificationStatus } from './user.types';
 
 @Controller()
 export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly verificationService: VerificationService,
+    private readonly cipherTokenService: CipherTokenService,
   ) {}
+
+  // ------------ Referral ----------------
 
   @ApiOperation({ description: 'Get all referred users' })
   @ApiBearerAuth()
@@ -41,6 +49,8 @@ export class UserController {
       godsons: referredUsers,
     };
   }
+
+  // ------------ Account Settings ----------------
 
   @ApiOperation({ description: 'Get all referred users' })
   @ApiBearerAuth()
@@ -121,14 +131,79 @@ export class UserController {
   //   return true;
   // }
 
-  // @ApiOperation({ description: `Create account` })
-  // @UseGuards(JwtAuthGuard)
-  // @Post('auth/add-personal-user-info')
-  // async addPersonalUserInfo(@Request() req, @Body() body: AddPersonUserInfoDto) {
-  //   const updatedUser = await this.userService.addPersonalUserInfo(req.user.email, body);
+  // ------------ KYC ----------------
 
-  //   return this.userService.createAccessToken(updatedUser);
-  // }
+  @ApiOperation({ description: `Submit KYC information` })
+  @ApiBearerAuth()
+  @ApiTags('KYC')
+  @Post('kyc/submitted')
+  async submitKycInfo(@Req() req, @Body() body: SubmitKycInfoDto) {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing CreateAccountToken in the header');
+    }
+
+    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
+
+    const token = await this.cipherTokenService.findOneBy({
+      token: bearerCreateAccountToken,
+      type: TokenTypeEnum.CreateAccount,
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('CreateAccountToken is invalid');
+    }
+
+    await this.userService.submitKycInfo(token.userId, body);
+  }
+
+  @ApiOperation({ description: `KYC submission approved` })
+  @ApiBearerAuth()
+  @ApiTags('KYC')
+  @Patch('kyc/approved')
+  async kycApproved(@Req() req): Promise<void> {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing CreateAccountToken in the header');
+    }
+
+    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
+
+    const token = await this.cipherTokenService.findOneBy({
+      token: bearerCreateAccountToken,
+      type: TokenTypeEnum.CreateAccount,
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('CreateAccountToken is invalid');
+    }
+
+    await this.userService.completeAccount(token.userId);
+
+    // Delete create-account token once onboarding is finished
+    await this.cipherTokenService.deleteByToken(token.token);
+  }
+
+  @ApiOperation({ description: `KYC submission rejected` })
+  @ApiBearerAuth()
+  @ApiTags('KYC')
+  @Patch('kyc/rejected')
+  async kycRejected(@Req() req): Promise<void> {
+    if (!req.headers.authorization) {
+      throw new UnauthorizedException('Missing CreateAccountToken in the header');
+    }
+
+    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
+
+    const token = await this.cipherTokenService.findOneBy({
+      token: bearerCreateAccountToken,
+      type: TokenTypeEnum.CreateAccount,
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('CreateAccountToken is invalid');
+    }
+
+    await this.userService.update(token.userId, { kycStatus: VerificationStatus.Rejected });
+  }
 
   // @ApiOperation({ description: `Get sumsub api access token for development` })
   // @Get('auth/dev-sumsub-access-token')

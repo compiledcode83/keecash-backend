@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
@@ -15,19 +17,18 @@ import { PersonProfileService } from '@api/user/person-profile/person-profile.se
 import { ShareholderService } from '@api/shareholder/shareholder.service';
 import { VerificationService } from '@api/verification/verification.service';
 import * as bcrypt from 'bcrypt';
-import { AddPersonUserInfoDto } from './dto/add-personal-user-info.dto';
+import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
-import { SendPhoneNumberVerificationCodeDto } from '../verification/dto/send-phone-verification.dto';
+import { SendPhoneNumberVerificationCodeDto } from '@api/verification/dto/send-phone-verification.dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
-import { AccountType, Language, UserStatus } from './user.types';
-import { ClosureReasonService } from '../closure-reason/closure-reason.service';
-import { TransactionService } from '../transaction/transaction.service';
-import { CardService } from '../card/card.service';
-import { CloseAccountDto } from './dto/close-account.dto';
-import { BridgecardService } from '../card/bridgecard.service';
+import { AccountType, Language, UserStatus, VerificationStatus } from './user.types';
+import { ClosureReasonService } from '@api/closure-reason/closure-reason.service';
+import { TransactionService } from '@api/transaction/transaction.service';
+import { CardService } from '@api/card/card.service';
+import { BridgecardService } from '../bridgecard/bridgecard.service';
 
 const closure_reasons = require('../closure-reason/closure-reasons.json');
 
@@ -45,10 +46,9 @@ export class UserService {
     private readonly verificationService: VerificationService,
     private readonly closureReasonService: ClosureReasonService,
     private readonly transactionService: TransactionService,
+    private readonly bridgecardService: BridgecardService,
     @Inject(forwardRef(() => CardService))
     private readonly cardService: CardService,
-    @Inject(forwardRef(() => BridgecardService))
-    private readonly bridgecardService: BridgecardService,
   ) {}
 
   async findOne(param: any): Promise<User> {
@@ -74,7 +74,21 @@ export class UserService {
     withProfile: boolean,
     withDocuments: boolean,
   ) {
-    return this.userRepository.findOneWithProfileAndDocumments(userId, withProfile, withDocuments);
+    const user = await this.userRepository.findOneWithProfileAndDocumments(
+      userId,
+      withProfile,
+      withDocuments,
+    );
+
+    if (withProfile && !user.personProfile) {
+      throw new NotFoundException('Cannot find profile data for this user');
+    }
+
+    if (withDocuments && !user.documents.length) {
+      throw new NotFoundException('Cannot find any documents for this user');
+    }
+
+    return user;
   }
 
   async getReferralUserId(userId: number): Promise<number | null> {
@@ -347,11 +361,11 @@ export class UserService {
     return this.verificationService.createSumsubAccessToken('JamesBond007');
   }
 
-  async addPersonalUserInfo(id: string, body: AddPersonUserInfoDto): Promise<User> {
-    const user = await this.findOne({ id });
+  async submitKycInfo(userId: number, body: SubmitKycInfoDto): Promise<void> {
+    const user = await this.findOne({ userId });
 
     if (!user.emailValidated || !user.phoneValidated) {
-      throw new BadRequestException('Validation is not completed yet');
+      throw new BadRequestException('Email or phone is not verified yet');
     }
 
     const { id: countryId } = await this.countryService.findOne({ name: body.country });
@@ -361,16 +375,14 @@ export class UserService {
       address2: body.address2,
       city: body.city,
       countryId,
-      user: user,
+      userId,
     });
 
-    await this.userRepository.update(id, {
+    await this.userRepository.update(userId, {
       firstName: body.firstName,
       lastName: body.lastName,
-      status: UserStatus.Completed,
+      kycStatus: VerificationStatus.Pending,
     });
-
-    return this.findOne({ id });
   }
 
   async setPincode(userId: number, pincode: string): Promise<void> {
@@ -470,5 +482,46 @@ export class UserService {
     }
 
     await this.userRepository.update(userId, { email: newEmail });
+  }
+
+  async completeAccount(userId: number) {
+    await this.userRepository.update(userId, {
+      kycStatus: VerificationStatus.Validated,
+    });
+
+    const user = await this.findOneWithProfileAndDocumments(userId, true, true);
+
+    const body = {
+      first_name: user.firstName,
+      last_name: user.lastName,
+      address: {
+        address: user.personProfile.address1,
+        city: user.personProfile.city,
+        state: '',
+        country: user.personProfile.country.name,
+        postal_code: user.personProfile.zipcode,
+        house_no: user.personProfile.address2,
+      },
+      phone: user.phoneNumber,
+      email_address: user.email,
+      identity: {
+        id_type: user.documents[0].type,
+        id_no: '',
+        id_image: user.documents[0].imageLink,
+        bvn: '',
+      },
+      meta_data: {
+        keecash_user_id: user.id,
+      },
+    };
+
+    const res = await this.bridgecardService.registerCardholderAsync(body);
+
+    if (res.status === HttpStatus.CREATED) {
+      await this.userRepository.update(body.meta_data.keecash_user_id, {
+        cardholderId: res.data.data.cardholder_id,
+        status: UserStatus.Completed,
+      });
+    }
   }
 }
