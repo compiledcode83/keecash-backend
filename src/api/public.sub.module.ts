@@ -19,6 +19,7 @@ import { CardModule } from '@api/card/card.module';
 import { TransactionModule } from '@api/transaction/transaction.module';
 import { ClosureReasonModule } from '@api/closure-reason/closure-reason.module';
 import { NotificationModule } from './notification/notification.module';
+import { BridgecardModule } from './bridgecard/bridgecard.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { NotificationModule } from './notification/notification.module';
     VerificationModule,
     ClosureReasonModule,
     NotificationModule,
+    BridgecardModule,
   ],
 })
 export class PublicSubModule {}

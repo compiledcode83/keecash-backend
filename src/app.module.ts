@@ -13,6 +13,7 @@ import storageConfig from '@config/storage.config';
 import cryptoConfig from '@config/crypto.config';
 import { AdminSubModule } from '@admin/admin.sub.module';
 import { PublicSubModule } from '@api/public.sub.module';
+import bridgecardConfig from '@config/bridgecard.config';
 
 EnvHelper.verifyNodeEnv();
 
@@ -21,7 +22,15 @@ EnvHelper.verifyNodeEnv();
     ConfigModule.forRoot({
       envFilePath: EnvHelper.getEnvFilePath(),
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig, verificationConfig, storageConfig, cryptoConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        jwtConfig,
+        verificationConfig,
+        storageConfig,
+        cryptoConfig,
+        bridgecardConfig,
+      ],
       validate: validate,
     }),
     TypeOrmModule.forRootAsync({
