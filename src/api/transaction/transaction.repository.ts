@@ -10,23 +10,29 @@ export class TransactionRepository extends Repository<Transaction> {
     super(Transaction, dataSource.manager);
   }
 
-  async getBalancesForUser(userId: number): Promise<any[]> {
-    const result = await this.createQueryBuilder('transaction')
+  async getBalancesForUser(userId: number, currency: string): Promise<any> {
+    const queryBuilder = await this.createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.sender', 'sender')
       .leftJoinAndSelect('transaction.receiver', 'receiver')
       .where('(sender.id = :userId OR receiver.id = :userId) AND transaction.status = :status', {
         userId,
         status: TransactionStatusEnum.Performed,
-      })
+      });
+
+    if (currency !== 'ALL') {
+      queryBuilder.andWhere('transaction.currency = :currency', { currency });
+    }
+
+    queryBuilder
       .select(
         'SUM(CASE WHEN sender.id = :userId THEN -transaction.amount ELSE transaction.amount END)',
         'balance',
       )
       .addSelect('transaction.currency', 'currency')
-      .groupBy('transaction.currency')
-      .getRawMany();
+      .groupBy('transaction.currency');
 
-    return result;
+    if (currency === 'ALL') return queryBuilder.getRawMany();
+    else return queryBuilder.getRawOne();
   }
 
   async getAllTransactions(userId: number, currency: FiatCurrencyEnum = null) {

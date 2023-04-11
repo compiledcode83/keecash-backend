@@ -30,7 +30,7 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('get-dashboard-items')
-  async getDashboardItems(@Req() req, @Query() query): Promise<GetDashboardItemsResponseDto> {
+  async getDashboardItems(@Req() req): Promise<GetDashboardItemsResponseDto> {
     const wallets = await this.cardService.getDashboardItemsByUserId(req.user.id);
 
     return {

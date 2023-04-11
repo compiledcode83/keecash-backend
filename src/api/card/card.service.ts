@@ -78,7 +78,7 @@ export class CardService {
   }
 
   async getDashboardItemsByUserId(userId: number): Promise<any> {
-    const walletBalance = await this.transactionService.getBalanceForUser(userId);
+    const walletBalance = await this.transactionService.getWalletBalances(userId);
 
     const { cardholderId } = await this.userService.findOne({ id: userId });
 
@@ -91,7 +91,7 @@ export class CardService {
         currency: card_currency,
         cardNumber: card_number,
         name: meta_data.keecash_card_name,
-        date: { expiry_month, expiry_year },
+        date: `${expiry_month}/${expiry_year.slice(-2)}`,
       }));
     const usdCards = cards
       .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.USD)
@@ -124,18 +124,28 @@ export class CardService {
 
     const cards = await this.bridgecardService.getAllCardholderCards(cardholderId);
 
-    const result = cards.map((card) => ({
-      balance: card.balance,
+    const details = await Promise.all(
+      cards.map(async (card) => {
+        const balancePromise = this.bridgecardService.getCardBalance(card.card_id);
+        const transactionsPromise = this.bridgecardService.getCardTransactions(card.card_id);
+
+        const [balance, transactions] = await Promise.all([balancePromise, transactionsPromise]);
+
+        return { balance, transactions };
+      }),
+    );
+
+    const result = cards.map((card, i) => ({
+      balance: details[i].balance,
       currency: card.card_currency,
       isBlock: !card.is_active,
-      isExpired: !card.is_active, // TODO: get decrypted data
+      isExpired: new Date(`${card.expiry_year}-${card.expiry_month}-01`) < new Date(),
       cardNumber: card.card_number,
       name: card.meta_data.keecash_card_name,
-      date: {
-        month: card.expiry_month,
-        year: card.expiry_year,
-      },
+      date: `${card.expiry_month}/${card.expiry_year.slice(-2)}`,
       cardholderName: card.card_name,
+      lastTransaction:
+        details[i].transactions.transactions && details[i].transactions.transactions[0],
     }));
 
     return result;
@@ -164,7 +174,7 @@ export class CardService {
   // -------------- GET SETTINGS -------------------
 
   async getDepositSettings(userId: number) {
-    const balance = await this.transactionService.getBalanceForUser(userId);
+    const balance = await this.transactionService.getWalletBalances(userId);
 
     const user = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
 
@@ -196,7 +206,7 @@ export class CardService {
   }
 
   async getWithdrawalSettings(userId: number) {
-    const balance = await this.transactionService.getBalanceForUser(userId);
+    const balance = await this.transactionService.getWalletBalances(userId);
 
     const keecash_wallets = [
       {
@@ -226,7 +236,7 @@ export class CardService {
   }
 
   async getTransferSettings(userId: number, keecashId: string) {
-    const balance = await this.transactionService.getBalanceForUser(userId);
+    const balance = await this.transactionService.getWalletBalances(userId);
 
     const keecash_wallets = [
       {
@@ -459,7 +469,11 @@ export class CardService {
   }
 
   async getCreateCardSettings(userId: number) {
-    const balance = await this.transactionService.getBalanceForUser(userId);
+    const balance = await this.transactionService.getWalletBalances(userId);
+
+    const {
+      personProfile: { countryId },
+    } = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
 
     const keecashWallets = [
       {

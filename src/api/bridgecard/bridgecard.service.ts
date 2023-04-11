@@ -7,10 +7,18 @@ import { CreateBridgecardDto } from './dto/create-bridgecard.dto';
 export class BridgecardService {
   private readonly logger = new Logger(BridgecardService.name);
   private axiosInstance: AxiosInstance;
+  private axiosInstanceDecrypted: AxiosInstance;
 
   constructor(private readonly configService: ConfigService) {
     this.axiosInstance = axios.create({
       baseURL: this.configService.get('bridgecardConfig.baseUrl'),
+      headers: {
+        token: `Bearer ${this.configService.get('bridgecardConfig.authToken')}`,
+      },
+    });
+
+    this.axiosInstanceDecrypted = axios.create({
+      baseURL: this.configService.get('bridgecardConfig.baseUrlDecrypted'),
       headers: {
         token: `Bearer ${this.configService.get('bridgecardConfig.authToken')}`,
       },
@@ -95,24 +103,25 @@ export class BridgecardService {
     }
   }
 
-  async setCardSecurePin() {
-    const body = {
-      card_id: '8389303030030c460e9250',
-      card_pin: 'encrypted pin',
-    };
+  async getCardBalance(cardId: string) {
+    try {
+      const res = await this.axiosInstanceDecrypted.get(`/cards/get_card_balance`, {
+        params: {
+          card_id: cardId,
+        },
+      });
 
-    const res = await this.axiosInstance.post('/cards/set_3d_secure_pin', body);
+      return res.data.data.balance;
+    } catch (error) {
+      const { status, statusText, data } = error.response || {};
 
-    if (res.status === HttpStatus.OK) {
-      this.logger.log(res.data.message);
-    } else {
-      this.logger.error(res.data.message);
+      throw new HttpException(data?.message || statusText, status);
     }
   }
 
   async getCardDetails(cardId: string) {
     try {
-      const res = await this.axiosInstance.get(`/cardholder/get_card_details`, {
+      const res = await this.axiosInstanceDecrypted.get(`/cards/get_card_details`, {
         params: {
           card_id: cardId,
         },
@@ -122,19 +131,35 @@ export class BridgecardService {
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
-      throw new HttpException(data.message || statusText, status);
+      throw new HttpException(data?.message || statusText, status);
     }
   }
 
   async getAllCardholderCards(cardholderId: string) {
     try {
-      const res = await this.axiosInstance.get(`/cardholder/get_all_cardholder_cards`, {
+      const res = await this.axiosInstanceDecrypted.get(`/cards/get_all_cardholder_cards`, {
         params: {
           cardholder_id: cardholderId,
         },
       });
 
       return res.data.data.cards;
+    } catch (error) {
+      const { status, statusText, data } = error.response || {};
+
+      throw new HttpException(data.message || statusText, status);
+    }
+  }
+
+  async getCardTransactions(cardId: string) {
+    try {
+      const res = await this.axiosInstanceDecrypted.get(`/cards/get_card_transactions`, {
+        params: {
+          card_id: cardId,
+        },
+      });
+
+      return res.data.data;
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
@@ -152,7 +177,7 @@ export class BridgecardService {
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
-      throw new HttpException(data.message || statusText, status);
+      throw new HttpException(data?.message || statusText, status);
     }
   }
 
