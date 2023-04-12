@@ -15,7 +15,7 @@ import { CryptoConfirmCancelWithdrawDto } from './dto/crypto-confirm-withdraw.dt
 import { CryptoTransferDto } from './dto/crypto-transfer.dto';
 import { CryptoTransactionFilterDto } from './dto/crypto-transaction-filter.dto';
 import { CryptoPayoutNotifyDto } from './dto/crypto-payout-notify.dto';
-import { CountryFeeService } from '@api/country/country-fee/country-fee.service';
+import { CountryFeeService } from '@api/country-fee/country-fee.service';
 
 const GRANT_TYPE = 'client_credentials';
 const ADMIN_USER_ID = 1;

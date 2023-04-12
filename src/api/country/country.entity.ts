@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CountryFee } from './country-fee/country-fee.entity';
+import { CountryFee } from '../country-fee/country-fee.entity';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, JoinColumn, OneToOne } from 'typeorm';
-import { CountryActivation } from './country-activation/country-activation.entity';
+import { CountryActivation } from '@api/country-activation/country-activation.entity';
 import { PersonProfile } from '@api/user/person-profile/person-profile.entity';
 
 @Entity('country')

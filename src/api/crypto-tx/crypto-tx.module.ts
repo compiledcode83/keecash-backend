@@ -1,6 +1,6 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { CountryFeeModule } from '@api/country/country-fee/country-fee.module';
+import { CountryFeeModule } from '@api/country-fee/country-fee.module';
 import { UserModule } from '@api/user/user.module';
 import { CryptoTxRepository } from './crypto-tx-repository';
 import { CryptoTxController } from './crypto-tx.controller';

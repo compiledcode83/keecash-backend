@@ -8,7 +8,7 @@ import { DepositController } from './deposit.controller';
 import { WithdrawalController } from './withdrawal.controller';
 import { NotificationModule } from '../notification/notification.module';
 import { UserModule } from '../user/user.module';
-import { CountryFeeModule } from '../country/country-fee/country-fee.module';
+import { CountryFeeModule } from '../country-fee/country-fee.module';
 import { BridgecardModule } from '../bridgecard/bridgecard.module';
 
 @Module({

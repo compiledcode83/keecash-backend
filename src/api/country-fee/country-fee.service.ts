@@ -6,6 +6,10 @@ import { CountryFeeRepository } from './country-fee.repository';
 export class CountryFeeService {
   constructor(private readonly countryFeeRepository: CountryFeeRepository) {}
 
+  async findMany(param: any) {
+    return this.countryFeeRepository.find(param);
+  }
+
   async getCryptoDepostiFeePercent(): Promise<number> {
     const fee = await this.countryFeeRepository
       .createQueryBuilder('fee')

@@ -17,7 +17,7 @@ import withdrawal_methods from './withdrawal_methods.json';
 import cardTypes from './card_types.json';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 import { Card } from './card.entity';
-import { CountryFeeService } from '@api/country/country-fee/country-fee.service';
+import { CountryFeeService } from '@api/country-fee/country-fee.service';
 import { UserService } from '../user/user.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { BridgecardService } from '../bridgecard/bridgecard.service';

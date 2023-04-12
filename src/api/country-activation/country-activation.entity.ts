@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, JoinColumn, OneToOne } from 'typeorm';
-import { Country } from '../country.entity';
+import { Country } from '../country/country.entity';
 
 @Entity('country_activation')
 export class CountryActivation {
