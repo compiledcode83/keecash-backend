@@ -21,37 +21,37 @@ export class WalletDepositWithdrawalFee {
 
   // --------------------- DEPOSIT -------------------------
 
-  @ApiProperty({ description: 'deposit fixed fee', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
+  @ApiProperty({ description: 'deposit fixed fee', maximum: 64, required: true })
+  @Column({ type: 'float', nullable: false, default: 0 })
   depositFixedFee: number;
 
-  @ApiProperty({ description: 'deposit percent fee', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
+  @ApiProperty({ description: 'deposit percent fee', maximum: 64, required: true })
+  @Column({ type: 'float', nullable: false, default: 0 })
   depositPercentFee: number;
 
-  @ApiProperty({ description: 'deposit min amount', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
+  @ApiProperty({ description: 'deposit min amount', maximum: 64, required: true })
+  @Column({ type: 'float', nullable: false, default: 0 })
   depositMinAmount: number;
 
-  @ApiProperty({ description: 'deposit max amount', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
+  @ApiProperty({ description: 'deposit max amount', maximum: 64, required: true })
+  @Column({ type: 'float', nullable: false, default: 0 })
   depositMaxAmount: number;
 
   // --------------------- WITHDRAWAL -------------------------
 
-  @ApiProperty({ description: 'withdraw fixed fee', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
+  @ApiProperty({ description: 'withdraw fixed fee', maximum: 64, required: true })
+  @Column({ type: 'float', nullable: false, default: 0 })
   withdrawFixedFee: number;
 
-  @ApiProperty({ description: 'withdraw percent fee', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
+  @ApiProperty({ description: 'withdraw percent fee', maximum: 64, required: true })
+  @Column({ type: 'float', nullable: false, default: 0 })
   withdrawPercentFee: number;
 
-  @ApiProperty({ description: 'withdraw min amount', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
+  @ApiProperty({ description: 'withdraw min amount', maximum: 64, required: true })
+  @Column({ type: 'float', nullable: false, default: 0 })
   withdrawMinAmount: number;
 
-  @ApiProperty({ description: 'withdraw max amount', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
+  @ApiProperty({ description: 'withdraw max amount', maximum: 64, required: true })
+  @Column({ type: 'float', nullable: false, default: 0 })
   withdrawMaxAmount: number;
 }
