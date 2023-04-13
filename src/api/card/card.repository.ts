@@ -26,14 +26,6 @@ export class CardRepository extends Repository<Card> {
     return cards;
   }
 
-  async setBlock(cardId: number, isBlocked: boolean) {
-    await this.createQueryBuilder('card')
-      .update(Card)
-      .set({ isBlocked })
-      .where({ id: cardId })
-      .execute();
-  }
-
   // async getBalancesForAllCurrencies(userId: number) {
   //   const result = await this.createQueryBuilder('card')
   //     .leftJoinAndSelect('card.history', 'history')
