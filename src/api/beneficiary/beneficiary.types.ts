@@ -1,4 +1,4 @@
-export const TypesOfBeneficiary = [
+export enum TypesOfBeneficiary {
   'USER',
   'BTC',
   'USDT_TRC20',
@@ -6,4 +6,4 @@ export const TypesOfBeneficiary = [
   'USDT_ERC20',
   'USDC',
   'BINANCE',
-];
+}

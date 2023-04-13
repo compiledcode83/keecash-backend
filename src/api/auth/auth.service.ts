@@ -1,7 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { isEmail } from 'class-validator';
 import { User } from '@api/user/user.entity';
 import { UserService } from '@api/user/user.service';
 import { CipherTokenService } from '@src/api/cipher-token/cipher-token.service';
@@ -48,13 +47,11 @@ export class AuthService {
   }
 
   async validateUserByPassword(emailOrPhoneNumber, password): Promise<UserAccessTokenInterface> {
-    let user: User;
+    const user = await this.userService.findOne([
+      { email: emailOrPhoneNumber },
+      { phoneNumber: emailOrPhoneNumber },
+    ]);
 
-    if (isEmail(emailOrPhoneNumber)) {
-      user = await this.userService.findOne({ email: emailOrPhoneNumber });
-    } else {
-      user = await this.userService.findOne({ phoneNumber: emailOrPhoneNumber });
-    }
     if (!user) return null;
 
     const isValidated = await bcrypt.compare(password, user.password);

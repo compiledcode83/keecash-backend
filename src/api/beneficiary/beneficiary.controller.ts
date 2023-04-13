@@ -36,8 +36,7 @@ export class BeneficiaryController {
   @UseGuards(JwtAuthGuard)
   @Get('types')
   async getBeneficiaryTypes() {
-    //TODO: Modify this to Object.values(<enum>);
-    const types = TypesOfBeneficiary;
+    const types = Object.values(TypesOfBeneficiary);
 
     return types;
   }

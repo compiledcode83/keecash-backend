@@ -55,18 +55,10 @@ export class UserService {
     return this.userRepository.findOne({ where: param });
   }
 
-  async findByEmailPhoneNumberReferralId(userInfo: string): Promise<User | null> {
-    console.log({ userInfo });
-    const userByEmail = await this.findOne({ email: userInfo });
-    if (userByEmail) return userByEmail;
-
-    const userByPhonenumber = await this.findOne({ phoneNumber: userInfo });
-    if (userByPhonenumber) return userByPhonenumber;
-
-    const userByReferralId = await this.findOne({ referralId: userInfo });
-    if (userByReferralId) return userByReferralId;
-
-    return null;
+  async findByEmailPhoneNumberReferralId(userInfo: string): Promise<User> {
+    return this.userRepository.findOne({
+      where: [{ email: userInfo }, { phoneNumber: userInfo }, { referralId: userInfo }],
+    });
   }
 
   async findOneWithProfileAndDocumments(
