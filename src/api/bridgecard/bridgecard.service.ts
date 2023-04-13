@@ -80,7 +80,7 @@ export class BridgecardService {
 
   // ------------------ Card Management ----------------------
 
-  async createCard(data: CreateBridgecardDto) {
+  async createCard(data: CreateBridgecardDto): Promise<string> {
     try {
       const body = {
         cardholder_id: data.cardholderId,
@@ -96,6 +96,8 @@ export class BridgecardService {
       const res = await this.axiosInstance.post('/cards/create_card', body);
 
       this.logger.log(res.data.message);
+
+      return res.data.card_id;
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 

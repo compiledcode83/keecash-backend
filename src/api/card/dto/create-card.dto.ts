@@ -10,7 +10,7 @@ export class CreateCardDto {
 
   @ApiProperty({
     example: CardTypeEnum.Virtual,
-    description: 'Card type (currently only VIRTUAL card is available',
+    description: 'Card type (currently only VIRTUAL card is available)',
   })
   @IsEnum(CardTypeEnum)
   cardType: CardTypeEnum;
@@ -24,10 +24,11 @@ export class CreateCardDto {
   @MinLength(1)
   name: string;
 
-  @ApiProperty({
-    example: 79.25,
-    description: 'Total pay amount - should decrease wallet balance by this amount',
-  })
+  @ApiProperty({ example: 79.25, description: 'Total pay amount (consider removing)' })
   @IsNumber()
   totalToPay: number;
+
+  @ApiProperty({ example: 60, description: 'Card topup amount' })
+  @IsNumber()
+  topupAmount: number;
 }

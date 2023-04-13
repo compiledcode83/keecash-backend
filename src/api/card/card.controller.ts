@@ -20,6 +20,7 @@ import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 import { GetCardHistoryFilterDto } from './dto/get-card-history-filter.dto';
 import { CreateCardDto } from './dto/create-card.dto';
 import { BridgecardWebhookResponseDto } from './dto/bridgecard-webhook-response.dto';
+import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
 
 @Controller()
 export class CardController {
@@ -225,8 +226,8 @@ export class CardController {
   @UseGuards(JwtAuthGuard)
   @ApiTags('Create Card')
   @Get('create-card/get-settings')
-  async getCreateCardSettings(@Req() req) {
-    return this.cardService.getCreateCardSettings(req.user.id);
+  async getCreateCardSettings(@Req() req, @Query() query: GetCreateCardSettingsDto) {
+    return this.cardService.getCreateCardSettings(req.user.id, query);
   }
 
   @ApiOperation({ description: 'Get fees while creating card' })
@@ -234,8 +235,8 @@ export class CardController {
   @UseGuards(JwtAuthGuard)
   @ApiTags('Create Card')
   @Post('create-card/get-fees-applied-total-to-pay')
-  async getFeesAppliedTotalToPay(@Body() body: GetCreateCardTotalFeeDto) {
-    return this.cardService.getFeesAppliedTotalToPay(body);
+  async getFeesAppliedTotalToPay(@Req() req, @Body() body: GetCreateCardTotalFeeDto) {
+    return this.cardService.getFeesAppliedTotalToPay(req.user.id, body);
   }
 
   @ApiOperation({ description: 'Create card' })

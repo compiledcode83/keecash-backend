@@ -8,20 +8,21 @@ import {
 } from '@nestjs/common';
 import { CardRepository } from './card.repository';
 import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
-import { CryptoCurrencyEnum, FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
+import { CryptoCurrencyEnum, FiatCurrencyEnum, TxTypeEnum } from '../crypto-tx/crypto-tx.types';
 import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
 import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
 import { TransactionService } from '../transaction/transaction.service';
 import deposit_methods from './deposit_methods.json';
 import withdrawal_methods from './withdrawal_methods.json';
-import cardTypes from './card_types.json';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 import { Card } from './card.entity';
 import { CountryFeeService } from '@api/country-fee/country-fee.service';
 import { UserService } from '../user/user.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { BridgecardService } from '../bridgecard/bridgecard.service';
-import { CardBrandEnum } from './card.types';
+import { CardBrandEnum, CardTypeEnum, CardUsageEnum } from './card.types';
+import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
+import { TransactionStatusEnum } from '../transaction/transaction.types';
 
 @Injectable()
 export class CardService {
@@ -65,15 +66,57 @@ export class CardService {
       throw new BadRequestException('Total pay amount exceeds current wallet balance');
     }
 
-    const { cardholderId } = await this.userService.findOne({ id: userId });
+    const {
+      cardholderId,
+      personProfile: { countryId },
+    } = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
 
-    await this.bridgecardService.createCard({
+    const bridgecardId = await this.bridgecardService.createCard({
       userId,
       cardholderId,
       type: body.cardType,
       brand: CardBrandEnum.Visa, // default
       currency: body.keecashWallet,
       cardName: body.name,
+    });
+
+    // TODO: Implement database transaction rollback mechanism, using queryRunnet.connect() startTransation(), commitTransaction(), rollbackTransaction(), release()
+    const { id: cardId } = await this.create({
+      userId,
+      name: body.name,
+      bridgecardId,
+    });
+
+    const { cardPrice } = await this.countryFeeService.findOneCardPrice({
+      countryId,
+      currency: body.keecashWallet,
+      type: body.cardType,
+      usage: body.cardUsage,
+    });
+
+    const { cardTopUpFixedFee, cardTopUpPercentFee } =
+      await this.countryFeeService.findCardTopupFee({
+        countryId,
+        currency: body.keecashWallet,
+        usage: body.cardUsage,
+      });
+
+    const targetAmount = body.topupAmount;
+    const appliedFee = cardTopUpFixedFee + cardTopUpPercentFee * targetAmount;
+    const appliedAmount = cardPrice + targetAmount + appliedFee;
+
+    await this.transactionService.create({
+      senderId: userId,
+      currency: body.keecashWallet,
+      cardPrice,
+      targetAmount,
+      appliedFee,
+      appliedAmount,
+      fixedFee: cardTopUpFixedFee,
+      percentageFee: cardTopUpPercentFee,
+      cardId,
+      type: TxTypeEnum.CardCreation,
+      status: TransactionStatusEnum.Performed, // Should be set to PENDING and update by webhook
     });
   }
 
@@ -468,44 +511,85 @@ export class CardService {
     return transactions;
   }
 
-  async getCreateCardSettings(userId: number) {
+  // -------------- CREATE CARD -------------------
+
+  async getCreateCardSettings(userId: number, query: GetCreateCardSettingsDto) {
     const balance = await this.transactionService.getWalletBalances(userId);
+
+    const keecashWallets = [
+      {
+        balance: balance.eur,
+        currency: FiatCurrencyEnum.EUR,
+        is_checked: true,
+        min: 0,
+        max: balance.eur,
+        after_decimal: 2,
+      },
+      {
+        balance: balance.usd,
+        currency: FiatCurrencyEnum.USD,
+        is_checked: false,
+        min: 0,
+        max: balance.usd,
+        after_decimal: 2,
+      },
+    ];
 
     const {
       personProfile: { countryId },
     } = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
 
-    const keecashWallets = [
+    const cardPrices = await this.countryFeeService.findCardPrices({
+      type: CardTypeEnum.Virtual, // Bridgecard provides VIRTUAL cards only
+      countryId,
+      currency: query.currency,
+    });
+
+    const cardTypes = [
       {
-        balance: balance.eur,
-        currency: 'EUR',
-        is_checked: true,
-        min: 0,
-        max: 100000,
-        after_decimal: 2,
+        name: 'Multiple use card',
+        type: 'MULTIPLE',
+        description: 'Topped up multiple time',
+        is_checked: 'true',
+        price: cardPrices.find((price) => price.usage === CardUsageEnum.Multiple),
+        cardValidity: '2 years',
       },
       {
-        balance: balance.usd,
-        currency: 'USD',
-        is_checked: false,
-        min: 0,
-        max: 100000,
-        after_decimal: 2,
+        name: 'Single use card',
+        type: 'SINGLE',
+        description: 'Topped up one time',
+        is_checked: 'false',
+        price: cardPrices.find((price) => price.usage === CardUsageEnum.Unique),
+        cardValidity: '2 years',
       },
     ];
 
     return {
       keecashWallets,
       cardTypes,
-      fixFees: 0.99,
-      percentFees: 0.0015,
     };
   }
 
-  async getFeesAppliedTotalToPay(body: GetCreateCardTotalFeeDto) {
-    const feesApplied = body.desiredAmount * 0.15 + 0.99;
+  async getFeesAppliedTotalToPay(userId: number, body: GetCreateCardTotalFeeDto) {
+    const {
+      personProfile: { countryId },
+    } = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
 
-    const cardPrice = cardTypes.find((card) => card.type === body.cardType).price;
+    const { cardTopUpFixedFee, cardTopUpPercentFee } =
+      await this.countryFeeService.findCardTopupFee({
+        countryId,
+        currency: body.currency,
+        usage: body.cardType,
+      });
+
+    const feesApplied = body.desiredAmount * cardTopUpPercentFee + cardTopUpFixedFee;
+
+    const { cardPrice } = await this.countryFeeService.findOneCardPrice({
+      countryId,
+      currency: body.currency,
+      usage: body.cardType,
+      type: CardTypeEnum.Virtual, // Bridgecard provides VIRTUAL cards only
+    });
 
     const totalToPay = cardPrice + body.desiredAmount + feesApplied;
 
@@ -533,7 +617,6 @@ export class CardService {
         await this.create({
           userId: userId,
           bridgecardId: data.card_id,
-          currency: data.currency,
         });
         break;
 

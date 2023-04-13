@@ -1,10 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { TransactionRepository } from './transaction.repository';
 import { FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
+import { Transaction } from './transaction.entity';
 
 @Injectable()
 export class TransactionService {
   constructor(private readonly transactionRepository: TransactionRepository) {}
+
+  async create(data: Partial<Transaction>): Promise<Transaction> {
+    const txEntity = await this.transactionRepository.create(data);
+
+    return this.transactionRepository.save(txEntity);
+  }
 
   async getBalanceArrayByCurrency(userId: number, currency = 'ALL'): Promise<any> {
     return this.transactionRepository.getBalancesForUser(userId, currency);
