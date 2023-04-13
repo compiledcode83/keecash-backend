@@ -25,7 +25,7 @@ export class TransactionRepository extends Repository<Transaction> {
 
     queryBuilder
       .select(
-        'SUM(CASE WHEN sender.id = :userId THEN -transaction.amount ELSE transaction.amount END)',
+        'SUM(CASE WHEN sender.id = :userId THEN -transaction.applied_amount ELSE transaction.applied_amount END)',
         'balance',
       )
       .addSelect('transaction.currency', 'currency')

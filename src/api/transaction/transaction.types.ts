@@ -2,7 +2,7 @@ export enum TransactionStatusEnum {
   InProgress = 'IN_PROGRESS',
   Performed = 'PERFORMED',
   Rejected = 'REJECTED',
-  Refund = 'REFUND',
+  Refunded = 'REFUNDED',
 }
 
 export enum ExternalTxMethodEnum {
