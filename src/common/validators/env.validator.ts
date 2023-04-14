@@ -120,6 +120,10 @@ class EnvironmentVariables {
 
   @IsString()
   @MinLength(1)
+  TRIPLEA_API_BASE_URL: string;
+
+  @IsString()
+  @MinLength(1)
   TRIPLEA_EUR_CLIENT_ID: string;
 
   @IsString()

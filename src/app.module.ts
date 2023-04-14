@@ -10,7 +10,7 @@ import jwtConfig from '@config/jwt.config';
 import { validate } from '@common/validators/env.validator';
 import verificationConfig from '@config/verification.config';
 import storageConfig from '@config/storage.config';
-import cryptoConfig from '@config/crypto.config';
+import tripleAConfig from '@config/tripla-a.config';
 import { AdminSubModule } from '@admin/admin.sub.module';
 import { PublicSubModule } from '@api/public.sub.module';
 import bridgecardConfig from '@config/bridgecard.config';
@@ -28,7 +28,7 @@ EnvHelper.verifyNodeEnv();
         jwtConfig,
         verificationConfig,
         storageConfig,
-        cryptoConfig,
+        tripleAConfig,
         bridgecardConfig,
       ],
       validate: validate,

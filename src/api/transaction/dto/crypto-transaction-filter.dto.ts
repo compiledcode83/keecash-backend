@@ -3,8 +3,8 @@ import { Type } from 'class-transformer';
 import { IsEnum, IsIn, IsInt, IsOptional, Validate, ValidateIf } from 'class-validator';
 import { DateValidator } from '@common/validators/date-validator';
 import { CursorFilterDto } from '@common/pagination/cursor-filter.dto';
-import { Transaction } from '@src/api/transaction/transaction.entity';
-import { FiatCurrencyEnum, TxTypeEnum } from '@src/api/transaction/transaction.types';
+import { Transaction } from '@api/transaction/transaction.entity';
+import { FiatCurrencyEnum, TxTypeEnum } from '@api/transaction/transaction.types';
 
 export class CryptoTransactionFilterDto extends CursorFilterDto {
   @ApiProperty({

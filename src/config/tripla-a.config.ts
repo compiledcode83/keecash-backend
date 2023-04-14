@@ -1,6 +1,7 @@
 import { registerAs } from '@nestjs/config';
 
-export default registerAs('cryptoConfig', () => ({
+export default registerAs('tripleAConfig', () => ({
+  tripleaApiBaseUrl: process.env.TRIPLEA_API_BASE_URL,
   tripleaUSDClientId: process.env.TRIPLEA_USD_CLIENT_ID,
   tripleaUSDClientSecret: process.env.TRIPLEA_USD_CLIENT_SECRET,
   tripleaUSDMerchantKey: process.env.TRIPLEA_USD_MERCHANT_KEY,
