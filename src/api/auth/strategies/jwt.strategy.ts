@@ -2,7 +2,6 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User } from '@api/user/user.entity';
 import { UserAccessTokenInterface } from '../auth.type';
 import { UserStatus } from '@src/api/user/user.types';
 
@@ -16,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: Partial<User>): Promise<UserAccessTokenInterface> {
+  async validate(payload: any): Promise<UserAccessTokenInterface> {
     if (payload.status !== UserStatus.Completed) {
       throw new UnauthorizedException('Account is not fully verified yet');
     }
@@ -29,6 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: payload.email,
       status: payload.status,
       type: payload.type,
+      countryId: payload.countryId,
     };
   }
 }

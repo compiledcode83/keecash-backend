@@ -18,11 +18,7 @@ export class AuthService {
     private readonly verificationService: VerificationService,
   ) {}
 
-  async login(
-    user: Partial<User>,
-    userAgent: string,
-    ipAddress: string,
-  ): Promise<TokensResponseDto> {
+  async login(user: any, userAgent: string, ipAddress: string): Promise<TokensResponseDto> {
     const oldRefreshToken = await this.cipherTokenService.findOneBy({
       userId: user.id,
       userAgent,
@@ -57,6 +53,10 @@ export class AuthService {
     const isValidated = await bcrypt.compare(password, user.password);
 
     if (isValidated) {
+      const {
+        personProfile: { countryId },
+      } = await this.userService.findOneWithProfileAndDocumments(user.id, true, false);
+
       return {
         id: user.id,
         firstName: user.firstName,
@@ -65,13 +65,14 @@ export class AuthService {
         email: user.email,
         status: user.status,
         type: user.type,
+        countryId,
       };
     }
 
     return null;
   }
 
-  async validateUserByPincode(userId, pincode): Promise<Partial<User>> {
+  async validateUserByPincode(userId, pincode): Promise<any> {
     const user = await this.userService.findOne({ id: userId });
     if (!user || !user.pincodeSet) {
       return null;
@@ -80,6 +81,10 @@ export class AuthService {
     const isValidated = await bcrypt.compare(pincode, user.pincode);
 
     if (isValidated) {
+      const {
+        personProfile: { countryId },
+      } = await this.userService.findOneWithProfileAndDocumments(user.id, true, false);
+
       return {
         id: user.id,
         firstName: user.firstName,
@@ -88,6 +93,7 @@ export class AuthService {
         email: user.email,
         status: user.status,
         type: user.type,
+        countryId,
       };
     }
 
@@ -98,7 +104,7 @@ export class AuthService {
     await this.cipherTokenService.deleteByToken(refreshToken);
   }
 
-  async createAccessToken(user: Partial<User>): Promise<string> {
+  async createAccessToken(user: any): Promise<string> {
     const payload: UserAccessTokenInterface = {
       id: user.id,
       firstName: user.firstName,
@@ -107,6 +113,7 @@ export class AuthService {
       email: user.email,
       status: user.status,
       type: user.type,
+      countryId: user.countryId,
     };
 
     return this.jwtService.signAsync(payload);

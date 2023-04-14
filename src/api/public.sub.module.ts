@@ -4,7 +4,6 @@ import { AuthModule } from '@api/auth/auth.module';
 import { CipherTokenModule } from '@src/api/cipher-token/cipher-token.module';
 import { VerificationModule } from '@api/verification/verification.module';
 import { StorageModule } from '@api/storage/storage.module';
-import { CryptoTxModule } from '@api/crypto-tx/crypto-tx.module';
 import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
 import { CountryModule } from '@api/country/country.module';
 import { DocumentModule } from '@api/user/document/document.module';
@@ -20,13 +19,14 @@ import { TransactionModule } from '@api/transaction/transaction.module';
 import { ClosureReasonModule } from '@api/closure-reason/closure-reason.module';
 import { NotificationModule } from './notification/notification.module';
 import { BridgecardModule } from './bridgecard/bridgecard.module';
+import { TripleAModule } from './triple-a/triple-a.module';
 
 @Module({
   imports: [
     AuthModule,
     CipherTokenModule,
     StorageModule,
-    CryptoTxModule,
+    TripleAModule,
     ShareholderModule,
     CardModule,
     TransactionModule,
