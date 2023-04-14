@@ -398,9 +398,9 @@ export class AuthController {
 
     await this.userService.confirmEmailOtpForForgotPassword(email, body.code);
 
-    const resetPasswordToken = await this.cipherTokenService.generateResetPincodeToken(userId);
+    const resetPincodeToken = await this.cipherTokenService.generateResetPincodeToken(userId);
 
-    return { resetPasswordToken };
+    return { resetPincodeToken };
   }
 
   @ApiOperation({ description: 'Reset PIN code' })
