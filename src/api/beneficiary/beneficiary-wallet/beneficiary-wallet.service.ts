@@ -7,8 +7,8 @@ import { AddBeneficiaryWalletDto } from './dto/add-beneficiary-wallet.dto';
 export class BeneficiaryWalletService {
   constructor(private readonly beneficiaryWalletRepository: BeneficiaryWalletRepository) {}
 
-  async findByUserId(userId: number) {
-    return this.beneficiaryWalletRepository.findByUserId(userId);
+  async findMany(param: Partial<BeneficiaryWallet>) {
+    return this.beneficiaryWalletRepository.find({ where: param });
   }
 
   async checkIfExist(params: any): Promise<boolean> {
@@ -28,9 +28,6 @@ export class BeneficiaryWalletService {
     if (walletExists) {
       throw new BadRequestException(`Wallet ${body.address} already exists`);
     }
-
-    console.log({ walletExists });
-    console.log({ userId });
 
     const beneficiaryWallet = await this.beneficiaryWalletRepository.save({
       userId,

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CryptoCurrencyEnum } from '@api/crypto-tx/crypto-tx.types';
+import { CryptoCurrencyEnum } from '@api/transaction/transaction.types';
 import { User } from '@api/user/user.entity';
 import {
   Column,
