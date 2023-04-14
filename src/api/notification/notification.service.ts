@@ -9,7 +9,7 @@ export class NotificationService {
     return this.notificationRepository.findAllByUserId(userId);
   }
 
-  async createOne(notification: any) {
+  async create(notification: any) {
     return this.notificationRepository.save(notification);
   }
 

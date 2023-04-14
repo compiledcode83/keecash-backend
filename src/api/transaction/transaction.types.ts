@@ -5,11 +5,23 @@ export enum TransactionStatusEnum {
   Refunded = 'REFUNDED',
 }
 
-export enum ExternalTxMethodEnum {
+export enum CryptoCurrencyEnum {
   BTC = 'BTC',
-  USDT_TRC20 = 'USDT_TRC20',
   ETH = 'ETH',
   USDT_ERC20 = 'USDT_ERC20',
-  BANK_CARD = 'BANK_CARD',
-  WIRE = 'WIRE',
+  USDT_TRC20 = 'USDT_TRC20',
+}
+
+export enum FiatCurrencyEnum {
+  USD = 'USD',
+  EUR = 'EUR',
+}
+
+export enum TxTypeEnum {
+  Deposit = 'DEPOSIT',
+  Withdrawal = 'WITHDRAWAL',
+  Transfer = 'TRANSFER',
+  CardCreation = 'CARD_CREATION',
+  CardTopup = 'CARD_TOPUP',
+  CardWithdrawal = 'CARD_WITHDRAWAL',
 }

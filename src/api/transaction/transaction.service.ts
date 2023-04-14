@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { TransactionRepository } from './transaction.repository';
-import { FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
 import { Transaction } from './transaction.entity';
+import { FiatCurrencyEnum } from './transaction.types';
 
 @Injectable()
 export class TransactionService {

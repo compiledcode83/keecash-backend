@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { Transaction } from './transaction.entity';
-import { TransactionStatusEnum } from './transaction.types';
-import { FiatCurrencyEnum } from '../crypto-tx/crypto-tx.types';
+import { FiatCurrencyEnum, TransactionStatusEnum } from './transaction.types';
 
 @Injectable()
 export class TransactionRepository extends Repository<Transaction> {

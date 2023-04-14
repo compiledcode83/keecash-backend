@@ -1,9 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
-import { FiatCurrencyEnum, TxTypeEnum } from '@api/crypto-tx/crypto-tx.types';
-import { TransactionStatusEnum, ExternalTxMethodEnum } from './transaction.types';
-import { Card } from '../card/card.entity';
-import { User } from '../user/user.entity';
+import {
+  CryptoCurrencyEnum,
+  FiatCurrencyEnum,
+  TransactionStatusEnum,
+  TxTypeEnum,
+} from './transaction.types';
+import { Card } from '@api/card/card.entity';
+import { User } from '@api/user/user.entity';
 
 @Entity('transaction')
 export class Transaction {
@@ -65,8 +69,8 @@ export class Transaction {
     description: `Transaction method (applied for TxType: DEPOSIT, WITHDRAWAL, otherwise NULL)`,
     required: false,
   })
-  @Column({ type: 'enum', enum: ExternalTxMethodEnum, nullable: true })
-  externalTxMethod: ExternalTxMethodEnum;
+  @Column({ type: 'enum', enum: CryptoCurrencyEnum, nullable: true })
+  externalTxMethod: CryptoCurrencyEnum;
 
   @ApiProperty({
     description:
