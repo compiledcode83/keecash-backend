@@ -1,11 +1,12 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CardService } from './card.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
 import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
-import { NotificationService } from '../notification/notification.service';
-import { NotificationType } from '../notification/notification.types';
+import { NotificationService } from '@api/notification/notification.service';
+import { NotificationType } from '@api/notification/notification.types';
+import { TripleAService } from '@api/triple-a/triple-a.service';
 
 @Controller('deposit')
 @ApiTags('Deposit')
@@ -13,6 +14,7 @@ export class DepositController {
   constructor(
     private readonly cardService: CardService,
     private readonly notificationService: NotificationService,
+    private readonly tripleAService: TripleAService,
   ) {}
 
   @ApiOperation({ description: 'Get deposit settings' })
@@ -27,8 +29,8 @@ export class DepositController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('fees')
-  async depositFees(@Body() body: GetDepositFeeDto) {
-    return this.cardService.getDepositFee(body);
+  async depositFees(@Req() req, @Body() body: GetDepositFeeDto) {
+    return this.cardService.getDepositFee(req.user.countryId, body);
   }
 
   @ApiOperation({ description: 'Post deposit payment link' })
@@ -36,16 +38,23 @@ export class DepositController {
   @UseGuards(JwtAuthGuard)
   @Post('payment-link')
   async depositPaymentLink(@Req() req, @Body() body: DepositPaymentLinkDto) {
+    const res = await this.tripleAService.deposit({
+      amount: body.total_to_pay,
+      currency: body.keecash_wallet,
+      email: req.user.email,
+    });
+
+    // TODO: Add to Redis/BullMQ message queue asynchronously
     // Create a notification for the transaction
-    const notification = await this.notificationService.createOne({
+    await this.notificationService.create({
       userId: req.user.id,
       type: NotificationType.Deposit,
       amount: body.desired_amount,
-      currency: body.currency,
+      currency: body.keecash_wallet,
     });
 
     return {
-      link: '',
+      link: res.hosted_url,
     };
   }
 }
