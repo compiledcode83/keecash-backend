@@ -6,10 +6,12 @@ import { TransactionModule } from '@api/transaction/transaction.module';
 import { TransferController } from './transfer.controller';
 import { DepositController } from './deposit.controller';
 import { WithdrawalController } from './withdrawal.controller';
-import { NotificationModule } from '../notification/notification.module';
-import { UserModule } from '../user/user.module';
-import { CountryFeeModule } from '../country-fee/country-fee.module';
-import { BridgecardModule } from '../bridgecard/bridgecard.module';
+import { NotificationModule } from '@api/notification/notification.module';
+import { UserModule } from '@api/user/user.module';
+import { CountryFeeModule } from '@api/country-fee/country-fee.module';
+import { BridgecardModule } from '@api/bridgecard/bridgecard.module';
+import { TripleAModule } from '@api/triple-a/triple-a.module';
+import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { BridgecardModule } from '../bridgecard/bridgecard.module';
     NotificationModule,
     CountryFeeModule,
     BridgecardModule,
+    TripleAModule,
+    forwardRef(() => BeneficiaryModule),
     forwardRef(() => UserModule),
   ],
   controllers: [CardController, DepositController, WithdrawalController, TransferController],

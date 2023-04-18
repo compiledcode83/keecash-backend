@@ -9,16 +9,16 @@ import {
   JoinColumn,
   OneToOne,
 } from 'typeorm';
-import { CipherToken } from '@src/api/cipher-token/cipher-token.entity';
+import { CipherToken } from '@api/cipher-token/cipher-token.entity';
 import { PersonProfile } from './person-profile/person-profile.entity';
 import { Document } from './document/document.entity';
 import { EnterpriseProfile } from './enterprise-profile/enterprise-profile.entity';
 import { BeneficiaryUser } from '@api/beneficiary/beneficiary-user/beneficiary-user.entity';
 import { AccountType, Language, UserStatus, VerificationStatus } from './user.types';
 import { BeneficiaryWallet } from '@api/beneficiary/beneficiary-wallet/beneficiary-wallet.entity';
-import { Card } from '../card/card.entity';
-import { Transaction } from '../transaction/transaction.entity';
-import { UserClosureReason } from '../closure-reason/user-closure-reason.entity';
+import { Card } from '@api/card/card.entity';
+import { Transaction } from '@api/transaction/transaction.entity';
+import { UserClosureReason } from '@api/closure-reason/user-closure-reason.entity';
 
 @Entity('user')
 export class User {

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt } from 'class-validator';
-import { CryptoTransactionFilterDto } from '@src/api/triple-a/dto/crypto-transaction-filter.dto';
+import { CryptoTransactionFilterDto } from '@api/transaction/dto/crypto-transaction-filter.dto';
 
 export class GetCryptoTxAdminDto extends CryptoTransactionFilterDto {
   @ApiProperty({

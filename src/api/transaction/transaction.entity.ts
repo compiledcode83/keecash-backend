@@ -30,24 +30,24 @@ export class Transaction {
   @Column({ type: 'float', nullable: true })
   cardPrice: number;
 
-  @ApiProperty({ description: 'Total amount', maximum: 64, required: true })
-  @Column({ type: 'float', nullable: false })
+  @ApiProperty({ description: 'Total amount', maximum: 64, required: false })
+  @Column({ type: 'float', nullable: true })
   targetAmount: number;
 
-  @ApiProperty({ description: 'Applied amount', maximum: 64, required: true })
-  @Column({ type: 'float', nullable: false })
+  @ApiProperty({ description: 'Applied amount', maximum: 64, required: false })
+  @Column({ type: 'float', nullable: true })
   appliedAmount: number;
 
-  @ApiProperty({ description: 'Applied fee', maximum: 64, required: true })
-  @Column({ type: 'float', nullable: false, default: 0 })
+  @ApiProperty({ description: 'Applied fee', maximum: 64, required: false })
+  @Column({ type: 'float', nullable: true, default: 0 })
   appliedFee: number;
 
-  @ApiProperty({ description: 'Fixed fee', maximum: 64, required: true })
-  @Column({ type: 'float', nullable: false, default: 0 })
+  @ApiProperty({ description: 'Fixed fee', maximum: 64, required: false })
+  @Column({ type: 'float', nullable: true, default: 0 })
   fixedFee: number;
 
-  @ApiProperty({ description: 'Percentage fee', maximum: 64, required: true })
-  @Column({ type: 'float', nullable: false, default: 0 })
+  @ApiProperty({ description: 'Percentage fee', maximum: 64, required: false })
+  @Column({ type: 'float', nullable: true, default: 0 })
   percentageFee: number;
 
   @ApiProperty({
@@ -64,6 +64,10 @@ export class Transaction {
   })
   @Column({ type: 'int', nullable: true })
   cardId: number;
+
+  @ApiProperty({ example: 'SDF-453672-PMT', required: false })
+  @Column({ type: 'varchar', nullable: true })
+  tripleAPaymentReference: string;
 
   @ApiProperty({
     description: `Transaction method (applied for TxType: DEPOSIT, WITHDRAWAL, otherwise NULL)`,

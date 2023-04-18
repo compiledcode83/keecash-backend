@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { BeneficiaryModule } from '@src/api/beneficiary/beneficiary.module';
+import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
 import { AdminBeneficiaryController } from './beneficiary.controller';
 
 @Module({

@@ -28,7 +28,7 @@ import { AccountType, Language, UserStatus, VerificationStatus } from './user.ty
 import { ClosureReasonService } from '@api/closure-reason/closure-reason.service';
 import { TransactionService } from '@api/transaction/transaction.service';
 import { CardService } from '@api/card/card.service';
-import { BridgecardService } from '../bridgecard/bridgecard.service';
+import { BridgecardService } from '@api/bridgecard/bridgecard.service';
 
 const closure_reasons = require('../closure-reason/closure-reasons.json');
 
@@ -47,8 +47,7 @@ export class UserService {
     private readonly closureReasonService: ClosureReasonService,
     private readonly transactionService: TransactionService,
     private readonly bridgecardService: BridgecardService,
-    @Inject(forwardRef(() => CardService))
-    private readonly cardService: CardService,
+    @Inject(forwardRef(() => CardService)) private readonly cardService: CardService,
   ) {}
 
   async findOne(param: any): Promise<User> {
@@ -61,13 +60,13 @@ export class UserService {
     });
   }
 
-  async findOneWithProfileAndDocumments(
-    userId: number,
+  async findOneWithProfileAndDocuments(
+    param: Partial<User>,
     withProfile: boolean,
     withDocuments: boolean,
   ) {
-    const user = await this.userRepository.findOneWithProfileAndDocumments(
-      userId,
+    const user = await this.userRepository.findOneWithProfileAndDocuments(
+      param,
       withProfile,
       withDocuments,
     );
@@ -83,16 +82,16 @@ export class UserService {
     return user;
   }
 
-  async getReferralUserId(userId: number): Promise<number | null> {
+  async getReferralUser(userId: number): Promise<User> {
     const { referralAppliedId } = await this.findOne({ id: userId });
 
     const referralUser = await this.userRepository
       .createQueryBuilder('user')
       .select('id')
       .where(`referral_id = '${referralAppliedId}'`)
-      .getRawOne();
+      .getOne();
 
-    return referralUser.id;
+    return referralUser;
   }
 
   async getReferredUsersByReferralId(referralId: string): Promise<Partial<User>[]> {
@@ -354,7 +353,7 @@ export class UserService {
   }
 
   async submitKycInfo(userId: number, body: SubmitKycInfoDto): Promise<void> {
-    const user = await this.findOne({ userId });
+    const user = await this.findOne({ id: userId });
 
     if (!user.emailValidated || !user.phoneValidated) {
       throw new BadRequestException('Email or phone is not verified yet');
@@ -481,7 +480,7 @@ export class UserService {
       kycStatus: VerificationStatus.Validated,
     });
 
-    const user = await this.findOneWithProfileAndDocumments(userId, true, true);
+    const user = await this.findOneWithProfileAndDocuments({ id: userId }, true, true);
 
     const body = {
       first_name: user.firstName,

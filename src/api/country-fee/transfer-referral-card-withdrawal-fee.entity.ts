@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FiatCurrencyEnum } from '@api/crypto-tx/crypto-tx.types';
+import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('transfer_referral_card_withdrawal_fee')

@@ -1,14 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MaxLength } from 'class-validator';
+import { IsNumber, MaxLength } from 'class-validator';
 
 export class AddBeneficiaryUserDto {
-  @ApiProperty({
-    example: 'john.doe@example.com',
-    required: true,
-    maximum: 255,
-    description: 'Beneficiary user email, phonenumber or referral id',
-  })
-  @IsString()
+  @ApiProperty({ example: 1, required: true, description: 'Beneficiary user id' })
+  @IsNumber()
   @MaxLength(255)
-  beneficiaryUser: string;
+  beneficiaryUserId: number;
 }

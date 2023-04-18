@@ -7,10 +7,18 @@ import { FiatCurrencyEnum } from './transaction.types';
 export class TransactionService {
   constructor(private readonly transactionRepository: TransactionRepository) {}
 
+  async findOne(param: Partial<Transaction>): Promise<Transaction> {
+    return this.transactionRepository.findOne({ where: param });
+  }
+
   async create(data: Partial<Transaction>): Promise<Transaction> {
     const txEntity = await this.transactionRepository.create(data);
 
     return this.transactionRepository.save(txEntity);
+  }
+
+  async update(param: any, data: Partial<Transaction>) {
+    return this.transactionRepository.update(param, data);
   }
 
   async getBalanceArrayByCurrency(userId: number, currency = 'ALL'): Promise<any> {

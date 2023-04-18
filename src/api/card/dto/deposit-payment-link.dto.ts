@@ -1,16 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
 export class DepositPaymentLinkDto {
-  @ApiProperty({ example: '', description: 'Keecash wallet' })
-  @IsString()
-  keecash_wallet: string;
+  @ApiProperty({ example: FiatCurrencyEnum.EUR, description: 'Keecash wallet' })
+  @IsEnum(FiatCurrencyEnum)
+  keecash_wallet: FiatCurrencyEnum;
 
-  @ApiProperty({ example: '', description: 'Deposit method' })
-  @IsString()
-  deposit_method: string;
+  @ApiProperty({ example: CryptoCurrencyEnum.BTC, description: 'Deposit method' })
+  @IsEnum(CryptoCurrencyEnum)
+  deposit_method: CryptoCurrencyEnum;
 
-  @ApiProperty({ example: '', description: 'Reason' })
+  @ApiProperty({ example: 'For chill', description: 'Reason' })
   @IsString()
   reason: string;
 
@@ -18,11 +19,19 @@ export class DepositPaymentLinkDto {
   @IsNumber()
   desired_amount: number;
 
-  @ApiProperty({ example: '', description: 'Currency' })
-  @IsString()
-  currency: string;
-
   @ApiProperty({ example: 200, description: 'Total to pay' })
   @IsNumber()
   total_to_pay: number;
+
+  @ApiProperty({ example: 1.26, description: 'Applied fee' })
+  @IsNumber()
+  applied_fee: number;
+
+  @ApiProperty({ example: 0.99, description: 'Fixed fee' })
+  @IsNumber()
+  fixed_fee: number;
+
+  @ApiProperty({ example: 1.5, description: 'Percentage fee' })
+  @IsNumber()
+  percentage_fee: number;
 }

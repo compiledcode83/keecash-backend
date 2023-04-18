@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginAdminDto } from '@admin/auth/dto/login-admin.dto';
-import { ConfirmEmailVerificationCodeForAdminDto } from '@src/api/verification/dto/confirm-email-verification-for-admin.dto';
+import { ConfirmEmailVerificationCodeForAdminDto } from '@api/verification/dto/confirm-email-verification-for-admin.dto';
 import { ApiResponseHelper } from '@common/helpers/api-response.helper';
 import { Admin } from '@admin/admin/admin.entity';
 import { AdminAuthService } from './auth.service';

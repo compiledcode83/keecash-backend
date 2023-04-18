@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FiatCurrencyEnum } from '@src/api/crypto-tx/crypto-tx.types';
 import { IsArray, IsBoolean, IsEnum } from 'class-validator';
+import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
 export class GetDashboardItemsResponseDto {
   @ApiProperty({ example: true, description: 'Is reading dashboard success' })

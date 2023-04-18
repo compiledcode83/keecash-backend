@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { CountryModule } from '@src/api/country/country.module';
+import { CountryModule } from '@api/country/country.module';
 import { AdminCountryController } from './country.controller';
 
 @Module({

@@ -8,8 +8,9 @@ export class UserRepository extends Repository<User> {
     super(User, dataSource.manager);
   }
 
-  async findOneWithProfileAndDocumments(
-    userId: number,
+  async findOneWithProfileAndDocuments(
+    param: Partial<User>,
+    // userId: number,
     withProfile: boolean,
     withDocuments: boolean,
   ) {
@@ -25,7 +26,8 @@ export class UserRepository extends Repository<User> {
       queryBuilder.leftJoinAndSelect('user.documents', 'documents');
     }
 
-    const result = await queryBuilder.where('user.id = :userId', { userId }).getOne();
+    const result = await queryBuilder.where(param).getOne();
+    // const result = await queryBuilder.where('user.id = :userId', { userId }).getOne();
 
     return result;
   }

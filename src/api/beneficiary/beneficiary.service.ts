@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BeneficiaryUserService } from './beneficiary-user/beneficiary-user.service';
 import { BeneficiaryWalletService } from './beneficiary-wallet/beneficiary-wallet.service';
 import { BeneficiaryWallet } from './beneficiary-wallet/beneficiary-wallet.entity';
+import { BeneficiaryUser } from './beneficiary-user/beneficiary-user.entity';
 
 @Injectable()
 export class BeneficiaryService {
@@ -22,5 +23,9 @@ export class BeneficiaryService {
 
   async findBeneficiaryWallets(param: Partial<BeneficiaryWallet>) {
     return this.beneficiaryWalletService.findMany(param);
+  }
+
+  async createBaneficiaryUser(param: Partial<BeneficiaryUser>) {
+    return this.beneficiaryUserService.create(param);
   }
 }

@@ -1,24 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNumber } from 'class-validator';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
 export class GetDepositFeeDto {
-  @ApiProperty({ example: '', description: 'Keecash wallet address' })
-  @IsString()
-  keecash_wallet: string;
+  @ApiProperty({ example: 'EUR', description: 'Keecash wallet address' })
+  @IsEnum(FiatCurrencyEnum)
+  keecash_wallet: FiatCurrencyEnum;
 
-  @ApiProperty({ example: '', description: 'Deposit method' })
-  @IsString()
-  deposit_method: string;
+  @ApiProperty({ example: CryptoCurrencyEnum.BTC, description: 'Deposit method' })
+  @IsEnum(CryptoCurrencyEnum)
+  deposit_method: CryptoCurrencyEnum;
 
-  @ApiProperty({ example: '', description: 'Deposit reason' })
-  @IsString()
-  reason: string;
-
-  @ApiProperty({ example: 100, description: 'Deposit number' })
+  @ApiProperty({ example: 100, description: 'Deposit amount in fiat (EUR, USD ...)' })
   @IsNumber()
-  desired_amount: number;
+  fiat_amount: number;
 
-  @ApiProperty({ example: '', description: 'Currency' })
-  @IsString()
-  currency: string; // EUR,USD,BTC,ETH..
+  @ApiProperty({ example: 0.032, description: 'Deposit amount in crypto (BTC, ETH ...)' })
+  @IsNumber()
+  crypto_amount: number;
 }

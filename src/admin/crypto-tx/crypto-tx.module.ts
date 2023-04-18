@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { CryptoTxModule } from '@src/api/crypto-tx/crypto-tx.module';
+import { TripleAModule } from '@api/triple-a/triple-a.module';
 import { AdminCryptoTxController } from './crypto-tx.controller';
 
 @Module({
-  imports: [CryptoTxModule],
+  imports: [TripleAModule],
   controllers: [AdminCryptoTxController],
 })
 export class AdminCryptoTxModule {}

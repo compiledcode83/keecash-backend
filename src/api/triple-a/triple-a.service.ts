@@ -66,7 +66,8 @@ export class TripleAService {
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
-      throw new HttpException(data.message || statusText, status);
+      // TODO: Do better error handling later
+      // throw new HttpException(data.message || statusText, status);
     }
   }
 
@@ -81,9 +82,7 @@ export class TripleAService {
         notify_url: `${this.tripleANotifyUrl}/crypto-tx/payment-notifiy-deposit`,
         success_url: 'https://www.success.io/success.html',
         cancel_url: 'https://www.failure.io/cancel.html',
-        webhook_data: {
-          keecash_tx_id: dto.keecashTransactionId,
-        },
+        webhook_data: {},
       };
 
       const config = {
@@ -108,7 +107,7 @@ export class TripleAService {
       ) {
         await this.getAccessToken(data.currency);
         await this.delay(3000); // Wait for 3 seconds
-        await this.deposit(data);
+        await this.deposit(dto);
       } else {
         throw new HttpException(data.message || statusText, status);
       }
@@ -196,7 +195,7 @@ export class TripleAService {
       ) {
         await this.getAccessToken(data.currency);
         await this.delay(3000); // Wait for 3 seconds
-        await this.withdraw(data);
+        await this.withdraw(dto);
       } else {
         throw new HttpException(data.message || statusText, status);
       }

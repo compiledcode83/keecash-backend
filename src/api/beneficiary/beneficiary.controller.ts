@@ -7,10 +7,7 @@ import { BeneficiaryUserService } from './beneficiary-user/beneficiary-user.serv
 import { BeneficiaryWalletService } from './beneficiary-wallet/beneficiary-wallet.service';
 import { BeneficiaryService } from './beneficiary.service';
 import { TypesOfBeneficiary } from './beneficiary.types';
-import { UserService } from '@api/user/user.service';
 import { VerifyWalletAddressDto } from './beneficiary-wallet/dto/verify-wallet-address.dto';
-import { VerifyUserExistDto } from './beneficiary-user/dto/verify-user-exist.dto';
-import { VerifyUserExistResponseDto } from './beneficiary-user/dto/verify-user-exist-response.dto';
 import { VerifyWalletExistResponseDto } from './beneficiary-wallet/dto/verify-wallet-address-response.dto';
 
 @Controller('beneficiary')
@@ -20,7 +17,6 @@ export class BeneficiaryController {
     private readonly beneficiaryService: BeneficiaryService,
     private readonly beneficiaryUserService: BeneficiaryUserService,
     private readonly beneficiaryWalletService: BeneficiaryWalletService,
-    private readonly userService: UserService,
   ) {}
 
   @ApiOperation({ description: `Get all beneficiary users and wallets` })
@@ -41,20 +37,6 @@ export class BeneficiaryController {
     return types;
   }
 
-  @ApiOperation({ description: `Verify if user exists` })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('verify-user-exist')
-  async verifyUserExist(@Body() body: VerifyUserExistDto): Promise<VerifyUserExistResponseDto> {
-    const user = await this.userService.findByEmailPhoneNumberReferralId(body.userField);
-
-    if (user) {
-      return { valid: true, beneficiaryUserId: user.referralId };
-    } else {
-      return { valid: false };
-    }
-  }
-
   @ApiOperation({ description: `Verify if crypto address exists` })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -73,7 +55,10 @@ export class BeneficiaryController {
   @UseGuards(JwtAuthGuard)
   @Post('add-user')
   async addBeneficiaryUser(@Req() req, @Body() body: AddBeneficiaryUserDto) {
-    return this.beneficiaryUserService.addBeneficiaryUser(body, req.user.id);
+    return this.beneficiaryUserService.create({
+      payerId: req.user.id,
+      payeeId: body.beneficiaryUserId,
+    });
   }
 
   @ApiBearerAuth()

@@ -4,18 +4,11 @@ import { CardService } from './card.service';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
 import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
-import { NotificationService } from '@api/notification/notification.service';
-import { NotificationType } from '@api/notification/notification.types';
-import { TripleAService } from '@api/triple-a/triple-a.service';
 
 @Controller('deposit')
 @ApiTags('Deposit')
 export class DepositController {
-  constructor(
-    private readonly cardService: CardService,
-    private readonly notificationService: NotificationService,
-    private readonly tripleAService: TripleAService,
-  ) {}
+  constructor(private readonly cardService: CardService) {}
 
   @ApiOperation({ description: 'Get deposit settings' })
   @ApiBearerAuth()
@@ -37,24 +30,7 @@ export class DepositController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('payment-link')
-  async depositPaymentLink(@Req() req, @Body() body: DepositPaymentLinkDto) {
-    const res = await this.tripleAService.deposit({
-      amount: body.total_to_pay,
-      currency: body.keecash_wallet,
-      email: req.user.email,
-    });
-
-    // TODO: Add to Redis/BullMQ message queue asynchronously
-    // Create a notification for the transaction
-    await this.notificationService.create({
-      userId: req.user.id,
-      type: NotificationType.Deposit,
-      amount: body.desired_amount,
-      currency: body.keecash_wallet,
-    });
-
-    return {
-      link: res.hosted_url,
-    };
+  async getDepositPaymentLink(@Req() req, @Body() body: DepositPaymentLinkDto): Promise<any> {
+    return this.cardService.getDepositPaymentLink(req.user, body);
   }
 }

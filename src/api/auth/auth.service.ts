@@ -3,7 +3,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@api/user/user.entity';
 import { UserService } from '@api/user/user.service';
-import { CipherTokenService } from '@src/api/cipher-token/cipher-token.service';
+import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
 import { UserAccessTokenInterface } from './auth.type';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
@@ -55,7 +55,7 @@ export class AuthService {
     if (isValidated) {
       const {
         personProfile: { countryId },
-      } = await this.userService.findOneWithProfileAndDocumments(user.id, true, false);
+      } = await this.userService.findOneWithProfileAndDocuments({ id: user.id }, true, false);
 
       return {
         id: user.id,
@@ -83,7 +83,7 @@ export class AuthService {
     if (isValidated) {
       const {
         personProfile: { countryId },
-      } = await this.userService.findOneWithProfileAndDocumments(user.id, true, false);
+      } = await this.userService.findOneWithProfileAndDocuments({ id: user.id }, true, false);
 
       return {
         id: user.id,

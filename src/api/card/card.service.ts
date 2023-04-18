@@ -8,21 +8,36 @@ import {
 } from '@nestjs/common';
 import { CardRepository } from './card.repository';
 import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
-import { CryptoCurrencyEnum, FiatCurrencyEnum, TxTypeEnum } from '../crypto-tx/crypto-tx.types';
+import {
+  CryptoCurrencyEnum,
+  FiatCurrencyEnum,
+  TxTypeEnum,
+  TransactionStatusEnum,
+} from '@api/transaction/transaction.types';
 import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
 import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
-import { TransactionService } from '../transaction/transaction.service';
+import { TransactionService } from '@api/transaction/transaction.service';
 import deposit_methods from './deposit_methods.json';
 import withdrawal_methods from './withdrawal_methods.json';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 import { Card } from './card.entity';
 import { CountryFeeService } from '@api/country-fee/country-fee.service';
-import { UserService } from '../user/user.service';
+import { UserService } from '@api/user/user.service';
 import { CreateCardDto } from './dto/create-card.dto';
-import { BridgecardService } from '../bridgecard/bridgecard.service';
+import { BridgecardService } from '@api/bridgecard/bridgecard.service';
 import { CardBrandEnum, CardTypeEnum, CardUsageEnum } from './card.types';
 import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
-import { TransactionStatusEnum } from '../transaction/transaction.types';
+import { BeneficiaryService } from '@api/beneficiary/beneficiary.service';
+import { GetCardTopupSettingDto } from './dto/get-card-topup-setting.dto';
+import { TripleADepositNotifyDto } from '@api/triple-a/dto/triple-a-deposit-notify.dto';
+import { TripleAWithdrawalNotifyDto } from '@api/triple-a/dto/triple-a-withdrawal-notify.dto';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
+import { WithdrawalApplyDto } from './dto/withdrawal-apply.dto';
+import { NotificationService } from '@api/notification/notification.service';
+import { TripleAService } from '@api/triple-a/triple-a.service';
+import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
+import { NotificationType } from '@api/notification/notification.types';
+import { TransferApplyDto } from './dto/transfer-apply.dto';
 
 @Injectable()
 export class CardService {
@@ -33,6 +48,9 @@ export class CardService {
     private readonly transactionService: TransactionService,
     private readonly countryFeeService: CountryFeeService,
     private readonly bridgecardService: BridgecardService,
+    private readonly beneficiaryService: BeneficiaryService,
+    private readonly notificationService: NotificationService,
+    private readonly tripleAService: TripleAService,
     @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
   ) {}
 
@@ -69,7 +87,7 @@ export class CardService {
     const {
       cardholderId,
       personProfile: { countryId },
-    } = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
+    } = await this.userService.findOneWithProfileAndDocuments({ id: userId }, true, false);
 
     const bridgecardId = await this.bridgecardService.createCard({
       userId,
@@ -214,17 +232,15 @@ export class CardService {
     await this.bridgecardService.unfreezeCard(cardId);
   }
 
-  // -------------- GET SETTINGS -------------------
+  // -------------- DEPOSIT -------------------
 
   async getDepositSettings(userId: number) {
     const balance = await this.transactionService.getWalletBalances(userId);
 
-    const user = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
-
     const keecash_wallets = [
       {
         balance: balance.eur,
-        currency: 'EUR',
+        currency: FiatCurrencyEnum.EUR,
         is_checked: true,
         min: 0,
         max: 100000,
@@ -232,7 +248,7 @@ export class CardService {
       },
       {
         balance: balance.usd,
-        currency: 'USD',
+        currency: FiatCurrencyEnum.USD,
         is_checked: false,
         min: 0,
         max: 100000,
@@ -243,10 +259,68 @@ export class CardService {
     return {
       keecash_wallets,
       deposit_methods,
-      fix_fees: 0.99,
-      percent_fees: 0.01,
     };
   }
+
+  async getDepositFee(countryId: number, body: GetDepositFeeDto) {
+    const { depositFixedFee, depositPercentFee } =
+      await this.countryFeeService.findOneWalletDepositWithdrawalFee({
+        countryId,
+        currency: body.keecash_wallet,
+        method: body.deposit_method,
+      });
+
+    const feesApplied = body.fiat_amount * depositPercentFee + depositFixedFee;
+    const amountAfterFee = body.fiat_amount + feesApplied;
+
+    return {
+      fix_fees: depositFixedFee,
+      percent_fees: depositPercentFee,
+      fees_applied: feesApplied,
+      amount_after_fee: amountAfterFee,
+    };
+  }
+
+  async getDepositPaymentLink(user: UserAccessTokenInterface, body: DepositPaymentLinkDto) {
+    // Trigger TripleA API
+    const res = await this.tripleAService.deposit({
+      amount: body.total_to_pay,
+      currency: body.keecash_wallet,
+      email: user.email,
+      keecashUserId: user.referralId,
+    });
+
+    // Create transaction
+    await this.transactionService.create({
+      senderId: user.id,
+      currency: body.keecash_wallet,
+      targetAmount: body.desired_amount,
+      appliedAmount: body.total_to_pay,
+      appliedFee: body.applied_fee,
+      fixedFee: body.fixed_fee,
+      percentageFee: body.percentage_fee,
+      externalTxMethod: body.deposit_method,
+      type: TxTypeEnum.Deposit,
+      status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
+      description: body.reason,
+      tripleAPaymentReference: res.payment_reference,
+    });
+
+    // TODO: Add to Redis/BullMQ message queue asynchronously
+    // Create a notification for the transaction
+    await this.notificationService.create({
+      userId: user.id,
+      type: NotificationType.Deposit,
+      amount: body.desired_amount,
+      currency: body.keecash_wallet,
+    });
+
+    return {
+      link: res.hosted_url,
+    };
+  }
+
+  // -------------- WITHDRAWAL -------------------
 
   async getWithdrawalSettings(userId: number) {
     const balance = await this.transactionService.getWalletBalances(userId);
@@ -273,18 +347,86 @@ export class CardService {
     return {
       keecash_wallets,
       withdrawal_methods,
-      fix_fees: 0.99,
-      percent_fees: 0.01,
     };
   }
 
-  async getTransferSettings(userId: number, keecashId: string) {
+  async getBeneficiaryWallets(userId: number, type: CryptoCurrencyEnum) {
+    const beneficiary_wallets = await this.beneficiaryService.findBeneficiaryWallets({
+      userId,
+      type,
+    });
+
+    return { beneficiary_wallets };
+  }
+
+  async getWithdrawalFee(countryId: number, body: GetWithdrawalFeeDto) {
+    const { withdrawFixedFee, withdrawPercentFee } =
+      await this.countryFeeService.findOneWalletDepositWithdrawalFee({
+        countryId,
+        currency: body.keecash_wallet,
+        method: body.withdrawal_method,
+      });
+
+    const feesApplied = body.fiat_amount * withdrawPercentFee + withdrawFixedFee;
+    const amountAfterFee = body.fiat_amount - feesApplied;
+
+    return {
+      fix_fees: withdrawFixedFee,
+      percent_fees: withdrawPercentFee,
+      fees_applied: feesApplied,
+      amount_after_fee: amountAfterFee,
+    };
+  }
+
+  async applyWithdrawal(user: UserAccessTokenInterface, body: WithdrawalApplyDto) {
+    // TODO: Save new beneficiary wallet
+
+    // Trigger TripleA API
+    const res = await this.tripleAService.withdraw({
+      email: user.email,
+      amount: body.amount_after_fee,
+      cryptocurrency: body.withdrawal_method,
+      currency: body.keecash_wallet,
+      walletAddress: body.wallet_address,
+      name: 'Keecash',
+      country: 'FR',
+      keecashUserId: user.referralId,
+    });
+
+    // Create transaction
+    await this.transactionService.create({
+      senderId: user.id,
+      currency: body.keecash_wallet,
+      targetAmount: body.target_amount,
+      appliedAmount: body.amount_after_fee,
+      appliedFee: body.applied_fee,
+      fixedFee: body.fixed_fee,
+      percentageFee: body.percentage_fee,
+      externalTxMethod: body.withdrawal_method,
+      type: TxTypeEnum.Withdrawal,
+      status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
+      description: body.reason,
+      tripleAPaymentReference: res.payout_reference,
+    });
+
+    // TODO: Add to BullMQ
+    await this.notificationService.create({
+      userId: user.id,
+      type: NotificationType.Withdrawal,
+      amount: body.target_amount,
+      currency: body.keecash_wallet,
+    });
+  }
+
+  // -------------- TRANSFER -------------------
+
+  async getTransferSettings(userId: number) {
     const balance = await this.transactionService.getWalletBalances(userId);
 
     const keecash_wallets = [
       {
         balance: balance.eur,
-        currency: 'EUR',
+        currency: FiatCurrencyEnum.EUR,
         is_checked: true,
         min: 0,
         max: balance.eur,
@@ -292,7 +434,7 @@ export class CardService {
       },
       {
         balance: balance.usd,
-        currency: 'USD',
+        currency: FiatCurrencyEnum.USD,
         is_checked: false,
         min: 0,
         max: balance.usd,
@@ -302,194 +444,62 @@ export class CardService {
 
     return {
       keecash_wallets,
-      keecash_id: keecashId,
-      fix_fees: 0.99,
-      percent_fees: 0.01,
     };
   }
 
-  // -------------- GET FEE -------------------
+  async getTransferFee(countryId: number, body: GetTransferFeeDto) {
+    const { transferFixedFee, transferPercentFee } =
+      await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
+        countryId,
+        currency: body.keecash_wallet,
+      });
 
-  async getDepositFee(body: GetDepositFeeDto) {
-    const fixFees = 0.99;
-    const percentFees = 0.01;
+    const feesApplied = body.desired_amount * transferPercentFee + transferFixedFee;
+    const amountAfterFee = body.desired_amount - feesApplied;
 
-    let converted;
+    return {
+      fix_fees: transferFixedFee,
+      percent_fees: transferPercentFee,
+      fees_applied: feesApplied,
+      total_to_pay: amountAfterFee,
+    };
+  }
 
-    switch (body.currency) {
-      case 'BTC':
-        converted = { amount: 20000 * body.desired_amount, exchange_rate: 20000 };
-        break;
-
-      case 'BTC_LIGHTNING':
-        converted = { amount: 20000 * body.desired_amount, exchange_rate: 20000 };
-        break;
-
-      case 'ETH':
-        converted = { amount: 2000 * body.desired_amount, exchange_rate: 2000 };
-        break;
-
-      case 'USDC':
-        converted =
-          body.keecash_wallet === 'USD'
-            ? { amount: body.desired_amount, exchange_rate: 1 }
-            : { amount: 0.99 * body.desired_amount, exchange_rate: 0.99 };
-        break;
-
-      case 'USDT_TRC20':
-        converted =
-          body.keecash_wallet === 'USD'
-            ? { amount: body.desired_amount, exchange_rate: 1 }
-            : { amount: 0.99 * body.desired_amount, exchange_rate: 0.99 };
-        break;
-
-      case 'USDT_ERC20':
-        converted =
-          body.keecash_wallet === 'USD'
-            ? { amount: body.desired_amount, exchange_rate: 1 }
-            : { amount: 0.99 * body.desired_amount, exchange_rate: 0.99 };
-        break;
-
-      case 'BINANCE':
-        converted =
-          body.keecash_wallet === 'USD'
-            ? { amount: body.desired_amount, exchange_rate: 1 }
-            : { amount: 0.99 * body.desired_amount, exchange_rate: 0.99 };
-        break;
-
-      default:
-        converted = { amount: body.desired_amount, exchange_rate: 1 };
-        break;
+  async applyTransfer(userId: number, body: TransferApplyDto) {
+    if (body.to_save_as_beneficiary) {
+      await this.beneficiaryService.createBaneficiaryUser({
+        payerId: userId,
+        payeeId: body.beneficiary_user_id,
+      });
     }
 
-    const feesApplied = (converted * percentFees + fixFees).toFixed(2);
-    const totalToPay = converted + feesApplied;
+    await this.transactionService.create({
+      senderId: userId,
+      receiverId: body.beneficiary_user_id,
+      currency: body.keecash_wallet,
+      targetAmount: body.desired_amount,
+      appliedAmount: body.total_to_pay,
+      appliedFee: body.applied_fee,
+      fixedFee: body.fixed_fee,
+      percentageFee: body.percentage_fee,
+      type: TxTypeEnum.Transfer,
+      status: TransactionStatusEnum.Performed, // TODO: Consider pending status in this transaction.
+      description: body.reason,
+    });
 
-    return {
-      fix_fees: fixFees,
-      percent_fees: percentFees,
-      fees_applied: feesApplied,
-      total_to_pay: totalToPay,
-    };
-  }
+    await this.notificationService.create({
+      userId: userId,
+      type: NotificationType.TransferSent,
+      amount: body.desired_amount,
+      currency: body.keecash_wallet,
+    });
 
-  async getWithdrawalFee(body: GetWithdrawalFeeDto) {
-    const fixFees = 0.99;
-    const percentFees = 0.01;
-
-    let converted;
-
-    switch (body.currency) {
-      case 'BTC':
-        converted = { amount: 20000 * body.desired_amount, exchange_rate: 20000 };
-        break;
-
-      case 'BTC_LIGHTNING':
-        converted = { amount: 20000 * body.desired_amount, exchange_rate: 20000 };
-        break;
-
-      case 'ETH':
-        converted = { amount: 2000 * body.desired_amount, exchange_rate: 2000 };
-        break;
-
-      case 'USDC':
-        converted =
-          body.keecash_wallet === 'USD'
-            ? { amount: body.desired_amount, exchange_rate: 1 }
-            : { amount: 0.99 * body.desired_amount, exchange_rate: 0.99 };
-        break;
-
-      case 'USDT_TRC20':
-        converted =
-          body.keecash_wallet === 'USD'
-            ? { amount: body.desired_amount, exchange_rate: 1 }
-            : { amount: 0.99 * body.desired_amount, exchange_rate: 0.99 };
-        break;
-
-      case 'USDT_ERC20':
-        converted =
-          body.keecash_wallet === 'USD'
-            ? { amount: body.desired_amount, exchange_rate: 1 }
-            : { amount: 0.99 * body.desired_amount, exchange_rate: 0.99 };
-        break;
-
-      case 'BINANCE':
-        converted =
-          body.keecash_wallet === 'USD'
-            ? { amount: body.desired_amount, exchange_rate: 1 }
-            : { amount: 0.99 * body.desired_amount, exchange_rate: 0.99 };
-        break;
-
-      default:
-        converted = { amount: body.desired_amount, exchange_rate: 1 };
-        break;
-    }
-
-    const feesApplied = (converted * percentFees + fixFees).toFixed(2);
-    const totalToPay = converted + feesApplied;
-
-    return {
-      fix_fees: fixFees,
-      percent_fees: percentFees,
-      fees_applied: feesApplied,
-      total_to_pay: totalToPay,
-    };
-  }
-
-  async getTransferFee(body: GetTransferFeeDto) {
-    const fixFees = 0.99;
-    const percentFees = 0.01;
-
-    const feesApplied = body.desired_amount * percentFees + fixFees;
-    const totalToPay = body.desired_amount - feesApplied;
-
-    return {
-      fix_fees: fixFees,
-      percent_fees: percentFees,
-      fees_applied: feesApplied,
-      total_to_pay: totalToPay,
-    };
-  }
-
-  // -------------- GET BENEFICIARY -------------------
-
-  async getBeneficiaryWallets(wallet: string) {
-    const withdrawalSettings = {
-      beneficiaries_wallet: [
-        {
-          name: 'My BTC wallet on Binance',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC on Trust Wallet',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC wallet on Binance',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC on Trust Wallet',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC wallet on Binance',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-        {
-          name: 'My BTC on Trust Wallet',
-          type: CryptoCurrencyEnum.BTC,
-          address: '0x57fe7ggeih4fe55hr5dzzf56',
-        },
-      ],
-    };
-
-    return withdrawalSettings;
+    await this.notificationService.create({
+      userId: body.beneficiary_user_id,
+      type: NotificationType.TransferReceived,
+      amount: body.desired_amount,
+      currency: body.keecash_wallet,
+    });
   }
 
   // -------------- HISTORY -------------------
@@ -537,7 +547,7 @@ export class CardService {
 
     const {
       personProfile: { countryId },
-    } = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
+    } = await this.userService.findOneWithProfileAndDocuments({ id: userId }, true, false);
 
     const cardPrices = await this.countryFeeService.findCardPrices({
       type: CardTypeEnum.Virtual, // Bridgecard provides VIRTUAL cards only
@@ -573,7 +583,7 @@ export class CardService {
   async getFeesAppliedTotalToPay(userId: number, body: GetCreateCardTotalFeeDto) {
     const {
       personProfile: { countryId },
-    } = await this.userService.findOneWithProfileAndDocumments(userId, true, false);
+    } = await this.userService.findOneWithProfileAndDocuments({ id: userId }, true, false);
 
     const { cardTopUpFixedFee, cardTopUpPercentFee } =
       await this.countryFeeService.findCardTopupFee({
@@ -596,9 +606,25 @@ export class CardService {
     return { feesApplied, totalToPay };
   }
 
+  // -------------- CARD TOPUP -------------------
+
+  async getCardTopupSettings(countryId: number, body: GetCardTopupSettingDto) {
+    const { cardTopUpFixedFee, cardTopUpPercentFee } =
+      await this.countryFeeService.findOneCardTopupFee({
+        countryId,
+        currency: body.currency,
+        usage: body.card_usage,
+      });
+
+    return {
+      fix_fees: cardTopUpFixedFee,
+      percent_fees: cardTopUpPercentFee,
+    };
+  }
+
   // ------------------ Bridgecard Webhook Handler ----------------------
 
-  async handleWebhookEvent(event: string, data: any) {
+  async handleBridgecardWebhookEvent(event: string, data: any) {
     switch (event) {
       case 'cardholder_verification.successful':
         await this.userService.update(
@@ -643,6 +669,91 @@ export class CardService {
 
       default:
         break;
+    }
+  }
+
+  // ------------------ TripleA Webhook Handler ----------------------
+
+  async handleDepositNotification(body: TripleADepositNotifyDto) {
+    const details = await this.tripleAService.getDepositDetails(
+      body.payment_reference,
+      body.order_currency as FiatCurrencyEnum,
+    );
+
+    if (details.status === 'done') {
+      const keecashId = details.payer_id.split('+')[1]; // payer_id looks like 'keecash+SV08DV8'
+
+      const receiver = await this.userService.findOneWithProfileAndDocuments(
+        { referralId: keecashId },
+        true,
+        false,
+      );
+
+      // Update IN PROGRESS transaction's status to 'PERFORMED'
+      await this.transactionService.update(
+        {
+          tripleAPaymentReference: body.payment_reference,
+          type: TxTypeEnum.Deposit,
+          status: TransactionStatusEnum.InProgress,
+        },
+        { status: TransactionStatusEnum.Performed },
+      );
+
+      const referralUser = await this.userService.getReferralUser(receiver.id);
+
+      if (referralUser) {
+        const { referralFixedFee, referralPercentageFee } =
+          await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
+            countryId: receiver.personProfile.countryId,
+          });
+
+        await this.transactionService.create({
+          receiverId: referralUser.id,
+          appliedFee: details.order_amount * referralPercentageFee + referralFixedFee, // TODO: Check with Hol to define the fee
+          fixedFee: referralFixedFee,
+          percentageFee: referralPercentageFee,
+          type: TxTypeEnum.ReferralFee,
+          currency: body.order_currency,
+          tripleAPaymentReference: details.payment_reference,
+          status: TransactionStatusEnum.Performed,
+          description: `Referral fee from ${receiver.referralId}'s deposit`,
+        });
+      } else {
+        // TODO: Update specific status options: 'hold', 'invalid'
+        // Update IN PROGRESS transaction's status to 'REJECTED'
+        await this.transactionService.update(body.webhook_data.keecash_tx_id, {
+          status: TransactionStatusEnum.Rejected,
+        });
+      }
+    }
+  }
+
+  async handleWithdrawalNotification(body: TripleAWithdrawalNotifyDto) {
+    const details = await this.tripleAService.getWithdrawalDetails(
+      body.payout_reference,
+      body.local_currency,
+    );
+
+    // details.status : 'new', 'confirm', 'done', 'cancel'. See https://developers.triple-a.io/docs/triplea-api-doc/a6c4376384c1e-3-get-payout-details-by-order-id
+    if (details.status === 'done') {
+      // const { senderId } = await this.transactionService.findOne({
+      //   tripleAPaymentReference: body.payout_reference,
+      //   type: TxTypeEnum.Withdrawal,
+      //   status: TransactionStatusEnum.InProgress
+      // });
+
+      // const referralUser = await this.userService.getReferralUser(senderId);
+
+      await this.transactionService.update(
+        {
+          tripleAPaymentReference: body.payout_reference,
+          type: TxTypeEnum.Withdrawal,
+          status: TransactionStatusEnum.InProgress,
+        },
+        {
+          status: TransactionStatusEnum.Performed,
+        },
+      );
     }
   }
 }

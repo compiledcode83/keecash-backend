@@ -19,11 +19,13 @@ import { SetLanguageDto } from './dto/set-language.dto';
 import { RequestEmailChangeDto } from './dto/request-email-change.dto';
 import { CloseAccountDto } from './dto/close-account.dto';
 import { ConfirmEmailChangeOtpDto } from './dto/confirm-email-change-otp.dto';
-import { VerificationService } from '../verification/verification.service';
+import { VerificationService } from '@api/verification/verification.service';
 import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
-import { CipherTokenService } from '../cipher-token/cipher-token.service';
-import { TokenTypeEnum } from '../cipher-token/cipher-token.types';
+import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
+import { TokenTypeEnum } from '@api/cipher-token/cipher-token.types';
 import { VerificationStatus } from './user.types';
+import { VerifyUserExistDto } from './dto/verify-user-exist.dto';
+import { VerifyUserExistResponseDto } from './dto/verify-user-exist-response.dto';
 
 @Controller()
 export class UserController {
@@ -213,4 +215,20 @@ export class UserController {
   //     userId: 'JamesBond007',
   //   };
   // }
+
+  // ------------ Beneficiary ----------------
+
+  @ApiOperation({ description: `Verify if user exists` })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('verify-user-exist')
+  async verifyUserExist(@Body() body: VerifyUserExistDto): Promise<VerifyUserExistResponseDto> {
+    const user = await this.userService.findByEmailPhoneNumberReferralId(body.userField);
+
+    if (user) {
+      return { valid: true, beneficiaryUserId: user.referralId };
+    } else {
+      return { valid: false };
+    }
+  }
 }

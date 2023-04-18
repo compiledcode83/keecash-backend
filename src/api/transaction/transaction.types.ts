@@ -7,9 +7,12 @@ export enum TransactionStatusEnum {
 
 export enum CryptoCurrencyEnum {
   BTC = 'BTC',
+  LBTC = 'LBTC',
   ETH = 'ETH',
-  USDT_ERC20 = 'USDT_ERC20',
+  USDT_ERC20 = 'USDT',
   USDT_TRC20 = 'USDT_TRC20',
+  USDC_ERC20 = 'USDC',
+  USDC_TRC20 = 'USDC_TRC20',
 }
 
 export enum FiatCurrencyEnum {
@@ -24,4 +27,5 @@ export enum TxTypeEnum {
   CardCreation = 'CARD_CREATION',
   CardTopup = 'CARD_TOPUP',
   CardWithdrawal = 'CARD_WITHDRAWAL',
+  ReferralFee = 'REFERRAL_FEE',
 }

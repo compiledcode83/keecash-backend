@@ -1,37 +1,18 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { UserService } from '@api/user/user.service';
+import { Injectable } from '@nestjs/common';
 import { BeneficiaryUserRepository } from './beneficiary-user.repository';
-import { AddBeneficiaryUserDto } from './dto/add-beneficiary-user.dto';
 import { BeneficiaryUser } from './beneficiary-user.entity';
 
 @Injectable()
 export class BeneficiaryUserService {
-  constructor(
-    private readonly beneficiaryUserRepository: BeneficiaryUserRepository,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly beneficiaryUserRepository: BeneficiaryUserRepository) {}
 
   async findByPayerId(payerId: number, isAdmin: boolean) {
     return this.beneficiaryUserRepository.findByPayerId(payerId, isAdmin);
   }
 
-  async addBeneficiaryUser(body: AddBeneficiaryUserDto, userId: number): Promise<BeneficiaryUser> {
-    const user = await this.userService.findByEmailPhoneNumberReferralId(body.beneficiaryUser);
-    if (!user) throw new BadRequestException(`Cannot find user info: ${body.beneficiaryUser}`);
+  async create(param: Partial<BeneficiaryUser>): Promise<BeneficiaryUser> {
+    const beneficiaryUserEntity = await this.beneficiaryUserRepository.create(param);
 
-    const beneficiaryExist = await this.beneficiaryUserRepository.findOne({
-      where: { payerId: userId, payeeId: user.id },
-    });
-
-    if (beneficiaryExist) {
-      throw new BadRequestException(`Beneficiary user ${body.beneficiaryUser} already exists`);
-    }
-
-    const beneficiary = await this.beneficiaryUserRepository.save({
-      payerId: userId,
-      payeeId: user.id,
-    });
-
-    return beneficiary;
+    return this.beneficiaryUserRepository.save(beneficiaryUserEntity);
   }
 }

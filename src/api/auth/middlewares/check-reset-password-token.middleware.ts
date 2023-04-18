@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
-import { CipherTokenService } from '@src/api/cipher-token/cipher-token.service';
-import { TokenTypeEnum } from '@src/api/cipher-token/cipher-token.types';
+import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
+import { TokenTypeEnum } from '@api/cipher-token/cipher-token.types';
 
 @Injectable()
 export class CheckCreateAccountToken implements NestMiddleware {

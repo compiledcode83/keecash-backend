@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { CipherTokenService } from '@src/api/cipher-token/cipher-token.service';
+import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
 import {
   ValidationArguments,
   ValidatorConstraint,

@@ -6,7 +6,7 @@ export interface TripleADepositInterface {
   email: string;
   keecashUserId: string; // Referral ID
   // Webhook data
-  keecashTransactionId: number;
+  // keecashTransactionId: number;
 }
 
 export interface TripleADepositResponseInterface {
@@ -24,6 +24,8 @@ export interface TripleAWithdrawInterface {
   country: string;
   email: string;
   keecashUserId: string;
+  // Webhook data
+  // keecashTransactionId: number;
 }
 
 export interface TripleAWithdrawResponseInterface {

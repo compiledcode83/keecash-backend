@@ -13,7 +13,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
-import { FiatCurrencyEnum } from '@api/crypto-tx/crypto-tx.types';
+import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 import { GetDashboardItemsResponseDto } from './dto/get-dashboard-items-response.dto';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
@@ -21,6 +21,9 @@ import { GetCardHistoryFilterDto } from './dto/get-card-history-filter.dto';
 import { CreateCardDto } from './dto/create-card.dto';
 import { BridgecardWebhookResponseDto } from './dto/bridgecard-webhook-response.dto';
 import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
+import { GetCardTopupSettingDto } from './dto/get-card-topup-setting.dto';
+import { TripleADepositNotifyDto } from '@api/triple-a/dto/triple-a-deposit-notify.dto';
+import { TripleAWithdrawalNotifyDto } from '@api/triple-a/dto/triple-a-withdrawal-notify.dto';
 
 @Controller()
 export class CardController {
@@ -248,12 +251,31 @@ export class CardController {
     return this.cardService.createBridgecard(req.user.id, body);
   }
 
+  // -------------- CARD TOPUP -------------------
+
+  @Post('card/top-up/settings')
+  async getCardTopupSettings(@Req() req, @Body() body: GetCardTopupSettingDto) {
+    return this.cardService.getCardTopupSettings(req.user.countryId, body);
+  }
+
+  // -------------- BRIDGECARD WEBHOOK -------------------
+
   @Post('bridgedard/webhook')
   async handleWebhookEvent(@Body() body: BridgecardWebhookResponseDto) {
     const { event, data } = body;
 
-    console.log({ event, data });
+    await this.cardService.handleBridgecardWebhookEvent(event, data);
+  }
 
-    await this.cardService.handleWebhookEvent(event, data);
+  // -------------- TRIPLE-A WEBHOOK -------------------
+
+  @Post('triple/payment-notifiy-deposit')
+  async paymentNotifyDeposit(@Body() body: TripleADepositNotifyDto) {
+    await this.cardService.handleDepositNotification(body);
+  }
+
+  @Post('triple/payment-notifiy-withdraw')
+  async paymentNotifyWithdraw(@Body() body: TripleAWithdrawalNotifyDto) {
+    await this.cardService.handleWithdrawalNotification(body);
   }
 }

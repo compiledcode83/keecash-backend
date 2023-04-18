@@ -1,19 +1,18 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CryptoTxService } from '@api/crypto-tx/crypto-tx.service';
 import { JwtAdminAuthGuard } from '../auth/guards/jwt-admin-auth.guard';
 import { GetCryptoTxAdminDto } from '../admin/dto/get-crypto-tx-admin.dto';
 
 @Controller()
 @ApiTags('Transactions Logs')
 export class AdminCryptoTxController {
-  constructor(private readonly cryptoTxService: CryptoTxService) {}
+  constructor() {}
 
-  @ApiOperation({ description: `Get Crypto Transactions` })
-  @ApiBearerAuth()
-  @UseGuards(JwtAdminAuthGuard)
-  @Get()
-  async getCryptoTx(@Query() query: GetCryptoTxAdminDto) {
-    return this.cryptoTxService.findAllPaginated(query);
-  }
+  // @ApiOperation({ description: `Get Crypto Transactions` })
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAdminAuthGuard)
+  // @Get()
+  // async getCryptoTx(@Query() query: GetCryptoTxAdminDto) {
+  //   return this.cryptoTxService.findAllPaginated(query);
+  // }
 }

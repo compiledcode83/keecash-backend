@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FiatCurrencyEnum } from '@api/crypto-tx/crypto-tx.types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { CardTypeEnum, CardUsageEnum } from '../card/card.types';
+import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
+import { CardTypeEnum, CardUsageEnum } from '@api/card/card.types';
 
 @Entity('card_price')
 export class CardPrice {
