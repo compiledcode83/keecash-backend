@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { v4 as uuid } from 'uuid';
@@ -9,11 +9,14 @@ import {
   TripleAWithdrawInterface,
   TripleAWithdrawResponseInterface,
 } from './triple-a.types';
+import { Cron } from '@nestjs/schedule';
 
 const GRANT_TYPE = 'client_credentials';
 
 @Injectable()
 export class TripleAService {
+  private readonly logger = new Logger(TripleAService.name);
+
   private tripleAClientId;
   private tripleAClientSecret;
   private tripleAMerchatKey;
@@ -226,6 +229,26 @@ export class TripleAService {
       } else {
         throw new HttpException(data.message || statusText, status);
       }
+    }
+  }
+
+  // Refresh access token every 55 minutes, because access token expires in 1 hour
+  @Cron('* */55 * * * *', {
+    name: 'refresh_triple_a_access_token',
+  })
+  async refreshAccessToken() {
+    try {
+      await Promise.all(
+        Object.keys(FiatCurrencyEnum).map((currency) =>
+          this.getAccessToken(currency as FiatCurrencyEnum),
+        ),
+      );
+
+      this.logger.log('Refreshed TripleA access token');
+    } catch (error) {
+      const { status, statusText, data } = error.response || {};
+
+      throw new HttpException(data.message || statusText, status);
     }
   }
 }

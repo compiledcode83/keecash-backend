@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { EnvHelper } from '@common/helpers/env.helper';
 import appConfig from '@config/app.config';
@@ -46,6 +47,7 @@ EnvHelper.verifyNodeEnv();
       },
       inject: [ConfigService],
     }),
+    ScheduleModule.forRoot(),
     AdminSubModule,
     PublicSubModule,
   ],
