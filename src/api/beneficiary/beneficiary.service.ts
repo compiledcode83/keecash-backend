@@ -25,7 +25,11 @@ export class BeneficiaryService {
     return this.beneficiaryWalletService.findMany(param);
   }
 
-  async createBaneficiaryUser(param: Partial<BeneficiaryUser>) {
+  async createBeneficiaryUser(param: Partial<BeneficiaryUser>) {
     return this.beneficiaryUserService.create(param);
+  }
+
+  async createBeneficiaryWallet(param: Partial<BeneficiaryWallet>) {
+    return this.beneficiaryWalletService.create(param);
   }
 }

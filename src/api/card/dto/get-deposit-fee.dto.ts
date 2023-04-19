@@ -14,8 +14,4 @@ export class GetDepositFeeDto {
   @ApiProperty({ example: 100, description: 'Deposit amount in fiat (EUR, USD ...)' })
   @IsNumber()
   fiat_amount: number;
-
-  @ApiProperty({ example: 0.032, description: 'Deposit amount in crypto (BTC, ETH ...)' })
-  @IsNumber()
-  crypto_amount: number;
 }

@@ -9,7 +9,6 @@ import {
 import { CardRepository } from './card.repository';
 import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
 import {
-  CryptoCurrencyEnum,
   FiatCurrencyEnum,
   TxTypeEnum,
   TransactionStatusEnum,
@@ -235,43 +234,43 @@ export class CardService {
   // -------------- DEPOSIT -------------------
 
   async getDepositSettings(userId: number) {
-    const balance = await this.transactionService.getWalletBalances(userId);
+    // const balance = await this.transactionService.getWalletBalances(userId);
 
-    const keecash_wallets = [
-      {
-        balance: balance.eur,
-        currency: FiatCurrencyEnum.EUR,
-        is_checked: true,
-        min: 0,
-        max: 100000,
-        after_decimal: 2,
-      },
-      {
-        balance: balance.usd,
-        currency: FiatCurrencyEnum.USD,
-        is_checked: false,
-        min: 0,
-        max: 100000,
-        after_decimal: 2,
-      },
-    ];
+    // const keecash_wallets = [
+    //   {
+    //     balance: balance.eur,
+    //     currency: FiatCurrencyEnum.EUR,
+    //     is_checked: true,
+    //     min: 0,
+    //     max: 100000,
+    //     after_decimal: 2,
+    //   },
+    //   {
+    //     balance: balance.usd,
+    //     currency: FiatCurrencyEnum.USD,
+    //     is_checked: false,
+    //     min: 0,
+    //     max: 100000,
+    //     after_decimal: 2,
+    //   },
+    // ];
 
     return {
-      keecash_wallets,
+      // keecash_wallets,
       deposit_methods,
     };
   }
 
-  async getDepositFee(countryId: number, body: GetDepositFeeDto) {
+  async getDepositFee(countryId: number, query: GetDepositFeeDto) {
     const { depositFixedFee, depositPercentFee } =
       await this.countryFeeService.findOneWalletDepositWithdrawalFee({
         countryId,
-        currency: body.keecash_wallet,
-        method: body.deposit_method,
+        currency: query.keecash_wallet,
+        method: query.deposit_method,
       });
 
-    const feesApplied = body.fiat_amount * depositPercentFee + depositFixedFee;
-    const amountAfterFee = body.fiat_amount + feesApplied;
+    const feesApplied = (query.fiat_amount * depositPercentFee) / 100 + depositFixedFee;
+    const amountAfterFee = query.fiat_amount + feesApplied;
 
     return {
       fix_fees: depositFixedFee,
@@ -323,40 +322,31 @@ export class CardService {
   // -------------- WITHDRAWAL -------------------
 
   async getWithdrawalSettings(userId: number) {
-    const balance = await this.transactionService.getWalletBalances(userId);
+    // const balance = await this.transactionService.getWalletBalances(userId);
 
-    const keecash_wallets = [
-      {
-        balance: balance.eur,
-        currency: 'EUR',
-        is_checked: true,
-        min: 0,
-        max: balance.eur,
-        after_decimal: 2,
-      },
-      {
-        balance: balance.usd,
-        currency: 'USD',
-        is_checked: false,
-        min: 0,
-        max: balance.usd,
-        after_decimal: 2,
-      },
-    ];
+    // const keecash_wallets = [
+    //   {
+    //     balance: balance.eur,
+    //     currency: 'EUR',
+    //     is_checked: true,
+    //     min: 0,
+    //     max: balance.eur,
+    //     after_decimal: 2,
+    //   },
+    //   {
+    //     balance: balance.usd,
+    //     currency: 'USD',
+    //     is_checked: false,
+    //     min: 0,
+    //     max: balance.usd,
+    //     after_decimal: 2,
+    //   },
+    // ];
 
     return {
-      keecash_wallets,
+      // keecash_wallets,
       withdrawal_methods,
     };
-  }
-
-  async getBeneficiaryWallets(userId: number, type: CryptoCurrencyEnum) {
-    const beneficiary_wallets = await this.beneficiaryService.findBeneficiaryWallets({
-      userId,
-      type,
-    });
-
-    return { beneficiary_wallets };
   }
 
   async getWithdrawalFee(countryId: number, body: GetWithdrawalFeeDto) {
@@ -367,7 +357,7 @@ export class CardService {
         method: body.withdrawal_method,
       });
 
-    const feesApplied = body.fiat_amount * withdrawPercentFee + withdrawFixedFee;
+    const feesApplied = (body.fiat_amount * withdrawPercentFee) / 100 + withdrawFixedFee;
     const amountAfterFee = body.fiat_amount - feesApplied;
 
     return {
@@ -379,7 +369,14 @@ export class CardService {
   }
 
   async applyWithdrawal(user: UserAccessTokenInterface, body: WithdrawalApplyDto) {
-    // TODO: Save new beneficiary wallet
+    if (body.to_save_as_beneficiary) {
+      await this.beneficiaryService.createBeneficiaryWallet({
+        userId: user.id,
+        address: body.wallet_address,
+        name: body.wallet_name,
+        type: body.withdrawal_method,
+      });
+    }
 
     // Trigger TripleA API
     const res = await this.tripleAService.withdraw({
@@ -421,29 +418,29 @@ export class CardService {
   // -------------- TRANSFER -------------------
 
   async getTransferSettings(userId: number) {
-    const balance = await this.transactionService.getWalletBalances(userId);
+    // const balance = await this.transactionService.getWalletBalances(userId);
 
-    const keecash_wallets = [
-      {
-        balance: balance.eur,
-        currency: FiatCurrencyEnum.EUR,
-        is_checked: true,
-        min: 0,
-        max: balance.eur,
-        after_decimal: 2,
-      },
-      {
-        balance: balance.usd,
-        currency: FiatCurrencyEnum.USD,
-        is_checked: false,
-        min: 0,
-        max: balance.usd,
-        after_decimal: 2,
-      },
-    ];
+    // const keecash_wallets = [
+    //   {
+    //     balance: balance.eur,
+    //     currency: FiatCurrencyEnum.EUR,
+    //     is_checked: true,
+    //     min: 0,
+    //     max: balance.eur,
+    //     after_decimal: 2,
+    //   },
+    //   {
+    //     balance: balance.usd,
+    //     currency: FiatCurrencyEnum.USD,
+    //     is_checked: false,
+    //     min: 0,
+    //     max: balance.usd,
+    //     after_decimal: 2,
+    //   },
+    // ];
 
     return {
-      keecash_wallets,
+      // keecash_wallets,
     };
   }
 
@@ -454,20 +451,20 @@ export class CardService {
         currency: body.keecash_wallet,
       });
 
-    const feesApplied = body.desired_amount * transferPercentFee + transferFixedFee;
+    const feesApplied = (body.desired_amount * transferPercentFee) / 100 + transferFixedFee;
     const amountAfterFee = body.desired_amount - feesApplied;
 
     return {
       fix_fees: transferFixedFee,
       percent_fees: transferPercentFee,
       fees_applied: feesApplied,
-      total_to_pay: amountAfterFee,
+      amount_to_receive: amountAfterFee,
     };
   }
 
   async applyTransfer(userId: number, body: TransferApplyDto) {
     if (body.to_save_as_beneficiary) {
-      await this.beneficiaryService.createBaneficiaryUser({
+      await this.beneficiaryService.createBeneficiaryUser({
         payerId: userId,
         payeeId: body.beneficiary_user_id,
       });
@@ -478,7 +475,7 @@ export class CardService {
       receiverId: body.beneficiary_user_id,
       currency: body.keecash_wallet,
       targetAmount: body.desired_amount,
-      appliedAmount: body.total_to_pay,
+      appliedAmount: body.amount_to_receive,
       appliedFee: body.applied_fee,
       fixedFee: body.fixed_fee,
       percentageFee: body.percentage_fee,

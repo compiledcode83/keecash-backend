@@ -10,6 +10,7 @@ import {
   Post,
   Delete,
   UnauthorizedException,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
@@ -221,12 +222,12 @@ export class UserController {
   @ApiOperation({ description: `Verify if user exists` })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Post('verify-user-exist')
-  async verifyUserExist(@Body() body: VerifyUserExistDto): Promise<VerifyUserExistResponseDto> {
-    const user = await this.userService.findByEmailPhoneNumberReferralId(body.userField);
+  @Get('beneficiary/verify-user-exist')
+  async verifyUserExist(@Query() query: VerifyUserExistDto): Promise<VerifyUserExistResponseDto> {
+    const user = await this.userService.findByEmailPhoneNumberReferralId(query.user);
 
     if (user) {
-      return { valid: true, beneficiaryUserId: user.referralId };
+      return { valid: true, beneficiaryUserId: user.id };
     } else {
       return { valid: false };
     }

@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards, Get, Query, Delete, Param } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { AddAdminDto } from './dto/add-admin.dto';
 import { AdminFilterDto } from './dto/admin.filter.dto';
@@ -26,7 +26,8 @@ export class AdminController {
     return this.adminService.addAdmin(body);
   }
 
-  @ApiOperation({})
+  @ApiOperation({ description: `Delete admin` })
+  @ApiParam({ name: 'card_id', required: true, description: 'Bridgecard ID' })
   @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Delete(':id')

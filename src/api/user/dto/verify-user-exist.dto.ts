@@ -10,5 +10,5 @@ export class VerifyUserExistDto {
   })
   @IsString()
   @MaxLength(255)
-  userField: string;
+  user: string;
 }

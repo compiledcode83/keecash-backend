@@ -6,8 +6,8 @@ export class VerifyUserExistResponseDto {
   @IsBoolean()
   valid: boolean;
 
-  @ApiProperty({ example: 'XELA278EZ', required: true, description: 'Beneficiary referral id' })
+  @ApiProperty({ example: 2, required: true, description: `Beneficiary user's id` })
   @IsOptional()
   @IsString()
-  beneficiaryUserId?: string;
+  beneficiaryUserId?: number;
 }

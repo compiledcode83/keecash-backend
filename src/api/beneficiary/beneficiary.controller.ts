@@ -1,5 +1,5 @@
-import { Body, Controller, Post, UseGuards, Get, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post, UseGuards, Get, Req, Param } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { AddBeneficiaryUserDto } from './beneficiary-user/dto/add-beneficiary-user.dto';
 import { AddBeneficiaryWalletDto } from './beneficiary-wallet/dto/add-beneficiary-wallet.dto';
@@ -9,6 +9,7 @@ import { BeneficiaryService } from './beneficiary.service';
 import { TypesOfBeneficiary } from './beneficiary.types';
 import { VerifyWalletAddressDto } from './beneficiary-wallet/dto/verify-wallet-address.dto';
 import { VerifyWalletExistResponseDto } from './beneficiary-wallet/dto/verify-wallet-address-response.dto';
+import { CryptoCurrencyEnum } from '@api/transaction/transaction.types';
 
 @Controller('beneficiary')
 @ApiTags('Manage beneficiaries')
@@ -51,6 +52,7 @@ export class BeneficiaryController {
     return { valid: doesExist };
   }
 
+  @ApiOperation({ description: 'Get withdrawal beneficiaries' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('add-user')
@@ -61,10 +63,29 @@ export class BeneficiaryController {
     });
   }
 
+  @ApiOperation({ description: 'Get withdrawal beneficiaries' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('add-wallet')
   async addBeneficiaryWallet(@Req() req, @Body() body: AddBeneficiaryWalletDto) {
-    return this.beneficiaryWalletService.addBeneficiaryWallet(body, req.user.id);
+    return this.beneficiaryService.createBeneficiaryWallet({
+      userId: req.user.id,
+      address: body.address,
+      type: body.type,
+    });
+  }
+
+  @ApiOperation({ description: 'Get withdrawal beneficiaries' })
+  @ApiParam({ name: 'currency', required: true, description: 'Keecash wallet currency' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('wallets/:currency')
+  async getBeneficiaryWallets(@Req() req, @Param('currency') currency: CryptoCurrencyEnum) {
+    const beneficiary_wallets = await this.beneficiaryService.findBeneficiaryWallets({
+      userId: req.user.id,
+      type: currency,
+    });
+
+    return { beneficiary_wallets };
   }
 }

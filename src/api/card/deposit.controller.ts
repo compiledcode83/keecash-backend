@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CardService } from './card.service';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
@@ -21,9 +21,9 @@ export class DepositController {
   @ApiOperation({ description: 'Post deposit fees' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Post('fees')
-  async depositFees(@Req() req, @Body() body: GetDepositFeeDto) {
-    return this.cardService.getDepositFee(req.user.countryId, body);
+  @Get('fees')
+  async depositFees(@Req() req, @Query() query: GetDepositFeeDto) {
+    return this.cardService.getDepositFee(req.user.countryId, query);
   }
 
   @ApiOperation({ description: 'Post deposit payment link' })
