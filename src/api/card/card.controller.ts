@@ -253,14 +253,18 @@ export class CardController {
 
   // -------------- CARD TOPUP -------------------
 
-  @Post('card/top-up/settings')
-  async getCardTopupSettings(@Req() req, @Body() body: GetCardTopupSettingDto) {
-    return this.cardService.getCardTopupSettings(req.user.countryId, body);
+  @ApiOperation({ description: 'Get card topup settings' })
+  @ApiTags('Card Management')
+  @UseGuards(JwtAuthGuard)
+  @Get('card/top-up/settings')
+  async getCardTopupSettings(@Req() req, @Body() query: GetCardTopupSettingDto) {
+    return this.cardService.getCardTopupSettings(req.user.countryId, query);
   }
 
   // -------------- BRIDGECARD WEBHOOK -------------------
 
-  @Post('bridgedard/webhook')
+  @ApiTags('Webhook Handler')
+  @Post('bridgecard/webhook')
   async handleWebhookEvent(@Body() body: BridgecardWebhookResponseDto) {
     const { event, data } = body;
 
@@ -269,11 +273,13 @@ export class CardController {
 
   // -------------- TRIPLE-A WEBHOOK -------------------
 
+  @ApiTags('Webhook Handler')
   @Post('triple/payment-notifiy-deposit')
   async paymentNotifyDeposit(@Body() body: TripleADepositNotifyDto) {
     await this.cardService.handleDepositNotification(body);
   }
 
+  @ApiTags('Webhook Handler')
   @Post('triple/payment-notifiy-withdraw')
   async paymentNotifyWithdraw(@Body() body: TripleAWithdrawalNotifyDto) {
     await this.cardService.handleWithdrawalNotification(body);

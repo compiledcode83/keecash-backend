@@ -605,12 +605,12 @@ export class CardService {
 
   // -------------- CARD TOPUP -------------------
 
-  async getCardTopupSettings(countryId: number, body: GetCardTopupSettingDto) {
+  async getCardTopupSettings(countryId: number, query: GetCardTopupSettingDto) {
     const { cardTopUpFixedFee, cardTopUpPercentFee } =
       await this.countryFeeService.findOneCardTopupFee({
         countryId,
-        currency: body.currency,
-        usage: body.card_usage,
+        currency: query.currency,
+        usage: query.card_usage,
       });
 
     return {

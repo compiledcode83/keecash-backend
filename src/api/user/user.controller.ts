@@ -220,6 +220,7 @@ export class UserController {
   // ------------ Beneficiary ----------------
 
   @ApiOperation({ description: `Verify if user exists` })
+  @ApiTags('Manage beneficiaries')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('beneficiary/verify-user-exist')
