@@ -8,6 +8,7 @@ import {
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
+import { customAlphabet } from 'nanoid';
 import { UpdateUserInfoDto } from '@admin/admin/dto/update-user-info.dto';
 import { CountryService } from '@api/country/country.service';
 import { DocumentService } from '@api/user/document/document.service';
@@ -32,7 +33,10 @@ import { BridgecardService } from '@api/bridgecard/bridgecard.service';
 
 const closure_reasons = require('../closure-reason/closure-reasons.json');
 
+const REFERRAL_ID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const REFERRAL_ID_LENGTH = 7;
+
+const nanoid = customAlphabet(REFERRAL_ID_ALPHABET, REFERRAL_ID_LENGTH);
 
 @Injectable()
 export class UserService {
@@ -105,7 +109,8 @@ export class UserService {
   }
 
   async create(body: CreateUserDto): Promise<User> {
-    const referralId = await this.generateReferralId();
+    const referralId = nanoid();
+    // TODO: Add DB check for referral id duplication.
 
     const user: Partial<User> = {
       referralId,
@@ -132,7 +137,8 @@ export class UserService {
   }
 
   async createPersonalUser(body: CreatePersonUserDto) {
-    const referralId = await this.generateReferralId();
+    const referralId = nanoid();
+    // TODO: Add DB check for referral id duplication.
 
     const res = await this.userRepository.save({
       firstName: body.firstName,
@@ -165,7 +171,8 @@ export class UserService {
   }
 
   async createEnterpriseUser(body: CreateEnterpriseUserDto) {
-    const referralId = await this.generateReferralId();
+    const referralId = nanoid();
+    // TODO: Add DB check for referral id duplication.
 
     const newUser = await this.userRepository.save({
       firstName: body.firstName,
@@ -225,17 +232,6 @@ export class UserService {
     }
 
     return 'success';
-  }
-
-  async generateReferralId(): Promise<string> {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < REFERRAL_ID_LENGTH; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-
-    return result;
   }
 
   async updatePersonalUser(body: UpdateUserInfoDto) {
