@@ -36,10 +36,10 @@ const closure_reasons = require('../closure-reason/closure-reasons.json');
 const REFERRAL_ID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const REFERRAL_ID_LENGTH = 7;
 
-const nanoid = customAlphabet(REFERRAL_ID_ALPHABET, REFERRAL_ID_LENGTH);
-
 @Injectable()
 export class UserService {
+  private readonly generateReferralId: () => string;
+
   constructor(
     private readonly userRepository: UserRepository,
     private readonly countryService: CountryService,
@@ -52,7 +52,9 @@ export class UserService {
     private readonly transactionService: TransactionService,
     private readonly bridgecardService: BridgecardService,
     @Inject(forwardRef(() => CardService)) private readonly cardService: CardService,
-  ) {}
+  ) {
+    this.generateReferralId = customAlphabet(REFERRAL_ID_ALPHABET, REFERRAL_ID_LENGTH);
+  }
 
   async findOne(param: any): Promise<User> {
     return this.userRepository.findOne({ where: param });
@@ -109,7 +111,7 @@ export class UserService {
   }
 
   async create(body: CreateUserDto): Promise<User> {
-    const referralId = nanoid();
+    const referralId = this.generateReferralId();
     // TODO: Add DB check for referral id duplication.
 
     const user: Partial<User> = {
@@ -137,7 +139,7 @@ export class UserService {
   }
 
   async createPersonalUser(body: CreatePersonUserDto) {
-    const referralId = nanoid();
+    const referralId = this.generateReferralId();
     // TODO: Add DB check for referral id duplication.
 
     const res = await this.userRepository.save({
@@ -171,7 +173,7 @@ export class UserService {
   }
 
   async createEnterpriseUser(body: CreateEnterpriseUserDto) {
-    const referralId = nanoid();
+    const referralId = this.generateReferralId();
     // TODO: Add DB check for referral id duplication.
 
     const newUser = await this.userRepository.save({
