@@ -97,7 +97,7 @@ export class BridgecardService {
 
       this.logger.log(res.data.message);
 
-      return res.data.card_id;
+      return res.data.data.card_id;
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   CardPriceRepository,
   CardTopupFeeRepository,
@@ -24,26 +24,46 @@ export class CountryFeeService {
   }
 
   async findOneCardPrice(param: Partial<CardPrice>): Promise<CardPrice> {
-    return this.cardPriceRepository.findOne({ where: param });
+    const cardPrice = await this.cardPriceRepository.findOne({ where: param });
+
+    if (!cardPrice) {
+      throw new NotFoundException(`Cannot find card price data for request`);
+    }
+
+    return cardPrice;
   }
 
-  async findCardTopupFee(param: Partial<CardTopupFee>): Promise<CardTopupFee> {
-    return this.cardTopupFeeRepository.findOne({ where: param });
+  async findOneCardTopupFee(param: Partial<CardTopupFee>): Promise<CardTopupFee> {
+    const cardTopupFee = await this.cardTopupFeeRepository.findOne({ where: param });
+
+    if (!cardTopupFee) {
+      throw new NotFoundException(`Cannot find card topup fee data for request`);
+    }
+
+    return cardTopupFee;
   }
 
   async findOneWalletDepositWithdrawalFee(
     param: Partial<WalletDepositWithdrawalFee>,
   ): Promise<WalletDepositWithdrawalFee> {
-    return this.walletDepositWithdrawalFeeRepository.findOne({ where: param });
+    const walletFee = await this.walletDepositWithdrawalFeeRepository.findOne({ where: param });
+
+    if (!walletFee) {
+      throw new NotFoundException(`Cannot find wallet fee data for request`);
+    }
+
+    return walletFee;
   }
 
   async findOneTransferReferralCardWithdrawalFee(
     param: Partial<TransferReferralCardWithdrawalFee>,
   ): Promise<TransferReferralCardWithdrawalFee> {
-    return this.transferReferralCardWithdrawalFeeRepository.findOne({ where: param });
-  }
+    const fee = await this.transferReferralCardWithdrawalFeeRepository.findOne({ where: param });
 
-  async findOneCardTopupFee(param: Partial<CardTopupFee>): Promise<CardTopupFee> {
-    return this.cardTopupFeeRepository.findOne({ where: param });
+    if (!fee) {
+      throw new NotFoundException(`Cannot find fee data for request`);
+    }
+
+    return fee;
   }
 }

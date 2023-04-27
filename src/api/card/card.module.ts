@@ -14,6 +14,8 @@ import { TripleAModule } from '@api/triple-a/triple-a.module';
 import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
 import { HistoryController } from './history.controller';
 import { WebhookController } from './webhook.controller';
+import { CreateCardController } from './create-card.controller';
+import { TopupCardController } from './topup-card.controller';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { WebhookController } from './webhook.controller';
     TransferController,
     HistoryController,
     WebhookController,
+    CreateCardController,
+    TopupCardController,
   ],
   providers: [CardService, CardRepository],
   exports: [CardService],

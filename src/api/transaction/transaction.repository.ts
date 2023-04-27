@@ -54,9 +54,8 @@ export class TransactionRepository extends Repository<Transaction> {
 
   async getBalancesForUser(userId: number, currency: string): Promise<any> {
     const queryBuilder = await this.createQueryBuilder('transaction')
-      .leftJoinAndSelect('transaction.sender', 'sender')
-      .leftJoinAndSelect('transaction.receiver', 'receiver')
-      .where('(sender.id = :userId OR receiver.id = :userId) AND transaction.status = :status', {
+      .leftJoinAndSelect('transaction.user', 'user')
+      .where('user.id = :userId AND transaction.status = :status', {
         userId,
         status: TransactionStatusEnum.Performed,
       });
@@ -66,10 +65,7 @@ export class TransactionRepository extends Repository<Transaction> {
     }
 
     queryBuilder
-      .select(
-        'SUM(CASE WHEN sender.id = :userId THEN -transaction.applied_amount ELSE transaction.applied_amount END)',
-        'balance',
-      )
+      .select('SUM(transaction.affected_amount)', 'balance')
       .addSelect('transaction.currency', 'currency')
       .groupBy('transaction.currency');
 

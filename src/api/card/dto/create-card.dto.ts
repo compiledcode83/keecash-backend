@@ -24,10 +24,6 @@ export class CreateCardDto {
   @MinLength(1)
   name: string;
 
-  @ApiProperty({ example: 79.25, description: 'Total pay amount (consider removing)' })
-  @IsNumber()
-  totalToPay: number;
-
   @ApiProperty({ example: 60, description: 'Card topup amount' })
   @IsNumber()
   topupAmount: number;

@@ -41,8 +41,8 @@ export class TransactionService {
     const usdWallet = wallets.find(({ currency }) => currency === FiatCurrencyEnum.USD);
 
     return {
-      eur: eurWallet ? eurWallet.balance : 0,
-      usd: usdWallet ? usdWallet.balance : 0,
+      eur: eurWallet ? parseFloat(eurWallet.balance.toFixed(2)) : 0,
+      usd: usdWallet ? parseFloat(usdWallet.balance.toFixed(2)) : 0,
     };
   }
 }
