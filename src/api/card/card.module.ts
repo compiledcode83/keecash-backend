@@ -12,6 +12,8 @@ import { CountryFeeModule } from '@api/country-fee/country-fee.module';
 import { BridgecardModule } from '@api/bridgecard/bridgecard.module';
 import { TripleAModule } from '@api/triple-a/triple-a.module';
 import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
+import { HistoryController } from './history.controller';
+import { WebhookController } from './webhook.controller';
 
 @Module({
   imports: [
@@ -23,7 +25,14 @@ import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
     forwardRef(() => BeneficiaryModule),
     forwardRef(() => UserModule),
   ],
-  controllers: [CardController, DepositController, WithdrawalController, TransferController],
+  controllers: [
+    CardController,
+    DepositController,
+    WithdrawalController,
+    TransferController,
+    HistoryController,
+    WebhookController,
+  ],
   providers: [CardService, CardRepository],
   exports: [CardService],
 })

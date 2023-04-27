@@ -10,9 +10,15 @@ export interface TripleADepositInterface {
 }
 
 export interface TripleADepositResponseInterface {
-  hosted_url: string;
-  expires_in: number;
   payment_reference: string;
+  order_currency?: FiatCurrencyEnum;
+  order_amount?: number;
+  expiry_date?: string;
+  notify_secret?: string;
+  access_token?: string;
+  token_type?: string;
+  expires_in: number;
+  hosted_url: string;
 }
 
 export interface TripleAWithdrawInterface {

@@ -17,13 +17,9 @@ import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 import { GetDashboardItemsResponseDto } from './dto/get-dashboard-items-response.dto';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
-import { GetCardHistoryFilterDto } from './dto/get-card-history-filter.dto';
 import { CreateCardDto } from './dto/create-card.dto';
-import { BridgecardWebhookResponseDto } from './dto/bridgecard-webhook-response.dto';
 import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
 import { GetCardTopupSettingDto } from './dto/get-card-topup-setting.dto';
-import { TripleADepositNotifyDto } from '@api/triple-a/dto/triple-a-deposit-notify.dto';
-import { TripleAWithdrawalNotifyDto } from '@api/triple-a/dto/triple-a-withdrawal-notify.dto';
 
 @Controller()
 export class CardController {
@@ -43,8 +39,6 @@ export class CardController {
       recommended: FiatCurrencyEnum.EUR,
     };
   }
-
-  // -------------- MANAGE CARD -------------------
 
   @ApiOperation({ description: 'Get my cards' })
   @ApiTags('Card Management')
@@ -96,134 +90,6 @@ export class CardController {
     return { isSuccess: true };
   }
 
-  // -------------- HISTORY -------------------
-
-  @ApiOperation({ description: 'Get history of 30 days' })
-  @ApiTags('Transaction History')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('/history/get-init-history')
-  async getInitHistory(@Req() req) {
-    return this.cardService.getInitHistory(req.user.id);
-  }
-
-  @ApiOperation({ description: '' })
-  @ApiParam({ name: 'keecash_wallet_currency', required: true, description: 'Currency of wallet' })
-  @ApiTags('Transaction History')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('/keecash-wallet/:keecash_wallet_currency/transactions')
-  async getKeecashWalletTransactions(
-    @Req() req,
-    @Param('keecash_wallet_currency') currency: FiatCurrencyEnum,
-  ) {
-    return this.cardService.getKeecashWalletTransactions(req.user.id, currency);
-  }
-
-  @ApiOperation({ description: '' })
-  @ApiParam({ name: 'keecash_wallet_currency', required: true, description: 'Currency of wallet' })
-  @ApiParam({ name: 'reference', required: true, description: 'Reference' })
-  @ApiTags('Transaction History')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('/keecash-wallet/:keecash_wallet_currency/transactions/:reference/invoice')
-  async getKeecashWalletTransactionInvoice(
-    @Req() req,
-    @Param('keecash_wallet_currency') currency: FiatCurrencyEnum,
-  ) {
-    const result = {
-      link: '',
-    };
-
-    return result;
-  }
-
-  @ApiOperation({ description: 'Get card transaction invoices' })
-  @ApiParam({ name: 'card_name', required: true, description: 'Card name' })
-  @ApiParam({ name: 'reference', required: true, description: 'Reference' })
-  @ApiTags('Transaction History')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('/card/:card_name/transactions/:reference/invoice')
-  async getCardInvoices(@Param() param) {
-    const result = {
-      link: '',
-    };
-
-    return result;
-  }
-
-  @ApiOperation({ description: 'Get card transactions' })
-  @ApiParam({ name: 'card_name', required: true, description: 'Card name' })
-  @ApiTags('Transaction History')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('/card/:card_name/transactions/')
-  async getCardTransactions(
-    @Req() req,
-    @Param('card_name') card_name: string,
-    @Body() body: GetCardHistoryFilterDto,
-  ) {
-    const result = [
-      {
-        currency: 'EUR',
-        date: '2023-02-01T14:36:27.106Z',
-        from: 'Cameleon', // KEECASH_WALLET_EUR|BTC|ETH|...|Cameleon|Business  exemple BTC,
-        to: 'NetFlix irland FRX2453', // merchant_name|KEECASH_WALLET_EUR,
-        merchant_logo:
-          'https://icones.pro/wp-content/uploads/2021/04/icone-netflix-symbole-logo-original.png', // a store link of the logo for NetFlix for example , or keecash logo directly ...,
-        amount: '20.0',
-        amount_fx: '19.55',
-        currency_fx: 'EUR',
-        fix_fees: '0.99',
-        percent_fees: '1.0',
-        fees_applied: '1.71',
-        cashback_fix_fee: '0.0',
-        cashback_percent_fee: '0.0',
-        cashback_fees_applied: '0.0',
-        type: 'DEBIT', // DEBIT|CREDIT,
-        status: 'PERFORMED', // PERFORMED|IN_PROGRESS|REFUSED|REFUND,
-        reference: 'KCXXXXX',
-        exchange_rate: '15000.0',
-        reason: '',
-        beneficiary_name: '',
-        beneficiary_url_avatar: '',
-        blockchain_txid_link: '',
-        metadata: { a: 'b' },
-      },
-      {
-        currency: 'EUR',
-        date: '2023-02-01T14:36:27.106Z',
-        from: 'Cameleon', // KEECASH_WALLET_EUR|BTC|ETH|...|Cameleon|Business  exemple BTC,
-        to: 'Google En plus', // merchant_name|KEECASH_WALLET_EUR,
-        merchant_logo:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/768px-Google_%22G%22_Logo.svg.png', // a store link of the logo for NetFlix for example , or keecash logo directly ...,
-        amount: '100.0',
-        amount_fx: '19.55',
-        currency_fx: 'EUR',
-        fix_fees: '0.99',
-        percent_fees: '1.0',
-        fees_applied: '1.71',
-        cashback_fix_fee: '0.0',
-        cashback_percent_fee: '0.0',
-        cashback_fees_applied: '0.0',
-        type: 'DEBIT', // DEBIT|CREDIT,
-        status: 'PERFORMED', // PERFORMED|IN_PROGRESS|REFUSED|REFUND,
-        reference: 'KCXXXXX',
-        exchange_rate: '15000.0',
-        reason: '',
-        beneficiary_name: '',
-        beneficiary_url_avatar: '',
-        blockchain_txid_link: '',
-        metadata: { a: 'b' },
-      },
-    ];
-
-    return result;
-  }
-
-  // -------------- CREATE CARD -------------------
-
   @ApiOperation({ description: 'Get create card settings' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -251,37 +117,11 @@ export class CardController {
     return this.cardService.createBridgecard(req.user.id, body);
   }
 
-  // -------------- CARD TOPUP -------------------
-
   @ApiOperation({ description: 'Get card topup settings' })
   @ApiTags('Card Management')
   @UseGuards(JwtAuthGuard)
   @Get('card/top-up/settings')
   async getCardTopupSettings(@Req() req, @Body() query: GetCardTopupSettingDto) {
     return this.cardService.getCardTopupSettings(req.user.countryId, query);
-  }
-
-  // -------------- BRIDGECARD WEBHOOK -------------------
-
-  @ApiTags('Webhook Handler')
-  @Post('bridgecard/webhook')
-  async handleWebhookEvent(@Body() body: BridgecardWebhookResponseDto) {
-    const { event, data } = body;
-
-    await this.cardService.handleBridgecardWebhookEvent(event, data);
-  }
-
-  // -------------- TRIPLE-A WEBHOOK -------------------
-
-  @ApiTags('Webhook Handler')
-  @Post('triple/payment-notifiy-deposit')
-  async paymentNotifyDeposit(@Body() body: TripleADepositNotifyDto) {
-    await this.cardService.handleDepositNotification(body);
-  }
-
-  @ApiTags('Webhook Handler')
-  @Post('triple/payment-notifiy-withdraw')
-  async paymentNotifyWithdraw(@Body() body: TripleAWithdrawalNotifyDto) {
-    await this.cardService.handleWithdrawalNotification(body);
   }
 }

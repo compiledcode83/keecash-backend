@@ -14,6 +14,10 @@ export class Transaction {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
+  @ApiProperty({ description: 'User ID', maximum: 64, required: false })
+  @Column({ type: 'int', nullable: true })
+  userId: number;
+
   @ApiProperty({ description: 'Sender ID', maximum: 64, required: false })
   @Column({ type: 'int', nullable: true })
   senderId: number;
@@ -22,21 +26,19 @@ export class Transaction {
   @Column({ type: 'int', nullable: true })
   receiverId: number;
 
+  // ----------------------------------------------------
+
   @ApiProperty({ description: 'Wallet currency: EUR or USD', required: true })
   @Column({ type: 'enum', enum: FiatCurrencyEnum, default: FiatCurrencyEnum.EUR })
   currency: FiatCurrencyEnum;
 
-  @ApiProperty({ description: 'Card price', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
-  cardPrice: number;
+  // ----------------------------------------------------
 
-  @ApiProperty({ description: 'Total amount', maximum: 64, required: false })
+  @ApiProperty({ description: 'Affected amount', maximum: 64, required: false })
   @Column({ type: 'float', nullable: true })
-  targetAmount: number;
+  affectedAmount: number; // DB query purpose - positive/negative available
 
-  @ApiProperty({ description: 'Applied amount', maximum: 64, required: false })
-  @Column({ type: 'float', nullable: true })
-  appliedAmount: number;
+  // ----------------------- Fee -----------------------
 
   @ApiProperty({ description: 'Applied fee', maximum: 64, required: false })
   @Column({ type: 'float', nullable: true, default: 0 })
@@ -50,6 +52,19 @@ export class Transaction {
   @Column({ type: 'float', nullable: true, default: 0 })
   percentageFee: number;
 
+  // ---------------- Crypto Transaction -----------------------
+
+  @ApiProperty({
+    description: `Transaction method (applied for TxType: DEPOSIT, WITHDRAWAL, otherwise NULL)`,
+    required: false,
+  })
+  @Column({ type: 'enum', enum: CryptoCurrencyEnum, nullable: true })
+  cryptoType: CryptoCurrencyEnum;
+
+  @ApiProperty({ description: 'Crypto amount', maximum: 64, required: false })
+  @Column({ type: 'float', nullable: true })
+  cryptoAmount: number;
+
   @ApiProperty({
     description: 'Exchange rate (applied for exteneral transactions)',
     maximum: 64,
@@ -58,6 +73,8 @@ export class Transaction {
   @Column({ type: 'float', nullable: true })
   exchangeRate: number;
 
+  // ----------------------- Card -----------------------
+
   @ApiProperty({
     description: 'Card ID (Only applied for Card Transactions, otherwise NULL)',
     required: false,
@@ -65,16 +82,15 @@ export class Transaction {
   @Column({ type: 'int', nullable: true })
   cardId: number;
 
+  @ApiProperty({ description: 'Card price', maximum: 64, required: false })
+  @Column({ type: 'float', nullable: true })
+  cardPrice: number;
+
+  // ----------------------------------------------------
+
   @ApiProperty({ example: 'SDF-453672-PMT', required: false })
   @Column({ type: 'varchar', nullable: true })
   tripleAPaymentReference: string;
-
-  @ApiProperty({
-    description: `Transaction method (applied for TxType: DEPOSIT, WITHDRAWAL, otherwise NULL)`,
-    required: false,
-  })
-  @Column({ type: 'enum', enum: CryptoCurrencyEnum, nullable: true })
-  externalTxMethod: CryptoCurrencyEnum;
 
   @ApiProperty({
     description:
@@ -88,19 +104,20 @@ export class Transaction {
   @Column({ type: 'enum', enum: TransactionStatusEnum, default: TransactionStatusEnum.InProgress })
   status: TransactionStatusEnum;
 
-  @ApiProperty({ description: 'Description (reason)', maximum: 256, required: false })
+  @ApiProperty({ description: 'Description', maximum: 256, required: false })
   @Column({ type: 'varchar', nullable: true })
   description: string;
+
+  @ApiProperty({ description: 'Reason', maximum: 256, required: false })
+  @Column({ type: 'varchar', nullable: true })
+  reason: string;
 
   @ApiProperty({ description: 'Created at date', required: true })
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.sender)
-  sender: User;
-
-  @ManyToOne(() => User, (user) => user.receiver)
-  receiver: User;
+  @ManyToOne(() => User, (user) => user.transaction)
+  user: User;
 
   @ManyToOne(() => Card, (card) => card.transaction)
   card: Card;

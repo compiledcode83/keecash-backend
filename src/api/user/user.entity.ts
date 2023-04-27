@@ -136,13 +136,9 @@ export class User {
   @OneToOne(() => EnterpriseProfile, (enterpriseProfile) => enterpriseProfile.user)
   enterpriseProfile: EnterpriseProfile;
 
-  @OneToMany(() => Transaction, (transaction) => transaction.sender)
-  @JoinColumn({ name: 'id', referencedColumnName: 'sender_id' })
-  sender: Transaction[];
-
-  @OneToMany(() => Transaction, (transaction) => transaction.receiver)
-  @JoinColumn({ name: 'id', referencedColumnName: 'receiver_id' })
-  receiver: Transaction[];
+  @OneToMany(() => Transaction, (transaction) => transaction.user)
+  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
+  transaction: Transaction[];
 
   @OneToMany(() => BeneficiaryUser, (beneficiaryUser) => beneficiaryUser.payer)
   payer: BeneficiaryUser[];

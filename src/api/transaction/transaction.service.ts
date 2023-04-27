@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TransactionRepository } from './transaction.repository';
 import { Transaction } from './transaction.entity';
 import { FiatCurrencyEnum } from './transaction.types';
+import { GetWalletTransactionsDto } from '@api/card/dto/get-wallet-transactions.dto';
 
 @Injectable()
 export class TransactionService {
@@ -9,6 +10,14 @@ export class TransactionService {
 
   async findOne(param: Partial<Transaction>): Promise<Transaction> {
     return this.transactionRepository.findOne({ where: param });
+  }
+
+  async findManyByFilter(
+    userId: number,
+    currency: FiatCurrencyEnum = null,
+    query: GetWalletTransactionsDto,
+  ) {
+    return this.transactionRepository.findManyByFilter(userId, currency, query);
   }
 
   async create(data: Partial<Transaction>): Promise<Transaction> {
@@ -35,9 +44,5 @@ export class TransactionService {
       eur: eurWallet ? eurWallet.balance : 0,
       usd: usdWallet ? usdWallet.balance : 0,
     };
-  }
-
-  async getAllTransactions(userId: number, currency: FiatCurrencyEnum = null) {
-    return this.transactionRepository.getAllTransactions(userId, currency);
   }
 }

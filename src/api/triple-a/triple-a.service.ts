@@ -232,8 +232,8 @@ export class TripleAService {
     }
   }
 
-  // Refresh access token every 55 minutes, because access token expires in 1 hour
-  @Cron('0 */55 * * * *', {
+  // Refresh access token every 30 minutes, because access token expires in 1 hour
+  @Cron('0 */30 * * * *', {
     name: 'refresh_triple_a_access_token',
   })
   async refreshAccessToken() {

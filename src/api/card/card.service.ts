@@ -37,6 +37,7 @@ import { TripleAService } from '@api/triple-a/triple-a.service';
 import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
 import { NotificationType } from '@api/notification/notification.types';
 import { TransferApplyDto } from './dto/transfer-apply.dto';
+import { GetWalletTransactionsDto } from './dto/get-wallet-transactions.dto';
 
 @Injectable()
 export class CardService {
@@ -52,6 +53,10 @@ export class CardService {
     private readonly tripleAService: TripleAService,
     @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
   ) {}
+
+  async findOne(param: Partial<Card>) {
+    return this.cardRepository.findOne({ where: param });
+  }
 
   async findAllPaginated(searchParams: any): Promise<any> {
     return;
@@ -120,15 +125,14 @@ export class CardService {
 
     const targetAmount = body.topupAmount;
     const appliedFee = cardTopUpFixedFee + cardTopUpPercentFee * targetAmount;
-    const appliedAmount = cardPrice + targetAmount + appliedFee;
+    const affectedAmount = cardPrice + targetAmount + appliedFee;
 
     await this.transactionService.create({
       senderId: userId,
       currency: body.keecashWallet,
       cardPrice,
-      targetAmount,
       appliedFee,
-      appliedAmount,
+      affectedAmount,
       fixedFee: cardTopUpFixedFee,
       percentageFee: cardTopUpPercentFee,
       cardId,
@@ -234,31 +238,32 @@ export class CardService {
   // -------------- DEPOSIT -------------------
 
   async getDepositSettings(userId: number) {
-    // const balance = await this.transactionService.getWalletBalances(userId);
+    //   const balance = await this.transactionService.getWalletBalances(userId);
 
-    // const keecash_wallets = [
-    //   {
-    //     balance: balance.eur,
-    //     currency: FiatCurrencyEnum.EUR,
-    //     is_checked: true,
-    //     min: 0,
-    //     max: 100000,
-    //     after_decimal: 2,
-    //   },
-    //   {
-    //     balance: balance.usd,
-    //     currency: FiatCurrencyEnum.USD,
-    //     is_checked: false,
-    //     min: 0,
-    //     max: 100000,
-    //     after_decimal: 2,
-    //   },
-    // ];
+    //   const keecash_wallets = [
+    //     {
+    //       balance: balance.eur,
+    //       currency: FiatCurrencyEnum.EUR,
+    //       is_checked: true,
+    //       min: 0,
+    //       max: 100000,
+    //       after_decimal: 2,
+    //     },
+    //     {
+    //       balance: balance.usd,
+    //       currency: FiatCurrencyEnum.USD,
+    //       is_checked: false,
+    //       min: 0,
+    //       max: 100000,
+    //       after_decimal: 2,
+    //     },
+    //   ];
 
-    return {
-      // keecash_wallets,
-      deposit_methods,
-    };
+    //   return {
+    //     keecash_wallets,
+    //     deposit_methods,
+    //   };
+    return;
   }
 
   async getDepositFee(countryId: number, query: GetDepositFeeDto) {
@@ -289,19 +294,19 @@ export class CardService {
       keecashUserId: user.referralId,
     });
 
-    // Create transaction
+    // Create a deposit transaction
     await this.transactionService.create({
-      senderId: user.id,
+      userId: user.id,
       currency: body.keecash_wallet,
-      targetAmount: body.desired_amount,
-      appliedAmount: body.total_to_pay,
+      affectedAmount: body.desired_amount,
       appliedFee: body.applied_fee,
       fixedFee: body.fixed_fee,
       percentageFee: body.percentage_fee,
-      externalTxMethod: body.deposit_method,
+      cryptoType: body.deposit_method,
       type: TxTypeEnum.Deposit,
       status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
-      description: body.reason,
+      description: 'Deposit',
+      reason: body.reason,
       tripleAPaymentReference: res.payment_reference,
     });
 
@@ -343,10 +348,11 @@ export class CardService {
     //   },
     // ];
 
-    return {
-      // keecash_wallets,
-      withdrawal_methods,
-    };
+    // return {
+    //   keecash_wallets,
+    //   withdrawal_methods,
+    // };
+    return;
   }
 
   async getWithdrawalFee(countryId: number, body: GetWithdrawalFeeDto) {
@@ -390,19 +396,18 @@ export class CardService {
       keecashUserId: user.referralId,
     });
 
-    // Create transaction
+    // Create a withdrawal transaction
     await this.transactionService.create({
-      senderId: user.id,
+      userId: user.id,
       currency: body.keecash_wallet,
-      targetAmount: body.target_amount,
-      appliedAmount: body.amount_after_fee,
+      affectedAmount: body.target_amount,
       appliedFee: body.applied_fee,
       fixedFee: body.fixed_fee,
       percentageFee: body.percentage_fee,
-      externalTxMethod: body.withdrawal_method,
+      cryptoType: body.withdrawal_method,
       type: TxTypeEnum.Withdrawal,
       status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
-      description: body.reason,
+      reason: body.reason,
       tripleAPaymentReference: res.payout_reference,
     });
 
@@ -439,9 +444,10 @@ export class CardService {
     //   },
     // ];
 
-    return {
-      // keecash_wallets,
-    };
+    // return {
+    //   keecash_wallets,
+    // };
+    return;
   }
 
   async getTransferFee(countryId: number, body: GetTransferFeeDto) {
@@ -474,8 +480,7 @@ export class CardService {
       senderId: userId,
       receiverId: body.beneficiary_user_id,
       currency: body.keecash_wallet,
-      targetAmount: body.desired_amount,
-      appliedAmount: body.amount_to_receive,
+      affectedAmount: body.amount_to_receive,
       appliedFee: body.applied_fee,
       fixedFee: body.fixed_fee,
       percentageFee: body.percentage_fee,
@@ -501,19 +506,23 @@ export class CardService {
 
   // -------------- HISTORY -------------------
 
-  async getInitHistory(userId: number) {
-    const keecash_wallet_transactions = await this.transactionService.getAllTransactions(userId);
+  // async getInitHistory(userId: number) {
+  //   const keecash_wallet_transactions = await this.transactionService.findManyByUser(userId);
 
-    const result = {
-      keecash_wallet_transactions,
-      card_transactions: [],
-    };
+  //   const result = {
+  //     keecash_wallet_transactions,
+  //     card_transactions: [],
+  //   };
 
-    return result;
-  }
+  //   return result;
+  // }
 
-  async getKeecashWalletTransactions(userId: number, currency: FiatCurrencyEnum) {
-    const transactions = await this.transactionService.getAllTransactions(userId, currency);
+  async getWalletTransactions(
+    userId: number,
+    currency: FiatCurrencyEnum,
+    query: GetWalletTransactionsDto,
+  ) {
+    const transactions = await this.transactionService.findManyByFilter(userId, currency, query);
 
     return transactions;
   }
