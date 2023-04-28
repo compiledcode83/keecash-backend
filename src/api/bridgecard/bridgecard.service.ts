@@ -2,6 +2,8 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { CreateBridgecardDto } from './dto/create-bridgecard.dto';
+import { FundBridgecardDto } from './dto/fund-bridgecard.dto';
+import { UnloadBridgecardDto } from './dto/unload-bridgecard.dto';
 
 @Injectable()
 export class BridgecardService {
@@ -190,6 +192,34 @@ export class BridgecardService {
           card_id: cardId,
         },
       });
+    } catch (error) {
+      const { status, statusText, data } = error.response || {};
+
+      throw new HttpException(data.message || statusText, status);
+    }
+  }
+
+  async fundCard(data: FundBridgecardDto): Promise<any> {
+    try {
+      const res = await this.axiosInstance.post('/cards/fund_card', data);
+
+      this.logger.log(res.data.message);
+
+      return res.data.data;
+    } catch (error) {
+      const { status, statusText, data } = error.response || {};
+
+      throw new HttpException(data.message || statusText, status);
+    }
+  }
+
+  async unloadCard(data: UnloadBridgecardDto): Promise<any> {
+    try {
+      const res = await this.axiosInstance.post('/cards/unload_card', data);
+
+      this.logger.log(res.data.message);
+
+      return res.data.data;
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 

@@ -7,6 +7,7 @@ import {
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
+import { v4 as uuid } from 'uuid';
 import { CardRepository } from './card.repository';
 import { GetDepositFeeDto } from './dto/get-deposit-fee.dto';
 import {
@@ -255,7 +256,7 @@ export class CardService {
       affectedAmount: body.desired_amount,
       appliedFee: body.applied_fee,
       fixedFee: body.fixed_fee,
-      percentageFee: body.percentage_fee,
+      percentageFee: body.percent_fee,
       cryptoType: body.deposit_method,
       type: TxTypeEnum.Deposit,
       status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
@@ -662,7 +663,33 @@ export class CardService {
       throw new BadRequestException('Total pay amount exceeds current wallet balance');
     }
 
-    // TODO: Fund card
+    // Deposit to card using Bridgecard provider
+    await this.bridgecardService.fundCard({
+      card_id: body.bridgecardId,
+      amount: body.topupAmount * 100, // Amount in cents
+      transaction_reference: uuid(),
+      currency,
+    });
+
+    await this.transactionService.create({
+      userId,
+      currency,
+      affectedAmount: -totalToPay,
+      appliedFee: feesApplied,
+      fixedFee: cardTopUpFixedFee,
+      percentageFee: cardTopUpPercentFee,
+      type: TxTypeEnum.CardTopup,
+      status: TransactionStatusEnum.Performed,
+      description: `Topup ${body.topupAmount} ${currency} to cardId ${body.bridgecardId}`,
+    });
+
+    // TODO: Add to BullMQ
+    await this.notificationService.create({
+      userId,
+      type: NotificationType.CardTopup,
+      amount: totalToPay,
+      currency,
+    });
   }
 
   // -------------- CARD TOPUP -------------------
@@ -714,7 +741,33 @@ export class CardService {
       throw new BadRequestException('Total pay amount exceeds current wallet balance');
     }
 
-    // TODO: Unload card
+    // Withdraw from card using Bridgecard provider
+    await this.bridgecardService.unloadCard({
+      card_id: body.bridgecardId,
+      amount: totalToPay * 100, // Amount in cents
+      transaction_reference: uuid(),
+      currency,
+    });
+
+    await this.transactionService.create({
+      userId,
+      currency,
+      affectedAmount: body.withdrawalAmount,
+      appliedFee: feesApplied,
+      fixedFee: cardWithdrawFixedFee,
+      percentageFee: cardWithdrawPercentFee,
+      type: TxTypeEnum.CardWithdrawal,
+      status: TransactionStatusEnum.Performed,
+      description: `Withdraw ${body.withdrawalAmount} ${currency} from cardId ${body.bridgecardId}`,
+    });
+
+    // TODO: Add to BullMQ
+    await this.notificationService.create({
+      userId,
+      type: NotificationType.CardWithdrawal,
+      amount: body.withdrawalAmount,
+      currency,
+    });
   }
 
   // ------------------ Bridgecard Webhook Handler ----------------------
