@@ -5,15 +5,15 @@ import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { GetCardTopupSettingDto } from './dto/get-card-topup-setting.dto';
 import { ApplyCardTopupDto } from './dto/card-topup-apply.dto';
 
-@Controller('card/topup-card')
+@Controller('card/topup')
 @ApiTags('Topup Card')
 export class TopupCardController {
   constructor(private readonly cardService: CardService) {}
 
-  @ApiOperation({ description: 'Get card topup settings' })
+  @ApiOperation({ description: 'Get card topup fees' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get('settings')
+  @Get('get-fees')
   async getCardTopupSettings(@Req() req, @Query() query: GetCardTopupSettingDto) {
     return this.cardService.getCardTopupSettings(req.user.countryId, query);
   }

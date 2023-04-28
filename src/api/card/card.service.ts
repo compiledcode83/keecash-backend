@@ -40,6 +40,8 @@ import { NotificationType } from '@api/notification/notification.types';
 import { TransferApplyDto } from './dto/transfer-apply.dto';
 import { GetWalletTransactionsDto } from './dto/get-wallet-transactions.dto';
 import { ApplyCardTopupDto } from './dto/card-topup-apply.dto';
+import { GetCardWithdrawalSettingDto } from './dto/get-card-withdrawal-setting.dto';
+import { ApplyCardWithdrawalDto } from './dto/card-withdrawal-apply.dto';
 
 @Injectable()
 export class CardService {
@@ -93,21 +95,29 @@ export class CardService {
 
       eurCards = cards
         .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.EUR)
-        .map(({ balance, card_currency, card_number, expiry_month, expiry_year, meta_data }) => ({
-          balance,
-          currency: card_currency,
-          cardNumber: card_number,
-          name: meta_data.keecash_card_name,
-          date: `${expiry_month}/${expiry_year.slice(-2)}`,
+        .map((card) => ({
+          bridgecardId: card.card_id,
+          balance: card.balance,
+          currency: card.card_currency,
+          cardNumber: card.card_number,
+          name: card.meta_data.keecash_card_name,
+          date: {
+            expiry_month: card.expiry_month,
+            expiry_year: card.expiry_year,
+          },
         }));
       usdCards = cards
         .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.USD)
-        .map(({ balance, card_currency, card_number, expiry_month, expiry_year, meta_data }) => ({
-          balance,
-          currency: card_currency,
-          cardNumber: card_number,
-          name: meta_data.keecash_card_name,
-          date: { expiry_month, expiry_year },
+        .map((card) => ({
+          bridgecardId: card.card_id,
+          balance: card.balance,
+          currency: card.card_currency,
+          cardNumber: card.card_number,
+          name: card.meta_data.keecash_card_name,
+          date: {
+            expiry_month: card.expiry_month,
+            expiry_year: card.expiry_year,
+          },
         }));
     }
 
@@ -613,7 +623,7 @@ export class CardService {
   // -------------- CARD TOPUP -------------------
 
   async getCardTopupSettings(countryId: number, query: GetCardTopupSettingDto) {
-    const { currency, usage } = await this.findOne({ id: query.cardId });
+    const { currency, usage } = await this.findOne({ bridgecardId: query.bridgecardId });
 
     const { cardTopUpFixedFee, cardTopUpPercentFee } =
       await this.countryFeeService.findOneCardTopupFee({ countryId, currency, usage });
@@ -635,7 +645,7 @@ export class CardService {
   }
 
   async applyCardTopup(userId: number, countryId: number, body: ApplyCardTopupDto) {
-    const { currency, usage } = await this.findOne({ id: body.cardId });
+    const { currency, usage } = await this.findOne({ bridgecardId: body.bridgecardId });
 
     const { cardTopUpFixedFee, cardTopUpPercentFee } =
       await this.countryFeeService.findOneCardTopupFee({ countryId, currency, usage });
@@ -653,6 +663,58 @@ export class CardService {
     }
 
     // TODO: Fund card
+  }
+
+  // -------------- CARD TOPUP -------------------
+
+  async getCardWithdrawalSettings(countryId: number, query: GetCardWithdrawalSettingDto) {
+    const { currency } = await this.findOne({ bridgecardId: query.bridgecardId });
+
+    const { cardWithdrawFixedFee, cardWithdrawPercentFee } =
+      await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
+        countryId,
+        currency,
+      });
+
+    const feesApplied = parseFloat(
+      (
+        (parseFloat(query.desiredAmount) * cardWithdrawPercentFee) / 100 +
+        cardWithdrawFixedFee
+      ).toFixed(2),
+    );
+
+    const totalToPay = parseFloat(query.desiredAmount) + feesApplied;
+
+    return {
+      fixedFee: cardWithdrawFixedFee,
+      percentageFee: cardWithdrawPercentFee,
+      feesApplied,
+      totalToPay,
+    };
+  }
+
+  async applyCardWithdrawal(userId: number, countryId: number, body: ApplyCardWithdrawalDto) {
+    const { currency } = await this.findOne({ bridgecardId: body.bridgecardId });
+
+    const { cardWithdrawFixedFee, cardWithdrawPercentFee } =
+      await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
+        countryId,
+        currency,
+      });
+
+    const feesApplied = parseFloat(
+      ((body.withdrawalAmount * cardWithdrawPercentFee) / 100 + cardWithdrawFixedFee).toFixed(2),
+    );
+
+    const totalToPay = body.withdrawalAmount + feesApplied;
+
+    const { balance } = await this.transactionService.getBalanceArrayByCurrency(userId, currency);
+
+    if (balance < totalToPay) {
+      throw new BadRequestException('Total pay amount exceeds current wallet balance');
+    }
+
+    // TODO: Unload card
   }
 
   // ------------------ Bridgecard Webhook Handler ----------------------
