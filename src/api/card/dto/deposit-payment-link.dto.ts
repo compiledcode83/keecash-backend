@@ -33,5 +33,5 @@ export class DepositPaymentLinkDto {
 
   @ApiProperty({ example: 1.5, description: 'Percentage fee' })
   @IsNumber()
-  percentage_fee: number;
+  percent_fee: number;
 }

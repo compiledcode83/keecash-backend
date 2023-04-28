@@ -28,6 +28,10 @@ export class PersonProfile {
   @Column({ type: 'varchar', nullable: false, length: 64 })
   city: string;
 
+  @ApiProperty({ description: 'State', required: false })
+  @Column({ type: 'varchar', nullable: true, length: 64 })
+  state: string;
+
   @ApiProperty({ description: 'Country Id', maximum: 64, required: true })
   @Column({ type: 'int', nullable: true })
   countryId: number;

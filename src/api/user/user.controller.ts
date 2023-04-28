@@ -27,6 +27,7 @@ import { TokenTypeEnum } from '@api/cipher-token/cipher-token.types';
 import { VerificationStatus } from './user.types';
 import { VerifyUserExistDto } from './dto/verify-user-exist.dto';
 import { VerifyUserExistResponseDto } from './dto/verify-user-exist-response.dto';
+import { SumsubWebhookResponseDto } from './dto/sumsub-webhook-response.dto';
 
 @Controller()
 export class UserController {
@@ -232,5 +233,15 @@ export class UserController {
     } else {
       return { valid: false };
     }
+  }
+
+  // -------------- SUMSUB WEBHOOK -------------------
+
+  @ApiTags('Webhook Handler')
+  @Post('sumsub/kyc-verified')
+  async handleWebhookEvent(@Body() body: SumsubWebhookResponseDto) {
+    const { userId } = body;
+
+    await this.userService.completeAccount(userId);
   }
 }
