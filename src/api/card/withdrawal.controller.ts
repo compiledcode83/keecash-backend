@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CardService } from './card.service';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
@@ -9,22 +9,22 @@ import { WithdrawalApplyDto } from './dto/withdrawal-apply.dto';
 export class WithdrawalController {
   constructor(private readonly cardService: CardService) {}
 
-  @ApiOperation({ description: 'Get deposit settings' })
-  @ApiTags('Withdrawal')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('settings')
-  async withdrawalSettings(@Req() req) {
-    return this.cardService.getWithdrawalSettings(req.user.id);
-  }
+  // @ApiOperation({ description: 'Get deposit settings' })
+  // @ApiTags('Withdrawal')
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard)
+  // @Get('settings')
+  // async withdrawalSettings(@Req() req) {
+  //   return this.cardService.getWithdrawalSettings(req.user.id);
+  // }
 
   @ApiOperation({ description: 'Post withdrawal fees' })
   @ApiTags('Withdrawal')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Post('fees')
-  async withdrawalFees(@Req() req, @Body() body: GetWithdrawalFeeDto) {
-    return this.cardService.getWithdrawalFee(req.user.countryId, body);
+  @Get('fees')
+  async withdrawalFees(@Req() req, @Query() query: GetWithdrawalFeeDto) {
+    return this.cardService.getWithdrawalFee(req.user.countryId, query);
   }
 
   @ApiOperation({ description: 'Apply withdrawal' })

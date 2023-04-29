@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
 import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
-import { GetDashboardItemsResponseDto } from './dto/get-dashboard-items-response.dto';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
 
 @Controller()
@@ -15,14 +14,12 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('get-dashboard-items')
-  async getDashboardItems(@Req() req): Promise<GetDashboardItemsResponseDto> {
-    const wallets = await this.cardService.getDashboardItemsByUserId(req.user.id);
+  async getDashboardItems(
+    @Req() req,
+  ): Promise<{ wallets: object; recommended: FiatCurrencyEnum; transactions: object }> {
+    const dashboardItems = await this.cardService.getDashboardItemsByUserId(req.user.id);
 
-    return {
-      isSuccess: true,
-      wallets,
-      recommended: FiatCurrencyEnum.EUR,
-    };
+    return dashboardItems;
   }
 
   @ApiOperation({ description: 'Get my cards' })

@@ -86,6 +86,18 @@ export class CardService {
   async getDashboardItemsByUserId(userId: number): Promise<any> {
     const walletBalance = await this.transactionService.getWalletBalances(userId);
 
+    const transactions = await this.transactionService
+      .findManyByFilter(userId, null, {})
+      .then((res) =>
+        res.map((tx) => ({
+          amount: Math.abs(tx.affectedAmount),
+          currency: tx.currency,
+          date: tx.createdAt,
+          to: '',
+          type: tx.affectedAmount > 0 ? 'income' : 'outgoing',
+        })),
+      );
+
     const { cardholderId, cardholderVerified } = await this.userService.findOne({ id: userId });
 
     let eurCards = [];
@@ -115,25 +127,28 @@ export class CardService {
           currency: card.card_currency,
           cardNumber: card.card_number,
           name: card.meta_data.keecash_card_name,
-          date: {
-            expiry_month: card.expiry_month,
-            expiry_year: card.expiry_year,
-          },
+          date: `${card.expiry_month < 10 && '0' + card.expiry_month}/${card.expiry_year.slice(
+            -2,
+          )}`,
         }));
     }
 
-    return [
-      {
-        balance: walletBalance.eur,
-        currency: FiatCurrencyEnum.EUR,
-        cards: eurCards,
-      },
-      {
-        balance: walletBalance.usd,
-        currency: FiatCurrencyEnum.USD,
-        cards: usdCards,
-      },
-    ];
+    return {
+      wallets: [
+        {
+          balance: walletBalance.eur,
+          currency: FiatCurrencyEnum.EUR,
+          cards: eurCards,
+        },
+        {
+          balance: walletBalance.usd,
+          currency: FiatCurrencyEnum.USD,
+          cards: usdCards,
+        },
+      ],
+      recommended: FiatCurrencyEnum.EUR,
+      transactions,
+    };
   }
 
   async getCardListByUserId(userId: number): Promise<any> {
@@ -148,11 +163,23 @@ export class CardService {
 
         const [balance, transactions] = await Promise.all([balancePromise, transactionsPromise]);
 
-        return { balance, transactions };
+        return {
+          balance,
+          lastTransaction: transactions.transactions && {
+            amount: transactions.transactions[0].amount,
+            date: transactions.transactions[0].transaction_date, //2022-08-08 02:48:15
+            image: '',
+            to: transactions.transactions[0].description,
+            type: '',
+            currency: transactions.transactions[0].currency,
+            from: '',
+          },
+        };
       }),
     );
 
     const result = cards.map((card, i) => ({
+      bridgecardId: card.card_id,
       balance: details[i].balance,
       currency: card.card_currency,
       isBlock: !card.is_active,
@@ -161,8 +188,7 @@ export class CardService {
       name: card.meta_data.keecash_card_name,
       date: `${card.expiry_month}/${card.expiry_year.slice(-2)}`,
       cardholderName: card.card_name,
-      lastTransaction:
-        details[i].transactions.transactions && details[i].transactions.transactions[0],
+      lastTransaction: details[i].lastTransaction,
     }));
 
     return result;
@@ -190,34 +216,33 @@ export class CardService {
 
   // -------------- DEPOSIT -------------------
 
-  async getDepositSettings(userId: number) {
-    //   const balance = await this.transactionService.getWalletBalances(userId);
+  // async getDepositSettings(userId: number) {
+  //   const balance = await this.transactionService.getWalletBalances(userId);
 
-    //   const keecash_wallets = [
-    //     {
-    //       balance: balance.eur,
-    //       currency: FiatCurrencyEnum.EUR,
-    //       is_checked: true,
-    //       min: 0,
-    //       max: 100000,
-    //       after_decimal: 2,
-    //     },
-    //     {
-    //       balance: balance.usd,
-    //       currency: FiatCurrencyEnum.USD,
-    //       is_checked: false,
-    //       min: 0,
-    //       max: 100000,
-    //       after_decimal: 2,
-    //     },
-    //   ];
+  //   const keecash_wallets = [
+  //     {
+  //       balance: balance.eur,
+  //       currency: FiatCurrencyEnum.EUR,
+  //       is_checked: true,
+  //       min: 0,
+  //       max: 100000,
+  //       after_decimal: 2,
+  //     },
+  //     {
+  //       balance: balance.usd,
+  //       currency: FiatCurrencyEnum.USD,
+  //       is_checked: false,
+  //       min: 0,
+  //       max: 100000,
+  //       after_decimal: 2,
+  //     },
+  //   ];
 
-    //   return {
-    //     keecash_wallets,
-    //     deposit_methods,
-    //   };
-    return;
-  }
+  //   return {
+  //     keecash_wallets,
+  //     deposit_methods,
+  //   };
+  // }
 
   async getDepositFee(countryId: number, query: GetDepositFeeDto) {
     const { depositFixedFee, depositPercentFee } =
@@ -281,47 +306,46 @@ export class CardService {
 
   // -------------- WITHDRAWAL -------------------
 
-  async getWithdrawalSettings(userId: number) {
-    // const balance = await this.transactionService.getWalletBalances(userId);
+  // async getWithdrawalSettings(userId: number) {
+  //   const balance = await this.transactionService.getWalletBalances(userId);
 
-    // const keecash_wallets = [
-    //   {
-    //     balance: balance.eur,
-    //     currency: 'EUR',
-    //     is_checked: true,
-    //     min: 0,
-    //     max: balance.eur,
-    //     after_decimal: 2,
-    //   },
-    //   {
-    //     balance: balance.usd,
-    //     currency: 'USD',
-    //     is_checked: false,
-    //     min: 0,
-    //     max: balance.usd,
-    //     after_decimal: 2,
-    //   },
-    // ];
+  //   const keecash_wallets = [
+  //     {
+  //       balance: balance.eur,
+  //       currency: 'EUR',
+  //       is_checked: true,
+  //       min: 0,
+  //       max: balance.eur,
+  //       after_decimal: 2,
+  //     },
+  //     {
+  //       balance: balance.usd,
+  //       currency: 'USD',
+  //       is_checked: false,
+  //       min: 0,
+  //       max: balance.usd,
+  //       after_decimal: 2,
+  //     },
+  //   ];
 
-    // return {
-    //   keecash_wallets,
-    //   withdrawal_methods,
-    // };
-    return;
-  }
+  //   return {
+  //     keecash_wallets,
+  //     withdrawal_methods,
+  //   };
+  // }
 
-  async getWithdrawalFee(countryId: number, body: GetWithdrawalFeeDto) {
+  async getWithdrawalFee(countryId: number, query: GetWithdrawalFeeDto) {
     const { withdrawFixedFee, withdrawPercentFee } =
       await this.countryFeeService.findOneWalletDepositWithdrawalFee({
         countryId,
-        currency: body.keecash_wallet,
-        method: body.withdrawal_method,
+        currency: query.keecash_wallet,
+        method: query.withdrawal_method,
       });
 
     const feesApplied = parseFloat(
-      ((body.fiat_amount * withdrawPercentFee) / 100 + withdrawFixedFee).toFixed(2),
+      ((query.fiat_amount * withdrawPercentFee) / 100 + withdrawFixedFee).toFixed(2),
     );
-    const amountAfterFee = body.fiat_amount - feesApplied;
+    const amountAfterFee = query.fiat_amount - feesApplied;
 
     return {
       fix_fees: withdrawFixedFee,
@@ -379,45 +403,44 @@ export class CardService {
 
   // -------------- TRANSFER -------------------
 
-  async getTransferSettings(userId: number) {
-    // const balance = await this.transactionService.getWalletBalances(userId);
+  // async getTransferSettings(userId: number) {
+  //   const balance = await this.transactionService.getWalletBalances(userId);
 
-    // const keecash_wallets = [
-    //   {
-    //     balance: balance.eur,
-    //     currency: FiatCurrencyEnum.EUR,
-    //     is_checked: true,
-    //     min: 0,
-    //     max: balance.eur,
-    //     after_decimal: 2,
-    //   },
-    //   {
-    //     balance: balance.usd,
-    //     currency: FiatCurrencyEnum.USD,
-    //     is_checked: false,
-    //     min: 0,
-    //     max: balance.usd,
-    //     after_decimal: 2,
-    //   },
-    // ];
+  //   const keecash_wallets = [
+  //     {
+  //       balance: balance.eur,
+  //       currency: FiatCurrencyEnum.EUR,
+  //       is_checked: true,
+  //       min: 0,
+  //       max: balance.eur,
+  //       after_decimal: 2,
+  //     },
+  //     {
+  //       balance: balance.usd,
+  //       currency: FiatCurrencyEnum.USD,
+  //       is_checked: false,
+  //       min: 0,
+  //       max: balance.usd,
+  //       after_decimal: 2,
+  //     },
+  //   ];
 
-    // return {
-    //   keecash_wallets,
-    // };
-    return;
-  }
+  //   return {
+  //     keecash_wallets,
+  //   };
+  // }
 
-  async getTransferFee(countryId: number, body: GetTransferFeeDto) {
+  async getTransferFee(countryId: number, query: GetTransferFeeDto) {
     const { transferFixedFee, transferPercentFee } =
       await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
         countryId,
-        currency: body.keecash_wallet,
+        currency: query.keecash_wallet,
       });
 
     const feesApplied = parseFloat(
-      ((body.desired_amount * transferPercentFee) / 100 + transferFixedFee).toFixed(2),
+      ((query.desired_amount * transferPercentFee) / 100 + transferFixedFee).toFixed(2),
     );
-    const amountAfterFee = body.desired_amount - feesApplied;
+    const amountAfterFee = query.desired_amount - feesApplied;
 
     return {
       fix_fees: transferFixedFee,
