@@ -18,8 +18,6 @@ import {
 import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
 import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
 import { TransactionService } from '@api/transaction/transaction.service';
-import deposit_methods from './deposit_methods.json';
-import withdrawal_methods from './withdrawal_methods.json';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 import { Card } from './card.entity';
 import { CountryFeeService } from '@api/country-fee/country-fee.service';
@@ -27,7 +25,6 @@ import { UserService } from '@api/user/user.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { BridgecardService } from '@api/bridgecard/bridgecard.service';
 import { CardBrandEnum, CardTypeEnum, CardUsageEnum } from './card.types';
-import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
 import { BeneficiaryService } from '@api/beneficiary/beneficiary.service';
 import { GetCardTopupSettingDto } from './dto/get-card-topup-setting.dto';
 import { TripleADepositNotifyDto } from '@api/triple-a/dto/triple-a-deposit-notify.dto';
@@ -356,6 +353,16 @@ export class CardService {
   }
 
   async applyWithdrawal(user: UserAccessTokenInterface, body: WithdrawalApplyDto) {
+    // Check if user has enough balance
+    const { balance } = await this.transactionService.getBalanceArrayByCurrency(
+      user.id,
+      body.keecash_wallet,
+    );
+    if (balance < body.target_amount) {
+      throw new BadRequestException('Total pay amount exceeds current wallet balance');
+    }
+
+    // Add beneficiary user wallet
     if (body.to_save_as_beneficiary) {
       await this.beneficiaryService.createBeneficiaryWallet({
         userId: user.id,
@@ -365,10 +372,22 @@ export class CardService {
       });
     }
 
+    // Calculate fees
+    const { withdrawFixedFee, withdrawPercentFee } =
+      await this.countryFeeService.findOneWalletDepositWithdrawalFee({
+        countryId: user.countryId,
+        currency: body.keecash_wallet,
+        method: body.withdrawal_method,
+      });
+    const feesApplied = parseFloat(
+      ((body.target_amount * withdrawPercentFee) / 100 + withdrawFixedFee).toFixed(2),
+    );
+    const amountAfterFee = body.target_amount - feesApplied;
+
     // Trigger TripleA API
     const res = await this.tripleAService.withdraw({
       email: user.email,
-      amount: body.amount_after_fee,
+      amount: amountAfterFee,
       cryptocurrency: body.withdrawal_method,
       currency: body.keecash_wallet,
       walletAddress: body.wallet_address,
@@ -377,14 +396,14 @@ export class CardService {
       keecashUserId: user.referralId,
     });
 
-    // Create a withdrawal transaction
+    // Create a withdrawal transaction in database
     await this.transactionService.create({
       userId: user.id,
       currency: body.keecash_wallet,
       affectedAmount: -body.target_amount,
-      appliedFee: body.applied_fee,
-      fixedFee: body.fixed_fee,
-      percentageFee: body.percentage_fee,
+      appliedFee: feesApplied,
+      fixedFee: withdrawFixedFee,
+      percentageFee: withdrawPercentFee,
       cryptoType: body.withdrawal_method,
       type: TxTypeEnum.Withdrawal,
       status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
@@ -393,6 +412,7 @@ export class CardService {
     });
 
     // TODO: Add to BullMQ
+    // Create a notification for the transaction
     await this.notificationService.create({
       userId: user.id,
       type: NotificationType.Withdrawal,
@@ -450,7 +470,58 @@ export class CardService {
     };
   }
 
-  async applyTransfer(userId: number, body: TransferApplyDto) {
+  async applyTransfer(userId: number, countryId: number, body: TransferApplyDto) {
+    // Check if user has enough balance
+    const { balance } = await this.transactionService.getBalanceArrayByCurrency(
+      userId,
+      body.keecash_wallet,
+    );
+    if (balance < body.desired_amount) {
+      throw new BadRequestException('Requested transfer amount exceeds current wallet balance');
+    }
+
+    // Calculate fees
+    const { transferFixedFee, transferPercentFee } =
+      await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
+        countryId,
+        currency: body.keecash_wallet,
+      });
+    const feesApplied = parseFloat(
+      ((body.desired_amount * transferPercentFee) / 100 + transferFixedFee).toFixed(2),
+    );
+    const amountAfterFee = body.desired_amount - feesApplied;
+
+    // Create 2 database transaction records for both sender and receiver
+    await this.transactionService.createMany([
+      {
+        userId,
+        receiverId: body.beneficiary_user_id,
+        currency: body.keecash_wallet,
+        affectedAmount: -body.desired_amount,
+        appliedFee: feesApplied,
+        fixedFee: transferFixedFee,
+        percentageFee: transferPercentFee,
+        type: TxTypeEnum.Transfer,
+        status: TransactionStatusEnum.Performed, // TODO: Consider pending status in this transaction.
+        description: `Transferred ${body.desired_amount} ${body.keecash_wallet}`,
+        reason: body.reason,
+      },
+      {
+        userId: body.beneficiary_user_id,
+        senderId: userId,
+        currency: body.keecash_wallet,
+        affectedAmount: amountAfterFee,
+        appliedFee: feesApplied,
+        fixedFee: transferFixedFee,
+        percentageFee: transferPercentFee,
+        type: TxTypeEnum.Transfer,
+        status: TransactionStatusEnum.Performed, // TODO: Consider pending status in this transaction.
+        description: `Received ${amountAfterFee} ${body.keecash_wallet}`,
+        reason: body.reason,
+      },
+    ]);
+
+    // Add beneficiary user
     if (body.to_save_as_beneficiary) {
       await this.beneficiaryService.createBeneficiaryUser({
         payerId: userId,
@@ -458,32 +529,22 @@ export class CardService {
       });
     }
 
-    await this.transactionService.create({
-      senderId: userId,
-      receiverId: body.beneficiary_user_id,
-      currency: body.keecash_wallet,
-      affectedAmount: body.amount_to_receive,
-      appliedFee: body.applied_fee,
-      fixedFee: body.fixed_fee,
-      percentageFee: body.percentage_fee,
-      type: TxTypeEnum.Transfer,
-      status: TransactionStatusEnum.Performed, // TODO: Consider pending status in this transaction.
-      description: body.reason,
-    });
-
-    await this.notificationService.create({
-      userId: userId,
-      type: NotificationType.TransferSent,
-      amount: body.desired_amount,
-      currency: body.keecash_wallet,
-    });
-
-    await this.notificationService.create({
-      userId: body.beneficiary_user_id,
-      type: NotificationType.TransferReceived,
-      amount: body.desired_amount,
-      currency: body.keecash_wallet,
-    });
+    // TODO: Add to BullMQ
+    // Create notifications for the transaction
+    await this.notificationService.create([
+      {
+        userId: userId,
+        type: NotificationType.TransferSent,
+        amount: body.desired_amount,
+        currency: body.keecash_wallet,
+      },
+      {
+        userId: body.beneficiary_user_id,
+        type: NotificationType.TransferReceived,
+        amount: body.desired_amount,
+        currency: body.keecash_wallet,
+      },
+    ]);
   }
 
   // -------------- HISTORY -------------------

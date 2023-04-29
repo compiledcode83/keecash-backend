@@ -26,6 +26,10 @@ export class TransactionService {
     return this.transactionRepository.save(txEntity);
   }
 
+  async createMany(data: Partial<Transaction>[]) {
+    return this.transactionRepository.insert(data);
+  }
+
   async update(param: any, data: Partial<Transaction>) {
     return this.transactionRepository.update(param, data);
   }

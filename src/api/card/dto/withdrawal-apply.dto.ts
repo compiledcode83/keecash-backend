@@ -19,22 +19,6 @@ export class WithdrawalApplyDto {
   @IsNumber()
   target_amount: number;
 
-  @ApiProperty({ example: 18.74, description: 'Receiving amount after fee' })
-  @IsNumber()
-  amount_after_fee: number;
-
-  @ApiProperty({ example: 1.26, description: 'Applied fee' })
-  @IsNumber()
-  applied_fee: number;
-
-  @ApiProperty({ example: 0.99, description: 'Fixed fee' })
-  @IsNumber()
-  fixed_fee: number;
-
-  @ApiProperty({ example: 1.5, description: 'Percentage fee' })
-  @IsNumber()
-  percentage_fee: number;
-
   @ApiProperty({ example: true, description: 'Option that whether you save it as a beneficiary' })
   @IsOptional()
   @IsBoolean()

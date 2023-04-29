@@ -11,26 +11,9 @@ export class TransferApplyDto {
   @IsString()
   reason: string;
 
-  @ApiProperty({ example: 100, description: 'Desired amount' })
+  @ApiProperty({ example: 10, description: 'Desired amount' })
   @IsNumber()
-  @IsString()
   desired_amount: number;
-
-  @ApiProperty({ example: 200, description: 'Amount to receive after fee' })
-  @IsNumber()
-  amount_to_receive: number;
-
-  @ApiProperty({ example: 1.26, description: 'Applied fee' })
-  @IsNumber()
-  applied_fee: number;
-
-  @ApiProperty({ example: 0.99, description: 'Fixed fee' })
-  @IsNumber()
-  fixed_fee: number;
-
-  @ApiProperty({ example: 1.5, description: 'Percentage fee' })
-  @IsNumber()
-  percentage_fee: number;
 
   @ApiProperty({ example: true, description: 'Option that whether you save it as a beneficiary' })
   @IsBoolean()

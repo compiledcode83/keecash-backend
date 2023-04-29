@@ -1,7 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { BeneficiaryWallet } from './beneficiary-wallet.entity';
 import { BeneficiaryWalletRepository } from './beneficiary-wallet.repository';
-import { AddBeneficiaryWalletDto } from './dto/add-beneficiary-wallet.dto';
 
 @Injectable()
 export class BeneficiaryWalletService {
@@ -11,7 +10,14 @@ export class BeneficiaryWalletService {
     return this.beneficiaryWalletRepository.find({ where: param });
   }
 
-  async create(param: Partial<BeneficiaryWallet>): Promise<BeneficiaryWallet> {
+  async create(param: Partial<BeneficiaryWallet>) {
+    // Check if beneficiary user already exists
+    const beneficiary = await this.beneficiaryWalletRepository.find({ where: param });
+
+    if (beneficiary.length > 0) {
+      return false;
+    }
+
     const beneficiaryWalletEntity = await this.beneficiaryWalletRepository.create(param);
 
     return this.beneficiaryWalletRepository.save(beneficiaryWalletEntity);

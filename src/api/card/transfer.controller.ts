@@ -33,6 +33,6 @@ export class TransferController {
   @UseGuards(JwtAuthGuard)
   @Post('apply')
   async applyTransfer(@Req() req, @Body() body: TransferApplyDto): Promise<void> {
-    await this.cardService.applyTransfer(req.user.id, body);
+    await this.cardService.applyTransfer(req.user.id, req.user.countryId, body);
   }
 }
