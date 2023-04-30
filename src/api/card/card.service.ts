@@ -213,34 +213,6 @@ export class CardService {
 
   // -------------- DEPOSIT -------------------
 
-  // async getDepositSettings(userId: number) {
-  //   const balance = await this.transactionService.getWalletBalances(userId);
-
-  //   const keecash_wallets = [
-  //     {
-  //       balance: balance.eur,
-  //       currency: FiatCurrencyEnum.EUR,
-  //       is_checked: true,
-  //       min: 0,
-  //       max: 100000,
-  //       after_decimal: 2,
-  //     },
-  //     {
-  //       balance: balance.usd,
-  //       currency: FiatCurrencyEnum.USD,
-  //       is_checked: false,
-  //       min: 0,
-  //       max: 100000,
-  //       after_decimal: 2,
-  //     },
-  //   ];
-
-  //   return {
-  //     keecash_wallets,
-  //     deposit_methods,
-  //   };
-  // }
-
   async getDepositFee(countryId: number, query: GetDepositFeeDto) {
     const { depositFixedFee, depositPercentFee } =
       await this.countryFeeService.findOneWalletDepositWithdrawalFee({
@@ -302,34 +274,6 @@ export class CardService {
   }
 
   // -------------- WITHDRAWAL -------------------
-
-  // async getWithdrawalSettings(userId: number) {
-  //   const balance = await this.transactionService.getWalletBalances(userId);
-
-  //   const keecash_wallets = [
-  //     {
-  //       balance: balance.eur,
-  //       currency: 'EUR',
-  //       is_checked: true,
-  //       min: 0,
-  //       max: balance.eur,
-  //       after_decimal: 2,
-  //     },
-  //     {
-  //       balance: balance.usd,
-  //       currency: 'USD',
-  //       is_checked: false,
-  //       min: 0,
-  //       max: balance.usd,
-  //       after_decimal: 2,
-  //     },
-  //   ];
-
-  //   return {
-  //     keecash_wallets,
-  //     withdrawal_methods,
-  //   };
-  // }
 
   async getWithdrawalFee(countryId: number, query: GetWithdrawalFeeDto) {
     const { withdrawFixedFee, withdrawPercentFee } =
@@ -422,33 +366,6 @@ export class CardService {
   }
 
   // -------------- TRANSFER -------------------
-
-  // async getTransferSettings(userId: number) {
-  //   const balance = await this.transactionService.getWalletBalances(userId);
-
-  //   const keecash_wallets = [
-  //     {
-  //       balance: balance.eur,
-  //       currency: FiatCurrencyEnum.EUR,
-  //       is_checked: true,
-  //       min: 0,
-  //       max: balance.eur,
-  //       after_decimal: 2,
-  //     },
-  //     {
-  //       balance: balance.usd,
-  //       currency: FiatCurrencyEnum.USD,
-  //       is_checked: false,
-  //       min: 0,
-  //       max: balance.usd,
-  //       after_decimal: 2,
-  //     },
-  //   ];
-
-  //   return {
-  //     keecash_wallets,
-  //   };
-  // }
 
   async getTransferFee(countryId: number, query: GetTransferFeeDto) {
     const { transferFixedFee, transferPercentFee } =

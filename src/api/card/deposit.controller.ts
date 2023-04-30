@@ -10,14 +10,6 @@ import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
 export class DepositController {
   constructor(private readonly cardService: CardService) {}
 
-  // @ApiOperation({ description: 'Get deposit settings' })
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
-  // @Get('settings')
-  // async getDepositSettings(@Req() req) {
-  //   return this.cardService.getDepositSettings(req.user.id);
-  // }
-
   @ApiOperation({ description: 'Post deposit fees' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)

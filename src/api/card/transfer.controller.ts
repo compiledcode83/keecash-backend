@@ -9,15 +9,6 @@ import { TransferApplyDto } from './dto/transfer-apply.dto';
 export class TransferController {
   constructor(private readonly cardService: CardService) {}
 
-  // @ApiOperation({ description: 'Get transfer settings' })
-  // @ApiTags('Transfer')
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
-  // @Get('settings')
-  // async transferSettings(@Req() req) {
-  //   return this.cardService.getTransferSettings(req.user.id);
-  // }
-
   @ApiOperation({ description: 'Get transfer fees' })
   @ApiTags('Transfer')
   @ApiBearerAuth()
