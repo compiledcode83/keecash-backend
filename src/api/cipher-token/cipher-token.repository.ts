@@ -5,6 +5,7 @@ import { DateTime } from 'luxon';
 import { randomBytes } from 'node:crypto';
 import { CipherToken } from './cipher-token.entity';
 import { TokenTypeEnum } from './cipher-token.types';
+import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
 @Injectable()
 export class CipherTokenRepository extends Repository<CipherToken> {
@@ -76,6 +77,34 @@ export class CipherTokenRepository extends Repository<CipherToken> {
     });
 
     const { token } = await this.save(createAccountToken);
+
+    return token;
+  }
+
+  async generateTripleAAccessToken(
+    token: string,
+    currency: FiatCurrencyEnum,
+  ): Promise<CipherToken> {
+    const accessToken = this.create({
+      token,
+      type: TokenTypeEnum.TripleAAccessToken,
+      currency,
+      expireAt: DateTime.now().plus({ minutes: 59 }).toJSDate(),
+    });
+
+    return this.save(accessToken);
+  }
+
+  async findValidTripleAAccessToken(currency: FiatCurrencyEnum): Promise<CipherToken> {
+    const now = new Date();
+
+    const token = await this.createQueryBuilder('token')
+      .where({
+        type: TokenTypeEnum.TripleAAccessToken,
+        currency,
+      })
+      .andWhere('token.expire_at > :now', { now })
+      .getOne();
 
     return token;
   }

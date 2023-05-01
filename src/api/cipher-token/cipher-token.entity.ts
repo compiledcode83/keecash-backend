@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
 import { User } from '@api/user/user.entity';
 import { TokenTypeEnum } from './cipher-token.types';
+import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
 @Entity('cipher_token')
 export class CipherToken {
@@ -27,6 +28,10 @@ export class CipherToken {
   @ApiProperty({ description: 'Token type', required: true })
   @Column({ type: 'enum', enum: TokenTypeEnum, nullable: false })
   type: TokenTypeEnum;
+
+  @ApiProperty({ description: 'Currency for TripleA access token', required: false })
+  @Column({ type: 'enum', enum: FiatCurrencyEnum, nullable: true })
+  currency: FiatCurrencyEnum;
 
   @ApiProperty({ description: 'Created at date', required: true })
   @CreateDateColumn()

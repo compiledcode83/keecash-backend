@@ -1,8 +1,10 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { TripleAService } from './triple-a.service';
-import { FiatCurrencyEnum } from '../transaction/transaction.types';
+import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
+import { CipherTokenModule } from '@api/cipher-token/cipher-token.module';
 
 @Module({
+  imports: [CipherTokenModule],
   providers: [TripleAService],
   exports: [TripleAService],
 })

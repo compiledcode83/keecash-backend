@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { CipherToken } from './cipher-token.entity';
 import { CipherTokenRepository } from './cipher-token.repository';
 import { TokenTypeEnum } from './cipher-token.types';
+import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
 @Injectable()
 export class CipherTokenService {
@@ -9,6 +10,10 @@ export class CipherTokenService {
 
   async findOneBy(params: Partial<CipherToken>): Promise<CipherToken> {
     return this.cipherTokenRepository.findOneBy({ ...params });
+  }
+
+  async findValidTripleAAccessToken(currency: FiatCurrencyEnum): Promise<CipherToken> {
+    return this.cipherTokenRepository.findValidTripleAAccessToken(currency);
   }
 
   async deleteByToken(token: string): Promise<boolean> {
@@ -42,6 +47,13 @@ export class CipherTokenService {
     }
 
     return this.cipherTokenRepository.generateCreateAccountToken(userId);
+  }
+
+  async generateTripleAAccessToken(
+    token: string,
+    currency: FiatCurrencyEnum,
+  ): Promise<CipherToken> {
+    return this.cipherTokenRepository.generateTripleAAccessToken(token, currency);
   }
 
   async checkIfValid(token: string, type: TokenTypeEnum): Promise<number> {

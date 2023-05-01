@@ -47,7 +47,6 @@ EnvHelper.verifyNodeEnv();
       },
       inject: [ConfigService],
     }),
-    ScheduleModule.forRoot(),
     AdminSubModule,
     PublicSubModule,
   ],

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { v4 as uuid } from 'uuid';
@@ -9,7 +9,7 @@ import {
   TripleAWithdrawInterface,
   TripleAWithdrawResponseInterface,
 } from './triple-a.types';
-import { Cron } from '@nestjs/schedule';
+import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
 
 const GRANT_TYPE = 'client_credentials';
 
@@ -20,11 +20,13 @@ export class TripleAService {
   private tripleAClientId;
   private tripleAClientSecret;
   private tripleAMerchatKey;
-  private tripleAAccessToken;
   private tripleANotifyUrl: string;
   private axiosInstance: AxiosInstance;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly cipherTokenService: CipherTokenService,
+  ) {
     this.tripleAClientId = {
       USD: this.configService.get('tripleAConfig.tripleAUSDClientId'),
       EUR: this.configService.get('tripleAConfig.tripleAEURClientId'),
@@ -38,7 +40,6 @@ export class TripleAService {
       EUR: this.configService.get('tripleAConfig.tripleAEURMerchantKey'),
     };
     this.tripleANotifyUrl = this.configService.get('tripleAConfig.tripleANotifyUrl');
-    this.tripleAAccessToken = { USD: '', EUR: '' };
 
     this.axiosInstance = axios.create({
       baseURL: this.configService.get('tripleAConfig.tripleAApiBaseUrl'),
@@ -49,7 +50,7 @@ export class TripleAService {
     return new Promise((res) => setTimeout(res, ms));
   }
 
-  async getAccessToken(currency: FiatCurrencyEnum) {
+  async getAccessToken(currency: FiatCurrencyEnum): Promise<string> {
     try {
       const body = {
         client_id: this.tripleAClientId[currency],
@@ -65,12 +66,19 @@ export class TripleAService {
 
       const res = await this.axiosInstance.post('/oauth/token', body, config);
 
-      this.tripleAAccessToken[currency] = res.data.access_token;
+      const { token } = await this.cipherTokenService.generateTripleAAccessToken(
+        res.data.access_token,
+        currency,
+      );
+
+      this.logger.log(`Triple-A Message: Access token refreshed`);
+
+      return token;
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
-      this.logger.error(`Triple-A Message: ${data?.message}` || statusText);
       // TODO: Do better error handling later
+      this.logger.error(`Triple-A Message: ${data?.message}` || statusText);
       // throw new HttpException(data.message || statusText, status);
     }
   }
@@ -89,14 +97,21 @@ export class TripleAService {
         webhook_data: {},
       };
 
+      let accessToken;
+      const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(dto.currency);
+
+      if (!tokenInDB) {
+        const newToken = await this.getAccessToken(dto.currency);
+        accessToken = newToken;
+      } else {
+        accessToken = tokenInDB.token;
+      }
+
       const config = {
         headers: {
-          Authorization: `Bearer ${this.tripleAAccessToken[dto.currency]}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       };
-
-      console.log('body:', body);
-      console.log('config:', config);
 
       const res = await this.axiosInstance.post('/payment', body, config);
 
@@ -108,24 +123,25 @@ export class TripleAService {
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
-      if (
-        status === HttpStatus.UNAUTHORIZED &&
-        data.message === 'Invalid token: access token has expired'
-      ) {
-        await this.getAccessToken(data.currency);
-        await this.delay(3000); // Wait for 3 seconds
-        await this.deposit(dto);
-      } else {
-        throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
-      }
+      throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
     }
   }
 
   async getDepositDetails(paymentReference: string, currency: FiatCurrencyEnum): Promise<any> {
     try {
+      let accessToken;
+      const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(currency);
+
+      if (!tokenInDB) {
+        const newToken = await this.getAccessToken(currency);
+        accessToken = newToken;
+      } else {
+        accessToken = tokenInDB.token;
+      }
+
       const config = {
         headers: {
-          Authorization: `Bearer ${this.tripleAAccessToken[currency]}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       };
 
@@ -135,16 +151,7 @@ export class TripleAService {
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
-      if (
-        status === HttpStatus.UNAUTHORIZED &&
-        data.message === 'Invalid token: access token has expired'
-      ) {
-        await this.getAccessToken(currency);
-        await this.delay(3000); // Wait for 3 seconds
-        await this.getDepositDetails(paymentReference, currency);
-      } else {
-        throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
-      }
+      throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
     }
   }
 
@@ -163,9 +170,19 @@ export class TripleAService {
         notify_url: `${this.tripleANotifyUrl}/crypto-tx/payment-notifiy-withdraw`,
       };
 
+      let accessToken;
+      const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(dto.currency);
+
+      if (!tokenInDB) {
+        const newToken = await this.getAccessToken(dto.currency);
+        accessToken = newToken;
+      } else {
+        accessToken = tokenInDB.token;
+      }
+
       const config = {
         headers: {
-          Authorization: `Bearer ${this.tripleAAccessToken[dto.currency]}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       };
 
@@ -196,59 +213,31 @@ export class TripleAService {
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
-      if (
-        status === HttpStatus.UNAUTHORIZED &&
-        data.message === 'Invalid token: access token has expired'
-      ) {
-        await this.getAccessToken(data.currency);
-        await this.delay(3000); // Wait for 3 seconds
-        await this.withdraw(dto);
-      } else {
-        throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
-      }
+      throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
     }
   }
 
   async getWithdrawalDetails(orderId: string, currency: FiatCurrencyEnum): Promise<any> {
     try {
+      let accessToken;
+      const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(currency);
+
+      if (!tokenInDB) {
+        const newToken = await this.getAccessToken(currency);
+        accessToken = newToken;
+      } else {
+        accessToken = tokenInDB.token;
+      }
+
       const config = {
         headers: {
-          Authorization: `Bearer ${this.tripleAAccessToken[currency]}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       };
 
       const res = await this.axiosInstance.get(`/payout/withdraw/order/${orderId}`, config);
 
       return res.data;
-    } catch (error) {
-      const { status, statusText, data } = error.response || {};
-
-      if (
-        status === HttpStatus.UNAUTHORIZED &&
-        data.message === 'Invalid token: access token has expired'
-      ) {
-        await this.getAccessToken(currency);
-        await this.delay(3000); // Wait for 3 seconds
-        await this.getWithdrawalDetails(orderId, currency);
-      } else {
-        throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
-      }
-    }
-  }
-
-  // Refresh access token every 30 minutes, because access token expires in 1 hour
-  @Cron('0 */30 * * * *', {
-    name: 'refresh_triple_a_access_token',
-  })
-  async refreshAccessToken() {
-    try {
-      await Promise.all(
-        Object.keys(FiatCurrencyEnum).map((currency) =>
-          this.getAccessToken(currency as FiatCurrencyEnum),
-        ),
-      );
-
-      this.logger.log('Refreshed TripleA access token');
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
