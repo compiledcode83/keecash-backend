@@ -33,24 +33,25 @@ export class BeneficiaryController {
   @UseGuards(JwtAuthGuard)
   @Get('types')
   async getBeneficiaryTypes() {
-    const types = Object.values(TypesOfBeneficiary);
+    // const types = Object.values(TypesOfBeneficiary);
+    const types = ['USER', 'BTC', 'USDT_TRC20', 'ETH', 'USDT_ERC20', 'USDC', 'BINANCE'];
 
     return types;
   }
 
-  @ApiOperation({ description: `Verify if crypto address exists` })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('verify-crypto-address')
-  async verifyCryptoAddress(
-    @Body() body: VerifyWalletAddressDto,
-  ): Promise<VerifyWalletExistResponseDto> {
-    const doesExist = await this.beneficiaryWalletService.checkIfExist({
-      address: body.cryptoAddress,
-    });
+  // @ApiOperation({ description: `Verify if crypto address exists` })
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard)
+  // @Post('verify-crypto-address')
+  // async verifyCryptoAddress(
+  //   @Body() body: VerifyWalletAddressDto,
+  // ): Promise<VerifyWalletExistResponseDto> {
+  //   const doesExist = await this.beneficiaryWalletService.checkIfExist({
+  //     address: body.cryptoAddress,
+  //   });
 
-    return { valid: doesExist };
-  }
+  //   return { valid: doesExist };
+  // }
 
   @ApiOperation({ description: 'Get withdrawal beneficiaries' })
   @ApiBearerAuth()
