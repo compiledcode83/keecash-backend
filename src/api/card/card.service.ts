@@ -235,9 +235,21 @@ export class CardService {
   }
 
   async getDepositPaymentLink(user: UserAccessTokenInterface, body: DepositPaymentLinkDto) {
+    // Calculate fees
+    const { depositFixedFee, depositPercentFee } =
+      await this.countryFeeService.findOneWalletDepositWithdrawalFee({
+        countryId: user.countryId,
+        currency: body.keecash_wallet,
+        method: body.deposit_method,
+      });
+    const feesApplied = parseFloat(
+      ((body.desired_amount * depositPercentFee) / 100 + depositFixedFee).toFixed(2),
+    );
+    const amountAfterFee = body.desired_amount + feesApplied;
+
     // Trigger TripleA API
     const res = await this.tripleAService.deposit({
-      amount: body.total_to_pay,
+      amount: amountAfterFee,
       currency: body.keecash_wallet,
       email: user.email,
       keecashUserId: user.referralId,
@@ -248,13 +260,13 @@ export class CardService {
       userId: user.id,
       currency: body.keecash_wallet,
       affectedAmount: body.desired_amount,
-      appliedFee: body.applied_fee,
-      fixedFee: body.fixed_fee,
-      percentageFee: body.percent_fee,
+      appliedFee: feesApplied,
+      fixedFee: depositFixedFee,
+      percentageFee: depositPercentFee,
       cryptoType: body.deposit_method,
       type: TxTypeEnum.Deposit,
       status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
-      description: 'Deposit',
+      description: `Deposited ${body.desired_amount} ${body.keecash_wallet} from ${body.deposit_method}`,
       reason: body.reason,
       tripleAPaymentReference: res.payment_reference,
     });
@@ -375,9 +387,9 @@ export class CardService {
       });
 
     const feesApplied = parseFloat(
-      ((query.desired_amount * transferPercentFee) / 100 + transferFixedFee).toFixed(2),
+      ((parseFloat(query.desired_amount) * transferPercentFee) / 100 + transferFixedFee).toFixed(2),
     );
-    const amountAfterFee = query.desired_amount - feesApplied;
+    const amountAfterFee = parseFloat(query.desired_amount) - feesApplied;
 
     return {
       fix_fees: transferFixedFee,
