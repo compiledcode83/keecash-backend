@@ -69,6 +69,7 @@ export class TripleAService {
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
+      this.logger.error(`Triple-A Message: ${data?.message}` || statusText);
       // TODO: Do better error handling later
       // throw new HttpException(data.message || statusText, status);
     }
@@ -94,6 +95,9 @@ export class TripleAService {
         },
       };
 
+      console.log('body:', body);
+      console.log('config:', config);
+
       const res = await this.axiosInstance.post('/payment', body, config);
 
       return {
@@ -112,7 +116,7 @@ export class TripleAService {
         await this.delay(3000); // Wait for 3 seconds
         await this.deposit(dto);
       } else {
-        throw new HttpException(data.message || statusText, status);
+        throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
       }
     }
   }
@@ -139,7 +143,7 @@ export class TripleAService {
         await this.delay(3000); // Wait for 3 seconds
         await this.getDepositDetails(paymentReference, currency);
       } else {
-        throw new HttpException(data.message || statusText, status);
+        throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
       }
     }
   }
@@ -200,7 +204,7 @@ export class TripleAService {
         await this.delay(3000); // Wait for 3 seconds
         await this.withdraw(dto);
       } else {
-        throw new HttpException(data.message || statusText, status);
+        throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
       }
     }
   }
@@ -227,7 +231,7 @@ export class TripleAService {
         await this.delay(3000); // Wait for 3 seconds
         await this.getWithdrawalDetails(orderId, currency);
       } else {
-        throw new HttpException(data.message || statusText, status);
+        throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
       }
     }
   }
@@ -248,7 +252,7 @@ export class TripleAService {
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
-      throw new HttpException(data.message || statusText, status);
+      throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
     }
   }
 }
