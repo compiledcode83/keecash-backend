@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber } from 'class-validator';
+import { IsEnum, IsNumberString } from 'class-validator';
 import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
 export class GetDepositFeeDto {
@@ -12,6 +12,6 @@ export class GetDepositFeeDto {
   deposit_method: CryptoCurrencyEnum;
 
   @ApiProperty({ example: 100, description: 'Deposit amount in fiat (EUR, USD ...)' })
-  @IsNumber()
-  fiat_amount: number;
+  @IsNumberString()
+  fiat_amount: string;
 }

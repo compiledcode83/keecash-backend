@@ -195,7 +195,7 @@ export class CardService {
     const card = this.cardRepository.findOne({ where: { userId, bridgecardId: cardId } });
 
     if (!card) {
-      throw new UnauthorizedException('User does not have right to access the card');
+      throw new UnauthorizedException('Cannot find card with requested ID');
     }
 
     await this.bridgecardService.freezeCard(cardId);
@@ -222,9 +222,9 @@ export class CardService {
       });
 
     const feesApplied = parseFloat(
-      ((query.fiat_amount * depositPercentFee) / 100 + depositFixedFee).toFixed(2),
+      ((parseFloat(query.fiat_amount) * depositPercentFee) / 100 + depositFixedFee).toFixed(2),
     );
-    const amountAfterFee = query.fiat_amount + feesApplied;
+    const amountAfterFee = parseFloat(query.fiat_amount) + feesApplied;
 
     return {
       fix_fees: depositFixedFee,
@@ -499,6 +499,7 @@ export class CardService {
         description: 'Topped up multiple time',
         is_checked: true,
         price: multipleCardPrice.cardPrice,
+        currency,
         cardValidity: '2 years',
       },
       {
@@ -507,6 +508,7 @@ export class CardService {
         description: 'Topped up one time',
         is_checked: false,
         price: uniqueCardPrice.cardPrice,
+        currency,
         cardValidity: '2 years',
       },
     ];
@@ -547,6 +549,7 @@ export class CardService {
       fixedFee: cardTopUpFixedFee,
       percentageFee: cardTopUpPercentFee,
       feesApplied,
+      cardPrice,
       totalToPay,
     };
   }
@@ -604,6 +607,8 @@ export class CardService {
       userId,
       name: body.name,
       bridgecardId,
+      currency: body.keecashWallet,
+      usage: body.cardUsage,
     });
 
     // Create a transaction
@@ -624,11 +629,19 @@ export class CardService {
 
   // -------------- CARD TOPUP -------------------
 
-  async getCardTopupSettings(countryId: number, query: GetCardTopupSettingDto) {
-    const { currency, usage } = await this.findOne({ bridgecardId: query.bridgecardId });
+  async getCardTopupSettings(user: UserAccessTokenInterface, query: GetCardTopupSettingDto) {
+    const card = await this.findOne({ userId: user.id, bridgecardId: query.bridgecardId });
+
+    if (!card) {
+      throw new NotFoundException('Cannot find card with requested id');
+    }
 
     const { cardTopUpFixedFee, cardTopUpPercentFee } =
-      await this.countryFeeService.findOneCardTopupFee({ countryId, currency, usage });
+      await this.countryFeeService.findOneCardTopupFee({
+        countryId: user.countryId,
+        currency: card.currency,
+        usage: card.usage,
+      });
 
     const feesApplied = parseFloat(
       ((parseFloat(query.desiredAmount) * cardTopUpPercentFee) / 100 + cardTopUpFixedFee).toFixed(

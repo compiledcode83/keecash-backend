@@ -53,7 +53,7 @@ export class CardController {
   @ApiTags('Card Management')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Patch('card/unlock/my-card')
+  @Patch('card/unlock/:card_id')
   async unlockCard(@Req() req, @Param('card_id') cardId: string) {
     await this.cardService.unlockCard(req.user.id, cardId);
 

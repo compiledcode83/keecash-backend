@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { CardService } from './card.service';
 import { ApiTags } from '@nestjs/swagger';
+import { CardService } from './card.service';
 import { BridgecardWebhookResponseDto } from './dto/bridgecard-webhook-response.dto';
 import { TripleADepositNotifyDto } from '@api/triple-a/dto/triple-a-deposit-notify.dto';
 import { TripleAWithdrawalNotifyDto } from '@api/triple-a/dto/triple-a-withdrawal-notify.dto';
@@ -22,13 +22,13 @@ export class WebhookController {
   // -------------- TRIPLE-A WEBHOOK -------------------
 
   @ApiTags('Webhook Handler')
-  @Post('triple/payment-notifiy-deposit')
+  @Post('triple-a/payment-notify-deposit')
   async paymentNotifyDeposit(@Body() body: TripleADepositNotifyDto) {
     await this.cardService.handleDepositNotification(body);
   }
 
   @ApiTags('Webhook Handler')
-  @Post('triple/payment-notifiy-withdraw')
+  @Post('triple-a/payment-notify-withdraw')
   async paymentNotifyWithdraw(@Body() body: TripleAWithdrawalNotifyDto) {
     await this.cardService.handleWithdrawalNotification(body);
   }

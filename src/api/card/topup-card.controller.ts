@@ -15,7 +15,7 @@ export class TopupCardController {
   @UseGuards(JwtAuthGuard)
   @Get('get-fees')
   async getCardTopupSettings(@Req() req, @Query() query: GetCardTopupSettingDto) {
-    return this.cardService.getCardTopupSettings(req.user.countryId, query);
+    return this.cardService.getCardTopupSettings(req.user, query);
   }
 
   @ApiOperation({ description: 'Apply card topup' })

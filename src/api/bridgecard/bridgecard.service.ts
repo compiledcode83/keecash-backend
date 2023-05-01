@@ -173,25 +173,20 @@ export class BridgecardService {
 
   async freezeCard(cardId: string) {
     try {
-      await this.axiosInstance.patch('/cards/freeze_card', {
-        params: {
-          card_id: cardId,
-        },
-      });
+      await this.axiosInstance.patch(`/cards/freeze_card?card_id=${cardId}`);
     } catch (error) {
-      const { status, statusText, data } = error.response || {};
+      const { status, data } = error.response || {};
 
-      throw new HttpException(data?.message || statusText, status);
+      throw new HttpException(
+        data?.message || 'Bridgecard could not freeze the requested card',
+        status,
+      );
     }
   }
 
   async unfreezeCard(cardId: string) {
     try {
-      await this.axiosInstance.patch('/cards/unfreeze_card', {
-        params: {
-          card_id: cardId,
-        },
-      });
+      await this.axiosInstance.patch(`/cards/unfreeze_card?card_id=${cardId}`);
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
