@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TransactionRepository } from './transaction.repository';
 import { Transaction } from './transaction.entity';
 import { FiatCurrencyEnum } from './transaction.types';
-import { GetWalletTransactionsDto } from '@api/card/dto/get-wallet-transactions.dto';
+import { GetWalletTransactionsQueryDto } from '@api/card/dto/get-wallet-transactions.query.dto';
 
 @Injectable()
 export class TransactionService {
@@ -15,7 +15,7 @@ export class TransactionService {
   async findManyByFilter(
     userId: number,
     currency: FiatCurrencyEnum = null,
-    query: GetWalletTransactionsDto,
+    query: GetWalletTransactionsQueryDto,
   ) {
     return this.transactionRepository.findManyByFilter(userId, currency, query);
   }

@@ -4,6 +4,7 @@ import { AdminService } from './admin.service';
 import { AddAdminDto } from './dto/add-admin.dto';
 import { AdminFilterDto } from './dto/admin.filter.dto';
 import { JwtAdminAuthGuard } from '@admin/auth/guards/jwt-admin-auth.guard';
+import { DeleteAdminDto } from './dto/delete-admin.dto';
 
 @Controller()
 @ApiTags('Manage admins')
@@ -27,11 +28,11 @@ export class AdminController {
   }
 
   @ApiOperation({ description: `Delete admin` })
-  @ApiParam({ name: 'card_id', required: true, description: 'Bridgecard ID' })
+  @ApiParam({ name: 'id', required: true, description: 'Admin ID' })
   @ApiBearerAuth()
   @UseGuards(JwtAdminAuthGuard)
   @Delete(':id')
-  async deleteAdmin(@Param('id') id: number) {
-    return this.adminService.deleteAdmin(id);
+  async deleteAdmin(@Param() param: DeleteAdminDto) {
+    return this.adminService.deleteAdmin(param.id);
   }
 }

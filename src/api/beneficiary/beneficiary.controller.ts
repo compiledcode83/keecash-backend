@@ -10,6 +10,7 @@ import { TypesOfBeneficiary } from './beneficiary.types';
 import { VerifyWalletAddressDto } from './beneficiary-wallet/dto/verify-wallet-address.dto';
 import { VerifyWalletExistResponseDto } from './beneficiary-wallet/dto/verify-wallet-address-response.dto';
 import { CryptoCurrencyEnum } from '@api/transaction/transaction.types';
+import { GetBeneficiaryWalletsDto } from './dto/get-beneficiary-wallets.dto';
 
 @Controller('beneficiary')
 @ApiTags('Manage beneficiaries')
@@ -81,10 +82,10 @@ export class BeneficiaryController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('wallets/:currency')
-  async getBeneficiaryWallets(@Req() req, @Param('currency') currency: CryptoCurrencyEnum) {
+  async getBeneficiaryWallets(@Req() req, @Param() param: GetBeneficiaryWalletsDto) {
     const beneficiary_wallets = await this.beneficiaryService.findBeneficiaryWallets({
       userId: req.user.id,
-      type: currency,
+      type: param.currency,
     });
 
     return { beneficiary_wallets };

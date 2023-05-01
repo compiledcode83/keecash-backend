@@ -36,7 +36,7 @@ import { TripleAService } from '@api/triple-a/triple-a.service';
 import { DepositPaymentLinkDto } from './dto/deposit-payment-link.dto';
 import { NotificationType } from '@api/notification/notification.types';
 import { TransferApplyDto } from './dto/transfer-apply.dto';
-import { GetWalletTransactionsDto } from './dto/get-wallet-transactions.dto';
+import { GetWalletTransactionsQueryDto } from './dto/get-wallet-transactions.query.dto';
 import { ApplyCardTopupDto } from './dto/card-topup-apply.dto';
 import { GetCardWithdrawalSettingDto } from './dto/get-card-withdrawal-setting.dto';
 import { ApplyCardWithdrawalDto } from './dto/card-withdrawal-apply.dto';
@@ -481,7 +481,7 @@ export class CardService {
   async getWalletTransactions(
     userId: number,
     currency: FiatCurrencyEnum,
-    query: GetWalletTransactionsDto,
+    query: GetWalletTransactionsQueryDto,
   ) {
     const transactions = await this.transactionService.findManyByFilter(userId, currency, query);
 

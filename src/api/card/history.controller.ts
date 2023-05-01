@@ -13,8 +13,10 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 import { GetCardHistoryFilterDto } from './dto/get-card-history-filter.dto';
-import { GetWalletTransactionsDto } from './dto/get-wallet-transactions.dto';
+import { GetWalletTransactionsQueryDto } from './dto/get-wallet-transactions.query.dto';
 import { BridgecardService } from '@api/bridgecard/bridgecard.service';
+import { GetWalletTransactionsParamDto } from './dto/get-wallet-transactions.param.dto';
+import { ManageCardDto } from './dto/manage-card.dto';
 
 @Controller('history')
 export class HistoryController {
@@ -31,10 +33,10 @@ export class HistoryController {
   @Get('wallet/:currency')
   async getWalletTransactions(
     @Req() req,
-    @Param('currency') currency: FiatCurrencyEnum,
-    @Query() query: GetWalletTransactionsDto,
+    @Param() param: GetWalletTransactionsParamDto,
+    @Query() query: GetWalletTransactionsQueryDto,
   ) {
-    return this.cardService.getWalletTransactions(req.user.id, currency, query);
+    return this.cardService.getWalletTransactions(req.user.id, param.currency, query);
   }
 
   @ApiOperation({ description: '' })
@@ -78,20 +80,20 @@ export class HistoryController {
   @Get('card/:card_id')
   async getCardTransactions(
     @Req() req,
-    @Param('card_id') cardId: string,
+    @Param() param: ManageCardDto,
     @Query() query: GetCardHistoryFilterDto,
   ) {
-    const card = await this.cardService.findOne({ bridgecardId: cardId });
+    const card = await this.cardService.findOne({ bridgecardId: param.card_id });
 
     if (!card) {
-      throw new NotFoundException(`Cannot find the card: ${cardId}`);
+      throw new NotFoundException(`Cannot find the card: ${param.card_id}`);
     }
 
     if (card.userId !== req.user.id) {
-      throw new UnauthorizedException(`Request sender is not the owner of card: ${cardId}`);
+      throw new UnauthorizedException(`Request sender is not the owner of card: ${param.card_id}`);
     }
 
-    const transactions = await this.bridgecardService.getCardTransactions(cardId);
+    const transactions = await this.bridgecardService.getCardTransactions(param.card_id);
 
     return transactions;
   }

@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from './card.service';
 import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
+import { ManageCardDto } from './dto/manage-card.dto';
 
 @Controller()
 export class CardController {
@@ -42,8 +43,8 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch('card/block/:card_id')
-  async blockCard(@Req() req, @Param('card_id') cardId: string) {
-    await this.cardService.blockCard(req.user.id, cardId);
+  async blockCard(@Req() req, @Param() param: ManageCardDto) {
+    await this.cardService.blockCard(req.user.id, param.card_id);
 
     return { isSuccess: true };
   }
@@ -54,8 +55,8 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch('card/unlock/:card_id')
-  async unlockCard(@Req() req, @Param('card_id') cardId: string) {
-    await this.cardService.unlockCard(req.user.id, cardId);
+  async unlockCard(@Req() req, @Param() param: ManageCardDto) {
+    await this.cardService.unlockCard(req.user.id, param.card_id);
 
     return { isSuccess: true };
   }
@@ -66,8 +67,8 @@ export class CardController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Delete('card/remove/my-card')
-  async removeMyCard(@Req() req, @Param('card_id') cardId: string) {
-    await this.cardService.delete({ userId: req.user.id, bridgecardId: cardId });
+  async removeMyCard(@Req() req, @Param() param: ManageCardDto) {
+    await this.cardService.delete({ userId: req.user.id, bridgecardId: param.card_id });
 
     return { isSuccess: true };
   }
