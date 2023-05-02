@@ -60,7 +60,7 @@ export class TripleAService {
 
       const config = {
         headers: {
-          Authorization: `Bearer ${this.tripleAMerchatKey[currency]}`,
+          Token: `Bearer ${this.tripleAMerchatKey[currency]}`,
         },
       };
 
