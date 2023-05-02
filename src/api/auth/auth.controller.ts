@@ -81,6 +81,7 @@ export class AuthController {
     @RealIP() ip: string,
   ) {
     let token: string;
+    let registerStatus: Partial<User>;
 
     switch (req.user.status) {
       case UserStatus.Registered:
@@ -89,6 +90,16 @@ export class AuthController {
           type: TokenTypeEnum.CreateAccount,
         });
         token = createAccountToken;
+
+        const { emailValidated, phoneValidated, kycStatus } = await this.userService.findOne({
+          id: req.user.id,
+        });
+
+        registerStatus = {
+          emailValidated,
+          phoneValidated,
+          kycStatus,
+        };
 
         break;
 
@@ -117,6 +128,7 @@ export class AuthController {
     return {
       token,
       status: req.user.status,
+      registerStatus,
       isUserExist: true,
     };
   }
