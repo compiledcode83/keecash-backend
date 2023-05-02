@@ -3,7 +3,7 @@ import { IsString } from 'class-validator';
 
 export class ConfirmPhoneNumberVerificationCodeDto {
   @ApiProperty({
-    example: '154111',
+    example: '15411',
     required: true,
     maximum: 255,
     description: 'Verification Code',

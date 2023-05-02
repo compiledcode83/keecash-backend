@@ -12,7 +12,7 @@ export class ConfirmEmailVerificationCodeForAdminDto {
   email: string;
 
   @ApiProperty({
-    example: '154111',
+    example: '15111',
     required: true,
     maximum: 255,
     description: 'Verification Code',

@@ -70,7 +70,6 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `User login` })
-  @ApiResponse(ApiResponseHelper.success(User))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @UseGuards(LocalAuthGuard)
   @Post('user-login')
