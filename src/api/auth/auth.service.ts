@@ -8,6 +8,7 @@ import { UserAccessTokenInterface } from './auth.type';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
 import { SumsubService } from '@api/sumsub/sumsub.service';
+import { UserStatus } from '@api/user/user.types';
 
 @Injectable()
 export class AuthService {
@@ -53,9 +54,17 @@ export class AuthService {
     const isValidated = await bcrypt.compare(password, user.password);
 
     if (isValidated) {
-      const {
-        personProfile: { countryId },
-      } = await this.userService.findOneWithProfileAndDocuments({ id: user.id }, true, false);
+      let countryId;
+
+      if (user.status === UserStatus.Completed) {
+        const { personProfile } = await this.userService.findOneWithProfileAndDocuments(
+          { id: user.id },
+          true,
+          false,
+        );
+
+        countryId = personProfile.countryId;
+      }
 
       return {
         id: user.id,

@@ -8,5 +8,5 @@ export interface UserAccessTokenInterface {
   referralId: string;
   status: UserStatus;
   type: string;
-  countryId: number;
+  countryId?: number;
 }
