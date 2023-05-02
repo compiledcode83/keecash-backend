@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { VerificationModule } from '@api/verification/verification.module';
+import { TwilioModule } from '@api/twilio/twilio.module';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
@@ -20,7 +20,7 @@ import { CipherTokenModule } from '../cipher-token/cipher-token.module';
 
 @Module({
   imports: [
-    VerificationModule,
+    TwilioModule,
     CountryModule,
     DocumentModule,
     EnterpriseProfileModule,

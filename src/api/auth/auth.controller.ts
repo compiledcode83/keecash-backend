@@ -27,12 +27,12 @@ import { ApiResponseHelper } from '@common/helpers/api-response.helper';
 import { User } from '@api/user/user.entity';
 import { CreateUserDto } from '@api/user/dto/create-user.dto';
 import { UserService } from '@api/user/user.service';
-import { ConfirmEmailVerificationCodeDto } from '@api/verification/dto/confirm-email-verification.dto';
-import { SendPhoneNumberVerificationCodeDto } from '@api/verification/dto/send-phone-verification.dto';
-import { ConfirmPhoneNumberVerificationCodeDto } from '@api/verification/dto/confirm-phone-verification.dto';
-import { VerificationService } from '@api/verification/verification.service';
-import { ConfirmEmailVerificationCodeForAdminDto } from '@api/verification/dto/confirm-email-verification-for-admin.dto';
-import { PasswordResetDto } from '../user/dto/password-reset.dto';
+import { ConfirmEmailVerificationCodeDto } from '@api/twilio/dto/confirm-email-verification.dto';
+import { SendPhoneNumberVerificationCodeDto } from '@api/twilio/dto/send-phone-verification.dto';
+import { ConfirmPhoneNumberVerificationCodeDto } from '@api/twilio/dto/confirm-phone-verification.dto';
+import { TwilioService } from '@api/twilio/twilio.service';
+import { ConfirmEmailVerificationCodeForAdminDto } from '@api/twilio/dto/confirm-email-verification-for-admin.dto';
+import { PasswordResetDto } from '@api/user/dto/password-reset.dto';
 import { PincodeSetDto } from './dto/pincode-set-dto';
 import { PincodeVerificationDto } from './dto/pincode-verification.dto';
 import { PincodeVerificationResponseDto } from './dto/pincode-verification-response.dto';
@@ -41,7 +41,7 @@ import { PincodeSetResponseDto } from './dto/pincode-set-response.dto';
 import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
 import { UserStatus } from '@api/user/user.types';
 import { TokenTypeEnum } from '../cipher-token/cipher-token.types';
-import { SendEmailVerificationCodeDto } from '../verification/dto/send-email-verification.dto';
+import { SendEmailVerificationCodeDto } from '@api/twilio/dto/send-email-verification.dto';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -50,7 +50,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
     private readonly userService: UserService,
-    private readonly verificationService: VerificationService,
+    private readonly twilioService: TwilioService,
     private readonly cipherTokenService: CipherTokenService,
   ) {}
 
@@ -365,7 +365,7 @@ export class AuthController {
 
     const { email } = await this.userService.findOne({ id: userId });
 
-    const res = await this.verificationService.sendEmailVerificationCode(email);
+    const res = await this.twilioService.sendEmailVerificationCode(email);
 
     if (!res) {
       throw new BadRequestException('Failed to send verification code');
@@ -439,7 +439,7 @@ export class AuthController {
       throw new NotFoundException('User not found with this email');
     }
 
-    const res = await this.verificationService.sendEmailVerificationCode(body.email);
+    const res = await this.twilioService.sendEmailVerificationCode(body.email);
 
     if (!res) {
       throw new BadRequestException('Failed to send verification code');

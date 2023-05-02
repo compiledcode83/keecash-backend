@@ -7,7 +7,7 @@ import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
 import { UserAccessTokenInterface } from './auth.type';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
-import { VerificationService } from '@api/verification/verification.service';
+import { SumsubService } from '@api/sumsub/sumsub.service';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +15,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly cipherTokenService: CipherTokenService,
-    private readonly verificationService: VerificationService,
+    private readonly sumsubService: SumsubService,
   ) {}
 
   async login(user: any, userAgent: string, ipAddress: string): Promise<TokensResponseDto> {
@@ -149,6 +149,6 @@ export class AuthService {
   }
 
   async getSumsubAccessToken(userId: string): Promise<string> {
-    return this.verificationService.createSumsubAccessToken(userId);
+    return this.sumsubService.createSumsubAccessToken(userId);
   }
 }

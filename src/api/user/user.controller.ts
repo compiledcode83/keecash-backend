@@ -20,7 +20,6 @@ import { SetLanguageDto } from './dto/set-language.dto';
 import { RequestEmailChangeDto } from './dto/request-email-change.dto';
 import { CloseAccountDto } from './dto/close-account.dto';
 import { ConfirmEmailChangeOtpDto } from './dto/confirm-email-change-otp.dto';
-import { VerificationService } from '@api/verification/verification.service';
 import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
 import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
 import { TokenTypeEnum } from '@api/cipher-token/cipher-token.types';
@@ -28,12 +27,13 @@ import { VerificationStatus } from './user.types';
 import { VerifyUserExistDto } from './dto/verify-user-exist.dto';
 import { VerifyUserExistResponseDto } from './dto/verify-user-exist-response.dto';
 import { SumsubWebhookResponseDto } from './dto/sumsub-webhook-response.dto';
+import { TwilioService } from '@api/twilio/twilio.service';
 
 @Controller()
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    private readonly verificationService: VerificationService,
+    private readonly twilioService: TwilioService,
     private readonly cipherTokenService: CipherTokenService,
   ) {}
 
@@ -97,7 +97,7 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @Post('account/request-email-change')
   async requestEmailChange(@Req() req, @Body() body: RequestEmailChangeDto): Promise<void> {
-    await this.verificationService.sendEmailVerificationCode(body.email);
+    await this.twilioService.sendEmailVerificationCode(body.email);
   }
 
   @ApiOperation({ description: 'Confirm OTP & change email' })
@@ -208,15 +208,6 @@ export class UserController {
 
     await this.userService.update(token.userId, { kycStatus: VerificationStatus.Rejected });
   }
-
-  // @ApiOperation({ description: `Get sumsub api access token for development` })
-  // @Get('auth/dev-sumsub-access-token')
-  // async getSumsubAccessToken() {
-  //   return {
-  //     token: await this.userService.getSumsubAccessToken(),
-  //     userId: 'JamesBond007',
-  //   };
-  // }
 
   // ------------ Beneficiary ----------------
 

@@ -16,13 +16,13 @@ import { DocumentTypeEnum } from '@api/user/document/document.types';
 import { EnterpriseProfileService } from '@api/user/enterprise-profile/enterprise-profile.service';
 import { PersonProfileService } from '@api/user/person-profile/person-profile.service';
 import { ShareholderService } from '@api/shareholder/shareholder.service';
-import { VerificationService } from '@api/verification/verification.service';
+import { TwilioService } from '@api/twilio/twilio.service';
 import * as bcrypt from 'bcrypt';
 import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
-import { SendPhoneNumberVerificationCodeDto } from '@api/verification/dto/send-phone-verification.dto';
+import { SendPhoneNumberVerificationCodeDto } from '@api/twilio/dto/send-phone-verification.dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { AccountType, Language, UserStatus, VerificationStatus } from './user.types';
@@ -47,7 +47,7 @@ export class UserService {
     private readonly enterpriseProfileService: EnterpriseProfileService,
     private readonly personProfileService: PersonProfileService,
     private readonly shareholderservice: ShareholderService,
-    private readonly verificationService: VerificationService,
+    private readonly twilioService: TwilioService,
     private readonly closureReasonService: ClosureReasonService,
     private readonly transactionService: TransactionService,
     private readonly bridgecardService: BridgecardService,
@@ -262,7 +262,7 @@ export class UserService {
       throw new BadRequestException('Email is already validated');
     }
 
-    const res = await this.verificationService.sendEmailVerificationCode(user.email);
+    const res = await this.twilioService.sendEmailVerificationCode(user.email);
 
     if (!res) {
       throw new BadRequestException('Cannot send email OTP');
@@ -272,7 +272,7 @@ export class UserService {
   }
 
   async confirmEmailOtp(email: string, code: string): Promise<boolean> {
-    const res = await this.verificationService.confirmEmailVerificationCode(email, code);
+    const res = await this.twilioService.confirmEmailVerificationCode(email, code);
 
     if (!res) {
       throw new BadRequestException('Cannot confirm email verification code');
@@ -286,7 +286,7 @@ export class UserService {
   }
 
   async confirmEmailOtpForForgotPassword(email: string, code: string): Promise<void> {
-    const res = await this.verificationService.confirmEmailVerificationCode(email, code);
+    const res = await this.twilioService.confirmEmailVerificationCode(email, code);
 
     if (!res) {
       throw new BadRequestException('Cannot confirm email verification code');
@@ -314,7 +314,7 @@ export class UserService {
       throw new BadRequestException('Phone number format is incorrect');
     }
 
-    const res = await this.verificationService.sendPhoneVerificationCode(body.phoneNumber);
+    const res = await this.twilioService.sendPhoneVerificationCode(body.phoneNumber);
 
     if (!res) {
       throw new InternalServerErrorException('Error occured while getting user data');
@@ -330,10 +330,7 @@ export class UserService {
   async confirmPhoneOtp(userId: number, code: string): Promise<boolean> {
     const user = await this.findOne({ id: userId });
 
-    const res = await this.verificationService.confirmPhoneNumberVerificationCode(
-      user.phoneNumber,
-      code,
-    );
+    const res = await this.twilioService.confirmPhoneNumberVerificationCode(user.phoneNumber, code);
 
     if (!res) {
       throw new BadRequestException('Sorry, Can not confirm phone number');
@@ -344,10 +341,6 @@ export class UserService {
     if (updatedUser.affected) return true;
 
     return false;
-  }
-
-  async getSumsubAccessToken() {
-    return this.verificationService.createSumsubAccessToken('JamesBond007');
   }
 
   async submitKycInfo(userId: number, body: SubmitKycInfoDto): Promise<void> {
@@ -463,7 +456,7 @@ export class UserService {
   }
 
   async confirmEmailChangeOtp(userId: number, newEmail: string, otp: string) {
-    const res = await this.verificationService.confirmEmailVerificationCode(newEmail, otp);
+    const res = await this.twilioService.confirmEmailVerificationCode(newEmail, otp);
 
     if (!res) {
       throw new BadRequestException('Cannot confirm email verification code');

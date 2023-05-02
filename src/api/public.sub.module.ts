@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UserModule } from '@api/user/user.module';
 import { AuthModule } from '@api/auth/auth.module';
 import { CipherTokenModule } from '@api/cipher-token/cipher-token.module';
-import { VerificationModule } from '@api/verification/verification.module';
+import { SumsubModule } from '@api/sumsub/sumsub.module';
 import { StorageModule } from '@api/storage/storage.module';
 import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
 import { CountryModule } from '@api/country/country.module';
@@ -20,6 +20,7 @@ import { ClosureReasonModule } from '@api/closure-reason/closure-reason.module';
 import { NotificationModule } from './notification/notification.module';
 import { BridgecardModule } from './bridgecard/bridgecard.module';
 import { TripleAModule } from './triple-a/triple-a.module';
+import { TwilioModule } from './twilio/twilio.module';
 
 @Module({
   imports: [
@@ -40,10 +41,11 @@ import { TripleAModule } from './triple-a/triple-a.module';
     CountryModule,
     CountryActivationModule,
     CountryFeeModule,
-    VerificationModule,
+    SumsubModule,
     ClosureReasonModule,
     NotificationModule,
     BridgecardModule,
+    TwilioModule,
   ],
 })
 export class PublicSubModule {}

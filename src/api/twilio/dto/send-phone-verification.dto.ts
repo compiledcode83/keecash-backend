@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsPhoneNumber, IsString, MaxLength, MinLength, Validate } from 'class-validator';
-import { CountryExistsByNameValidator } from '../../user/validator/country-exists-by-name.validator';
+import { CountryExistsByNameValidator } from '@api/user/validator/country-exists-by-name.validator';
 
 export class SendPhoneNumberVerificationCodeDto {
   @ApiProperty({ example: '+1234567890', required: true, description: 'Phone number' })

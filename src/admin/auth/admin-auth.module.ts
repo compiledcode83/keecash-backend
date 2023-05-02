@@ -6,7 +6,7 @@ import { AdminStrategy } from './strategies/admin.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AdminModule } from '@admin/admin/admin.module';
-import { VerificationModule } from '@api/verification/verification.module';
+import { TwilioModule } from '@api/twilio/twilio.module';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { VerificationModule } from '@api/verification/verification.module';
       },
     }),
     AdminModule,
-    VerificationModule,
+    TwilioModule,
   ],
   controllers: [AdminAuthController],
   providers: [AdminAuthService, JwtAdminStrategy, AdminStrategy],

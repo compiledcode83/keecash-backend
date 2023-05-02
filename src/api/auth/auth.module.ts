@@ -4,18 +4,20 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { CipherTokenModule } from '@api/cipher-token/cipher-token.module';
 import { UserModule } from '@api/user/user.module';
-import { VerificationModule } from '@api/verification/verification.module';
+import { SumsubModule } from '@api/sumsub/sumsub.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { TwilioModule } from '@api/twilio/twilio.module';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
     CipherTokenModule,
-    VerificationModule,
+    SumsubModule,
+    TwilioModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
