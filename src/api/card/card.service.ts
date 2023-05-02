@@ -106,7 +106,7 @@ export class CardService {
       eurCards = cards
         .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.EUR)
         .map((card) => ({
-          bridgecardId: card.card_id,
+          cardId: card.card_id,
           balance: card.balance,
           currency: card.card_currency,
           cardNumber: card.card_number,
@@ -119,7 +119,7 @@ export class CardService {
       usdCards = cards
         .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.USD)
         .map((card) => ({
-          bridgecardId: card.card_id,
+          cardId: card.card_id,
           balance: card.balance,
           currency: card.card_currency,
           cardNumber: card.card_number,
