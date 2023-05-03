@@ -1,7 +1,8 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { v4 as uuid } from 'uuid';
+import * as qs from 'qs';
 import { FiatCurrencyEnum } from '../transaction/transaction.types';
 import {
   TripleADepositInterface,
@@ -52,15 +53,17 @@ export class TripleAService {
 
   async getAccessToken(currency: FiatCurrencyEnum): Promise<string> {
     try {
-      const body = {
-        client_id: this.tripleAClientId[currency],
-        client_secret: this.tripleAClientSecret[currency],
-        grant_type: GRANT_TYPE,
-      };
+      const body = qs.stringify({
+        grant_type: 'client_credentials',
+        scope: 'client-credentials',
+      });
 
-      const config = {
+      const config: AxiosRequestConfig = {
         headers: {
-          Token: `Bearer ${this.tripleAMerchatKey[currency]}`,
+          Authorization: `Basic ${Buffer.from(
+            `${this.tripleAClientId[currency]}:${this.tripleAClientSecret[currency]}`,
+          ).toString('base64')}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
       };
 
