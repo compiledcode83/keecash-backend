@@ -10,6 +10,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { TwilioModule } from '@api/twilio/twilio.module';
+import { CountryModule } from '@api/country/country.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TwilioModule } from '@api/twilio/twilio.module';
     CipherTokenModule,
     SumsubModule,
     TwilioModule,
+    CountryModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

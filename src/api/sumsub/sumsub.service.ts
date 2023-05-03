@@ -8,8 +8,8 @@ const SUMSUB_LEVEL_NAME = 'sumsub-signin-demo-level';
 
 @Injectable()
 export class SumsubService {
-  private readonly sumsubAppToken: string;
-  private readonly sumsubSecretKey: string;
+  private sumsubAppToken: string;
+  private sumsubSecretKey: string;
   private axiosInstance: AxiosInstance;
 
   constructor(private readonly configService: ConfigService) {

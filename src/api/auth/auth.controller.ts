@@ -11,7 +11,6 @@ import {
   Req,
   BadRequestException,
   UnauthorizedException,
-  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from '@api/auth/auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -30,7 +29,6 @@ import { UserService } from '@api/user/user.service';
 import { ConfirmEmailVerificationCodeDto } from '@api/twilio/dto/confirm-email-verification.dto';
 import { SendPhoneNumberVerificationCodeDto } from '@api/twilio/dto/send-phone-verification.dto';
 import { ConfirmPhoneNumberVerificationCodeDto } from '@api/twilio/dto/confirm-phone-verification.dto';
-import { TwilioService } from '@api/twilio/twilio.service';
 import { ConfirmEmailVerificationCodeForAdminDto } from '@api/twilio/dto/confirm-email-verification-for-admin.dto';
 import { PasswordResetDto } from '@api/user/dto/password-reset.dto';
 import { PincodeSetDto } from './dto/pincode-set-dto';
@@ -50,7 +48,6 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
     private readonly userService: UserService,
-    private readonly twilioService: TwilioService,
     private readonly cipherTokenService: CipherTokenService,
   ) {}
 
@@ -61,7 +58,7 @@ export class AuthController {
 
     const createAccountToken = await this.cipherTokenService.generateCreateAccountToken(user.id);
 
-    await this.userService.sendEmailOtp(user.id);
+    await this.authService.sendEmailOtp(user.id);
 
     return {
       isCreated: true,
@@ -170,22 +167,12 @@ export class AuthController {
   @ApiBearerAuth()
   @Post('send-email-verification-code')
   async sendEmailVerificationCode(@Req() req) {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing CreateAccountToken in the header');
-    }
+    const token = await this.authService.validateBearerToken(
+      req.headers,
+      TokenTypeEnum.CreateAccount,
+    );
 
-    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
-
-    const token = await this.cipherTokenService.findOneBy({
-      token: bearerCreateAccountToken,
-      type: TokenTypeEnum.CreateAccount,
-    });
-
-    if (!token) {
-      throw new UnauthorizedException('CreateAccountToken is invalid');
-    }
-
-    await this.userService.sendEmailOtp(token.userId);
+    await this.authService.sendEmailOtp(token.userId);
 
     return {
       isSent: true,
@@ -199,24 +186,12 @@ export class AuthController {
     @Req() req,
     @Body() body: ConfirmEmailVerificationCodeDto,
   ): Promise<any> {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing CreateAccountToken in the header');
-    }
+    const token = await this.authService.validateBearerToken(
+      req.headers,
+      TokenTypeEnum.CreateAccount,
+    );
 
-    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
-
-    const token = await this.cipherTokenService.findOneBy({
-      token: bearerCreateAccountToken,
-      type: TokenTypeEnum.CreateAccount,
-    });
-
-    if (!token) {
-      throw new UnauthorizedException('CreateAccountToken is invalid');
-    }
-
-    const user = await this.userService.findOne({ id: token.userId });
-
-    const res = await this.userService.confirmEmailOtp(user.email, body.code);
+    const res = await this.authService.confirmEmailOtp(token.userId, body.code);
 
     if (!res) {
       throw new BadRequestException('Email verification failed');
@@ -234,22 +209,12 @@ export class AuthController {
     @Req() req,
     @Body() body: SendPhoneNumberVerificationCodeDto,
   ): Promise<any> {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing CreateAccountToken in the header');
-    }
+    const token = await this.authService.validateBearerToken(
+      req.headers,
+      TokenTypeEnum.CreateAccount,
+    );
 
-    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
-
-    const token = await this.cipherTokenService.findOneBy({
-      token: bearerCreateAccountToken,
-      type: TokenTypeEnum.CreateAccount,
-    });
-
-    if (!token) {
-      throw new UnauthorizedException('CreateAccountToken is invalid');
-    }
-
-    const res = await this.userService.sendPhoneOtp(token.userId, body);
+    const res = await this.authService.sendPhoneOtp(token.userId, body);
 
     if (!res) {
       return { isSent: false };
@@ -267,22 +232,12 @@ export class AuthController {
     @Req() req,
     @Body() body: ConfirmPhoneNumberVerificationCodeDto,
   ) {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing create-account token in the header');
-    }
+    const token = await this.authService.validateBearerToken(
+      req.headers,
+      TokenTypeEnum.CreateAccount,
+    );
 
-    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
-
-    const token = await this.cipherTokenService.findOneBy({
-      token: bearerCreateAccountToken,
-      type: TokenTypeEnum.CreateAccount,
-    });
-
-    if (!token) {
-      throw new UnauthorizedException('CreateAccountToken is invalid');
-    }
-
-    const res = await this.userService.confirmPhoneOtp(token.userId, body.code);
+    const res = await this.authService.confirmPhoneOtp(token.userId, body.code);
 
     if (!res) {
       throw new BadRequestException('Phone number verification failed');
@@ -297,14 +252,8 @@ export class AuthController {
   @ApiBearerAuth()
   @Post('set-pin-code')
   async setPinCode(@Req() req, @Body() body: PincodeSetDto): Promise<PincodeSetResponseDto> {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing refresh token in the header');
-    }
-
-    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
-
-    const userId = await this.cipherTokenService.checkIfValid(
-      bearerRefreshToken,
+    const userId = await this.authService.validateBearerToken(
+      req.headers,
       TokenTypeEnum.AuthRefresh,
     );
 
@@ -324,14 +273,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @RealIP() ipAddress: string,
   ): Promise<PincodeVerificationResponseDto> {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing refresh token in the header');
-    }
-
-    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
-
-    const userId = await this.cipherTokenService.checkIfValid(
-      bearerRefreshToken,
+    const userId = await this.authService.validateBearerToken(
+      req.headers,
       TokenTypeEnum.AuthRefresh,
     );
 
@@ -363,24 +306,12 @@ export class AuthController {
   @ApiBearerAuth()
   @Post('send-email-verification-code-for-forgot-pincode')
   async sendEmailVerificationCodeForForgotPincode(@Req() req): Promise<any> {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing refresh token in the header');
-    }
-
-    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
-
-    const userId = await this.cipherTokenService.checkIfValid(
-      bearerRefreshToken,
+    const userId = await this.authService.validateBearerToken(
+      req.headers,
       TokenTypeEnum.AuthRefresh,
     );
 
-    const { email } = await this.userService.findOne({ id: userId });
-
-    const res = await this.twilioService.sendEmailVerificationCode(email);
-
-    if (!res) {
-      throw new BadRequestException('Failed to send verification code');
-    }
+    await this.authService.sendEmailVerificationCodeForForgotPincode(userId);
 
     return {
       isSent: true,
@@ -394,20 +325,12 @@ export class AuthController {
     @Req() req,
     @Body() body: ConfirmEmailVerificationCodeDto,
   ) {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing refresh token in the header');
-    }
-
-    const bearerRefreshToken = req.headers.authorization.split(' ')[1];
-
-    const userId = await this.cipherTokenService.checkIfValid(
-      bearerRefreshToken,
+    const userId = await this.authService.validateBearerToken(
+      req.headers,
       TokenTypeEnum.AuthRefresh,
     );
 
-    const { email } = await this.userService.findOne({ id: userId });
-
-    await this.userService.confirmEmailOtpForForgotPassword(email, body.code);
+    await this.authService.confirmEmailOtpForForgotPassword(userId, body.code);
 
     const resetPincodeToken = await this.cipherTokenService.generateResetPincodeToken(userId);
 
@@ -444,17 +367,7 @@ export class AuthController {
   async sendEmailVerificationCodeForForgotPassword(
     @Body() body: SendEmailVerificationCodeDto,
   ): Promise<any> {
-    const user = await this.userService.findOne({ email: body.email });
-
-    if (!user) {
-      throw new NotFoundException('User not found with this email');
-    }
-
-    const res = await this.twilioService.sendEmailVerificationCode(body.email);
-
-    if (!res) {
-      throw new BadRequestException('Failed to send verification code');
-    }
+    await this.authService.sendEmailOtpForForgotPassword(body.email);
 
     return {
       isSent: true,
@@ -464,9 +377,9 @@ export class AuthController {
   @ApiOperation({ description: `Confirm email verification code for forgot password` })
   @Post('confirm-email-verification-code-for-forgot-password')
   async confirmEmailForForgotPassword(@Body() body: ConfirmEmailVerificationCodeForAdminDto) {
-    await this.userService.confirmEmailOtpForForgotPassword(body.email, body.code);
-
     const { id } = await this.userService.findOne({ email: body.email });
+
+    await this.authService.confirmEmailOtpForForgotPassword(id, body.code);
 
     const resetPasswordToken = await this.cipherTokenService.generateResetPasswordToken(id);
 
