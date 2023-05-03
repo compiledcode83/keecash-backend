@@ -282,7 +282,7 @@ export class AuthService {
   }
 
   async validateBearerToken(headers: any, type: TokenTypeEnum): Promise<any> {
-    if (headers.authorization) {
+    if (!headers.authorization) {
       throw new UnauthorizedException('Missing bearer token in the header');
     }
 
