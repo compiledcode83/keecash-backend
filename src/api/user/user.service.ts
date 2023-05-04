@@ -405,6 +405,7 @@ export class UserService {
       firstName,
       lastName,
       kycStatus: VerificationStatus.Validated,
+      status: UserStatus.Completed,
     });
 
     // Bridgecard Onboarding
