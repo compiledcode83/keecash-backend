@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CipherToken } from './cipher-token.entity';
 import { CipherTokenRepository } from './cipher-token.repository';
 import { TokenTypeEnum } from './cipher-token.types';
@@ -6,14 +7,27 @@ import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
 @Injectable()
 export class CipherTokenService {
-  constructor(private readonly cipherTokenRepository: CipherTokenRepository) {}
+  constructor(
+    private readonly cipherTokenRepository: CipherTokenRepository,
+    private readonly configService: ConfigService,
+  ) {}
 
   async findOneBy(params: Partial<CipherToken>): Promise<CipherToken> {
     return this.cipherTokenRepository.findOneBy({ ...params });
   }
 
   async findValidTripleAAccessToken(currency: FiatCurrencyEnum): Promise<CipherToken> {
-    return this.cipherTokenRepository.findValidTripleAAccessToken(currency);
+    return this.cipherTokenRepository.findValidToken({
+      type: TokenTypeEnum.TripleAAccessToken,
+      currency,
+    });
+  }
+
+  async findValidSumsubAccessToken(userId: number): Promise<CipherToken> {
+    return this.cipherTokenRepository.findValidToken({
+      type: TokenTypeEnum.SumsubAccessToken,
+      userId,
+    });
   }
 
   async deleteByToken(token: string): Promise<boolean> {
@@ -23,18 +37,36 @@ export class CipherTokenService {
   }
 
   async generateRefreshToken(tokenData: Partial<CipherToken>): Promise<string> {
-    return this.cipherTokenRepository.generateRefreshToken(tokenData);
+    const { token } = await this.cipherTokenRepository.generateToken({
+      ...tokenData,
+      type: TokenTypeEnum.AuthRefresh,
+      duration: this.configService.get('jwtConfig.refreshTokenDurationDays') * 60 * 60 * 24,
+    });
+
+    return token;
   }
 
   async generateResetPasswordToken(userId: number): Promise<string> {
-    return this.cipherTokenRepository.generateResetPasswordToken(userId);
+    const { token } = await this.cipherTokenRepository.generateToken({
+      userId,
+      type: TokenTypeEnum.ResetPassword,
+      duration: this.configService.get('jwtConfig.resetPasswordTokenDurationMinutes') * 60,
+    });
+
+    return token;
   }
 
   async generateResetPincodeToken(userId: number): Promise<string> {
-    return this.cipherTokenRepository.generateResetPincodeToken(userId);
+    const { token } = await this.cipherTokenRepository.generateToken({
+      userId,
+      type: TokenTypeEnum.ResetPincode,
+      duration: this.configService.get('jwtConfig.resetPasswordTokenDurationMinutes') * 60,
+    });
+
+    return token;
   }
 
-  async generateCreateAccountToken(userId: number): Promise<string> {
+  async generateCreateAccountToken({ userId, ipAddress, userAgent }): Promise<string> {
     const doesExist = await this.cipherTokenRepository.findOne({
       where: {
         userId,
@@ -46,14 +78,38 @@ export class CipherTokenService {
       throw new BadRequestException('Account is already registered: CreateAccountToken exists');
     }
 
-    return this.cipherTokenRepository.generateCreateAccountToken(userId);
+    const { token } = await this.cipherTokenRepository.generateToken({
+      userId,
+      ipAddress,
+      userAgent,
+      type: TokenTypeEnum.CreateAccount,
+    });
+
+    return token;
   }
 
   async generateTripleAAccessToken(
     token: string,
     currency: FiatCurrencyEnum,
   ): Promise<CipherToken> {
-    return this.cipherTokenRepository.generateTripleAAccessToken(token, currency);
+    return this.cipherTokenRepository.generateToken({
+      token,
+      currency,
+      type: TokenTypeEnum.TripleAAccessToken,
+    });
+  }
+
+  async generateSumsubAccessToken(
+    userId: number,
+    token: string,
+    duration: number,
+  ): Promise<CipherToken> {
+    return this.cipherTokenRepository.generateToken({
+      userId,
+      token,
+      duration,
+      type: TokenTypeEnum.SumsubAccessToken,
+    });
   }
 
   async checkIfValid(token: string, type: TokenTypeEnum): Promise<number> {

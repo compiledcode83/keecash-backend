@@ -9,7 +9,6 @@ import {
   JoinColumn,
   OneToOne,
 } from 'typeorm';
-import { CipherToken } from '@api/cipher-token/cipher-token.entity';
 import { PersonProfile } from './person-profile/person-profile.entity';
 import { Document } from './document/document.entity';
 import { EnterpriseProfile } from './enterprise-profile/enterprise-profile.entity';
@@ -25,6 +24,10 @@ export class User {
   @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
+
+  @ApiProperty({ description: 'Unique uid', maximum: 36 })
+  @Column({ type: 'varchar', nullable: true, length: 36 })
+  uuid: string;
 
   @ApiProperty({ description: 'First name', maximum: 128, required: true })
   @Column({ type: 'varchar', nullable: true, length: 128 })
@@ -117,10 +120,6 @@ export class User {
   @ApiProperty({ description: 'Is Bridgecard cardholder profile verified' })
   @Column({ type: 'boolean', default: false })
   cardholderVerified: boolean;
-
-  @OneToMany(() => CipherToken, (authRefreshToken) => authRefreshToken.user)
-  @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
-  refreshTokens: CipherToken[];
 
   @OneToMany(() => Card, (card) => card.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })

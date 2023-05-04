@@ -1,4 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { TwilioModule } from '@api/twilio/twilio.module';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
@@ -12,14 +13,17 @@ import { DocumentModule } from '@api/user/document/document.module';
 import { EnterpriseProfileModule } from '@api/user/enterprise-profile/enterprise-profile.module';
 import { PersonProfileModule } from '@api/user/person-profile/person-profile.module';
 import { ShareholderModule } from '@api/shareholder/shareholder.module';
-import { ClosureReasonModule } from '../closure-reason/closure-reason.module';
-import { TransactionModule } from '../transaction/transaction.module';
-import { CardModule } from '../card/card.module';
-import { BridgecardModule } from '../bridgecard/bridgecard.module';
-import { CipherTokenModule } from '../cipher-token/cipher-token.module';
+import { ClosureReasonModule } from '@api/closure-reason/closure-reason.module';
+import { TransactionModule } from '@api/transaction/transaction.module';
+import { CardModule } from '@api/card/card.module';
+import { BridgecardModule } from '@api/bridgecard/bridgecard.module';
+import { CipherTokenModule } from '@api/cipher-token/cipher-token.module';
+import { User } from './user.entity';
+import { UserSubscriber } from './user.subscriber';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([User]),
     TwilioModule,
     CountryModule,
     DocumentModule,
@@ -36,6 +40,7 @@ import { CipherTokenModule } from '../cipher-token/cipher-token.module';
   providers: [
     UserService,
     UserRepository,
+    UserSubscriber,
     UserExistsByEmailValidator,
     UserExistsByPhoneNumberValidator,
     CountryExistsByNameValidator,

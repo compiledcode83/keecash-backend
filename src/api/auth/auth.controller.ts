@@ -53,10 +53,14 @@ export class AuthController {
 
   @ApiOperation({ description: `Create account` })
   @Post('create-account')
-  async createAccount(@Body() body: CreateUserDto): Promise<any> {
+  async createAccount(@Req() req, @Body() body: CreateUserDto, @RealIP() ip: string): Promise<any> {
     const user = await this.userService.create(body);
 
-    const createAccountToken = await this.cipherTokenService.generateCreateAccountToken(user.id);
+    const createAccountToken = await this.cipherTokenService.generateCreateAccountToken({
+      userId: user.id,
+      ipAddress: ip,
+      userAgent: req.headers['user-agent'],
+    });
 
     await this.authService.sendEmailOtp(user.id);
 
@@ -422,5 +426,20 @@ export class AuthController {
     }
 
     return this.authService.logout(String(refreshToken));
+  }
+
+  @ApiOperation({ description: `Get sumsub api access token for development` })
+  @ApiTags('Sumsub')
+  @ApiBearerAuth()
+  @Get('sumsub-access-token')
+  async getSumsubAccessToken(@Req() req): Promise<{ token: string }> {
+    const createAccountToken = await this.authService.validateBearerToken(
+      req.headers,
+      TokenTypeEnum.CreateAccount,
+    );
+
+    const accessToken = await this.authService.getSumsubAccessToken(createAccountToken.userId);
+
+    return { token: accessToken };
   }
 }

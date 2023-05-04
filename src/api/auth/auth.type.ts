@@ -2,6 +2,7 @@ import { UserStatus } from '@api/user/user.types';
 
 export interface UserAccessTokenInterface {
   id: number;
+  uuid: string;
   firstName: string;
   lastName: string;
   email: string;

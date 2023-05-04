@@ -78,6 +78,7 @@ export class AuthService {
 
       return {
         id: user.id,
+        uuid: user.uuid,
         firstName: user.firstName,
         lastName: user.lastName,
         referralId: user.referralId,
@@ -126,6 +127,7 @@ export class AuthService {
   async createAccessToken(user: any): Promise<string> {
     const payload: UserAccessTokenInterface = {
       id: user.id,
+      uuid: user.uuid,
       firstName: user.firstName,
       lastName: user.lastName,
       referralId: user.referralId,
@@ -167,9 +169,7 @@ export class AuthService {
     };
   }
 
-  async getSumsubAccessToken(userId: string): Promise<string> {
-    return this.sumsubService.createSumsubAccessToken(userId);
-  }
+  // --------------- OTP Verification -------------------
 
   async sendEmailOtp(userId: number): Promise<void> {
     const user = await this.userService.findOne({ id: userId });
@@ -280,6 +280,30 @@ export class AuthService {
 
     return false;
   }
+
+  // ---------------- Sumsub Access Token -----------------
+
+  async getSumsubAccessToken(userId: number): Promise<string> {
+    const { uuid } = await this.userService.findOne({ id: userId });
+
+    const savedToken = await this.cipherTokenService.findValidSumsubAccessToken(userId);
+
+    if (savedToken) {
+      return savedToken.token;
+    }
+
+    const newToken = await this.sumsubService.createSumsubAccessToken(uuid);
+
+    await this.cipherTokenService.generateSumsubAccessToken(
+      userId,
+      newToken.token,
+      newToken.duration,
+    );
+
+    return newToken.token;
+  }
+
+  // ------------------- Token Validator --------------------
 
   async validateBearerToken(headers: any, type: TokenTypeEnum): Promise<any> {
     if (!headers.authorization) {

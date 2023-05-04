@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
-import { User } from '@api/user/user.entity';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 import { TokenTypeEnum } from './cipher-token.types';
 import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
@@ -40,7 +39,4 @@ export class CipherToken {
   @ApiProperty({ description: 'Expire at date', required: false })
   @Column({ type: 'timestamptz', nullable: true })
   expireAt: Date;
-
-  @ManyToOne(() => User, (user) => user.refreshTokens)
-  user: User;
 }

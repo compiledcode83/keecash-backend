@@ -160,6 +160,10 @@ class EnvironmentVariables {
 
   @IsString()
   @MinLength(1)
+  SUMSUB_ACCESS_TOKEN_DURATION_MINUTES: string;
+
+  @IsString()
+  @MinLength(1)
   BRIDGECARD_AUTH_TOKEN;
 
   @IsString()
