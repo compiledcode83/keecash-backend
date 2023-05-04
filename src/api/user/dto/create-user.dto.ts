@@ -11,6 +11,7 @@ import {
 import { Language } from '../user.types';
 import { ReferralIdExistsValidator } from '../validator/referral-id-exists.validator';
 import { UserExistsByEmailValidator } from '../validator/user-exists-by-email.validator';
+import { LegitEmailValidator } from '../validator/legit-email.validator';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'NV383SB', required: true, maximum: 128, description: `Refer's ID` })
@@ -22,6 +23,7 @@ export class CreateUserDto {
   @ApiProperty({ example: 'user@example.com', required: true, maximum: 255, description: 'E-mail' })
   @IsEmail()
   @MaxLength(255)
+  @Validate(LegitEmailValidator)
   @Validate(UserExistsByEmailValidator)
   email: string;
 

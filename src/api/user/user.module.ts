@@ -8,6 +8,7 @@ import { UserExistsByEmailValidator } from './validator/user-exists-by-email.val
 import { UserExistsByPhoneNumberValidator } from './validator/user-exists-by-phone-number.validator';
 import { CountryExistsByNameValidator } from './validator/country-exists-by-name.validator';
 import { ReferralIdExistsValidator } from './validator/referral-id-exists.validator';
+import { LegitEmailValidator } from './validator/legit-email.validator';
 import { CountryModule } from '@api/country/country.module';
 import { DocumentModule } from '@api/user/document/document.module';
 import { EnterpriseProfileModule } from '@api/user/enterprise-profile/enterprise-profile.module';
@@ -45,6 +46,7 @@ import { UserSubscriber } from './user.subscriber';
     UserExistsByPhoneNumberValidator,
     CountryExistsByNameValidator,
     ReferralIdExistsValidator,
+    LegitEmailValidator,
   ],
   exports: [UserService],
 })
