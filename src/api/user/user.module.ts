@@ -18,9 +18,9 @@ import { ClosureReasonModule } from '@api/closure-reason/closure-reason.module';
 import { TransactionModule } from '@api/transaction/transaction.module';
 import { CardModule } from '@api/card/card.module';
 import { BridgecardModule } from '@api/bridgecard/bridgecard.module';
-import { CipherTokenModule } from '@api/cipher-token/cipher-token.module';
 import { User } from './user.entity';
 import { UserSubscriber } from './user.subscriber';
+import { SumsubModule } from '@api/sumsub/sumsub.module';
 
 @Module({
   imports: [
@@ -35,7 +35,7 @@ import { UserSubscriber } from './user.subscriber';
     TransactionModule,
     forwardRef(() => CardModule),
     BridgecardModule,
-    CipherTokenModule,
+    SumsubModule,
   ],
   controllers: [UserController],
   providers: [

@@ -1,14 +1,13 @@
 import {
   BadRequestException,
-  HttpStatus,
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import * as isoCountries from 'i18n-iso-countries';
 import { UpdateUserInfoDto } from '@admin/admin/dto/update-user-info.dto';
 import { CountryService } from '@api/country/country.service';
 import { DocumentService } from '@api/user/document/document.service';
@@ -22,7 +21,6 @@ import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
-import { SendPhoneNumberVerificationCodeDto } from '@api/twilio/dto/send-phone-verification.dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { AccountType, Language, UserStatus, VerificationStatus } from './user.types';
@@ -30,6 +28,7 @@ import { ClosureReasonService } from '@api/closure-reason/closure-reason.service
 import { TransactionService } from '@api/transaction/transaction.service';
 import { CardService } from '@api/card/card.service';
 import { BridgecardService } from '@api/bridgecard/bridgecard.service';
+import { SumsubService } from '@api/sumsub/sumsub.service';
 
 const closure_reasons = require('../closure-reason/closure-reasons.json');
 
@@ -51,6 +50,7 @@ export class UserService {
     private readonly closureReasonService: ClosureReasonService,
     private readonly transactionService: TransactionService,
     private readonly bridgecardService: BridgecardService,
+    private readonly sumsubService: SumsubService,
     @Inject(forwardRef(() => CardService)) private readonly cardService: CardService,
   ) {
     this.generateReferralId = customAlphabet(REFERRAL_ID_ALPHABET, REFERRAL_ID_LENGTH);
@@ -156,7 +156,7 @@ export class UserService {
 
     const savedUser = await this.findOne({ id: res.id });
 
-    await this.personProfileService.save({
+    await this.personProfileService.create({
       address1: body.address1,
       address2: body.address2,
       city: body.city,
@@ -264,7 +264,7 @@ export class UserService {
 
     const { id: countryId } = await this.countryService.findOne({ name: body.country });
 
-    await this.personProfileService.save({
+    await this.personProfileService.create({
       address1: body.address1,
       address2: body.address2,
       city: body.city,
@@ -377,68 +377,111 @@ export class UserService {
     await this.userRepository.update(userId, { email: newEmail });
   }
 
-  async completeAccount(userId: number) {
+  async completeAccount(userUuid: string) {
+    const {
+      fixedInfo: { firstName, lastName },
+      info: { country, addresses },
+    } = await this.sumsubService.getApplicantData(userUuid);
+
+    const { id: userId, email, phoneNumber } = await this.findOne({ uuid: userUuid });
+
+    const countryName = isoCountries.getName(country, 'en', { select: 'alias' });
+
+    const { id: countryId } = await this.countryService.findOne({ name: countryName });
+
+    const { state, town, street, subStreet, postCode } = addresses[0] || {};
+
+    await this.personProfileService.create({
+      userId,
+      countryId,
+      state,
+      city: town,
+      zipcode: postCode,
+      address1: street,
+      address2: subStreet,
+    });
+
     await this.userRepository.update(userId, {
+      firstName,
+      lastName,
       kycStatus: VerificationStatus.Validated,
     });
 
-    const user = await this.findOneWithProfileAndDocuments({ id: userId }, true, true);
+    // Bridgecard Onboarding
 
     // const body = {
-    //   first_name: user.firstName,
-    //   last_name: user.lastName,
+    //   first_name: firstName,
+    //   last_name: lastName,
     //   address: {
-    //     address: user.personProfile.address1,
-    //     city: user.personProfile.city,
-    //     state: '',
-    //     country: user.personProfile.country.name,
-    //     postal_code: user.personProfile.zipcode,
-    //     house_no: user.personProfile.address2,
+    //     address: street,
+    //     city: town,
+    //     state,
+    //     country: countryName,
+    //     postal_code: postCode,
+    //     house_no: subStreet,
     //   },
-    //   phone: user.phoneNumber,
-    //   email_address: user.email,
+    //   phone: phoneNumber,
+    //   email_address: email,
     //   identity: {
     //     id_type: 'UNITED_STATES_DRIVERS_LICENSE', // user.documents[0].type
     //     id_no: '',
-    //     id_image: user.documents[0].imageLink,
+    //     id_image: '',
     //     bvn: '',
     //   },
     //   meta_data: {
-    //     keecash_user_id: user.id,
+    //     keecash_user_id: userUuid,
     //   },
     // };
 
-    const body = {
-      first_name: 'HOL',
-      last_name: 'MAYISSA BOUSSAMBA',
-      address: {
-        address: 'Libreville',
-        city: 'Libreville',
-        state: 'Estuaire',
-        country: 'Gabon',
-        postal_code: '24100',
-        house_no: '01',
-      },
-      phone: '24166283620',
-      email_address: 'buy@keecash.com',
-      identity: {
-        id_type: 'GABON_PASSPORT',
-        id_no: '19GA17139',
-        id_image:
-          'https://firebasestorage.googleapis.com/v0/b/bridgecard-issuing.appspot.com/o/Screenshot%202023-02-16%20at%206.46.36%20PM.png?alt=media&token=d90d7c36-e761-4edf-9abc-c77791af846a',
-        selfie_image:
-          'https://firebasestorage.googleapis.com/v0/b/keecash-8b2cc.appspot.com/o/users%2FdZ5Ja2yRXcQBjHOnWU2HGXz0Lir1%2Fhol_selfie.jpg?alt=media&token=66426d57-91aa-4196-abde-a799cfb2824b',
-      },
-      meta_data: { keecash_user_id: 1 },
-    };
+    // const body = {
+    //   first_name: 'HOL',
+    //   last_name: 'MAYISSA BOUSSAMBA',
+    //   address: {
+    //     address: 'Libreville',
+    //     city: 'Libreville',
+    //     state: 'Estuaire',
+    //     country: 'Gabon',
+    //     postal_code: '24100',
+    //     house_no: '01',
+    //   },
+    //   phone: '24166283620',
+    //   email_address: 'buy@keecash.com',
+    //   identity: {
+    //     id_type: 'GABON_PASSPORT',
+    //     id_no: '19GA17139',
+    //     id_image:
+    //       'https://firebasestorage.googleapis.com/v0/b/bridgecard-issuing.appspot.com/o/Screenshot%202023-02-16%20at%206.46.36%20PM.png?alt=media&token=d90d7c36-e761-4edf-9abc-c77791af846a',
+    //     selfie_image:
+    //       'https://firebasestorage.googleapis.com/v0/b/keecash-8b2cc.appspot.com/o/users%2FdZ5Ja2yRXcQBjHOnWU2HGXz0Lir1%2Fhol_selfie.jpg?alt=media&token=66426d57-91aa-4196-abde-a799cfb2824b',
+    //   },
+    //   meta_data: { keecash_user_id: 1 },
+    // };
 
-    const res = await this.bridgecardService.registerCardholderAsync(body);
+    // const res = await this.bridgecardService.registerCardholderAsync(body);
 
-    if (res.status === HttpStatus.CREATED) {
-      await this.userRepository.update(body.meta_data.keecash_user_id, {
-        cardholderId: res.data.data.cardholder_id,
-        status: UserStatus.Completed,
-      });
+    // if (res.status === HttpStatus.CREATED) {
+    //   await this.userRepository.update(body.meta_data.keecash_user_id, {
+    //     cardholderId: res.data.data.cardholder_id,
+    //     status: UserStatus.Completed,
+    //   });
+    // }
+  }
+
+  async handleSumsubWebhookEvent({ applicantId, type, reviewResult }) {
+    switch (type) {
+      case 'applicantReviewed':
+        if (reviewResult.reviewAnswer === 'GREEN') {
+          await this.completeAccount(applicantId);
+        } else {
+          await this.userRepository.update(
+            { uuid: applicantId },
+            { kycStatus: VerificationStatus.Rejected },
+          );
+        }
+        break;
+
+      default:
+        break;
     }
   }
 }

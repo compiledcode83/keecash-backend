@@ -2,18 +2,17 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import * as FormData from 'form-data';
 
 const SUMSUB_LEVEL_NAME = 'basic-kyc-level';
 
 @Injectable()
 export class SumsubService {
-  private sumsubAppToken: string;
   private sumsubSecretKey: string;
   private sumsubAccessTokenDurationMinutes: number;
   private axiosInstance: AxiosInstance;
 
   constructor(private readonly configService: ConfigService) {
-    this.sumsubAppToken = this.configService.get('sumsubConfig.sumsubAppToken');
     this.sumsubSecretKey = this.configService.get('sumsubConfig.sumsubSecretKey');
     this.sumsubAccessTokenDurationMinutes = this.configService.get(
       'sumsubConfig.sumsubAccessTokenDurationMinutes',
@@ -22,47 +21,63 @@ export class SumsubService {
     this.axiosInstance = axios.create({
       baseURL: this.configService.get('sumsubConfig.sumsubBaseUrl'),
       headers: {
-        token: `Bearer ${this.configService.get('bridgecardConfig.authToken')}`,
+        Accept: 'application/json',
+        'X-App-Token': this.configService.get('sumsubConfig.sumsubAppToken'),
       },
     });
+
+    this.axiosInstance.interceptors.request.use(
+      (config: AxiosRequestConfig) => this.createSignature(config),
+      (error) => Promise.reject(error),
+    );
+  }
+
+  createSignature(config: AxiosRequestConfig) {
+    const ts = Math.floor(Date.now() / 1000);
+    const signature = crypto.createHmac('sha256', this.sumsubSecretKey);
+    signature.update(ts + config.method.toUpperCase() + config.url);
+
+    if (config.data instanceof FormData) {
+      signature.update(config.data.getBuffer());
+    } else if (config.data) {
+      signature.update(config.data);
+    }
+
+    config.headers['X-App-Access-Ts'] = ts;
+    config.headers['X-App-Access-Sig'] = signature.digest('hex');
+
+    return config;
   }
 
   async createSumsubAccessToken(userId: string): Promise<{ token: string; duration: number }> {
-    const method = 'post';
-    const ttlInSecs = this.sumsubAccessTokenDurationMinutes * 60;
-    const url = `/resources/accessTokens?userId=${userId}&ttlInSecs=${ttlInSecs}&levelName=${SUMSUB_LEVEL_NAME}`;
-    const data = null;
-
-    const ts = Math.floor(Date.now() / 1000);
-    const signature = crypto.createHmac('sha256', this.sumsubSecretKey);
-    signature.update(ts + method.toUpperCase() + url);
-
-    // if (data instanceof FormData) {
-    //   signature.update(data.getBuffer());
-    // } else if (data) {
-    //   signature.update(data);
-    // }
-
-    const config: AxiosRequestConfig = {
-      headers: {
-        Accept: 'application/json',
-        'X-App-Token': this.sumsubAppToken,
-        'X-App-Access-Ts': ts,
-        'X-App-Access-Sig': signature.digest('hex'),
-      },
-    };
-
     try {
-      const res = await this.axiosInstance.post(url, data, config);
+      const ttlInSecs = this.sumsubAccessTokenDurationMinutes * 60;
+
+      const res = await this.axiosInstance.post(
+        `/resources/accessTokens?userId=${userId}&ttlInSecs=${ttlInSecs}&levelName=${SUMSUB_LEVEL_NAME}`,
+        null,
+      );
 
       return {
         token: res.data?.token,
         duration: ttlInSecs,
       };
     } catch (error) {
-      const { status, statusText, data } = error.response || {};
+      const { status } = error.response || {};
 
-      throw new HttpException(`Sumsub Message: ${data.message || statusText}`, status);
+      throw new HttpException(`Sumsub Message: Failed to get access token`, status);
+    }
+  }
+
+  async getApplicantData(userUuid: string) {
+    try {
+      const res = await this.axiosInstance.get(`/resources/applicants/${userUuid}/one`);
+
+      return res.data;
+    } catch (error) {
+      const { status } = error.response || {};
+
+      throw new HttpException(`Sumsub Message: Failed to get applicant data`, status);
     }
   }
 }

@@ -9,7 +9,6 @@ import {
   Patch,
   Post,
   Delete,
-  UnauthorizedException,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -20,13 +19,8 @@ import { SetLanguageDto } from './dto/set-language.dto';
 import { RequestEmailChangeDto } from './dto/request-email-change.dto';
 import { CloseAccountDto } from './dto/close-account.dto';
 import { ConfirmEmailChangeOtpDto } from './dto/confirm-email-change-otp.dto';
-import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
-import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
-import { TokenTypeEnum } from '@api/cipher-token/cipher-token.types';
-import { VerificationStatus } from './user.types';
 import { VerifyUserExistDto } from './dto/verify-user-exist.dto';
 import { VerifyUserExistResponseDto } from './dto/verify-user-exist-response.dto';
-import { SumsubWebhookResponseDto } from './dto/sumsub-webhook-response.dto';
 import { TwilioService } from '@api/twilio/twilio.service';
 
 @Controller()
@@ -34,7 +28,6 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly twilioService: TwilioService,
-    private readonly cipherTokenService: CipherTokenService,
   ) {}
 
   // ------------ Referral ----------------
@@ -129,86 +122,6 @@ export class UserController {
     return;
   }
 
-  // @ApiOperation({ description: `Check if referral id exists` })
-  // @Post('auth/check-referralid')
-  // async checkIfReferralIdExists() {
-  //   return true;
-  // }
-
-  // ------------ KYC ----------------
-
-  @ApiOperation({ description: `Submit KYC information` })
-  @ApiBearerAuth()
-  @ApiTags('KYC')
-  @Post('kyc/submitted')
-  async submitKycInfo(@Req() req, @Body() body: SubmitKycInfoDto) {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing CreateAccountToken in the header');
-    }
-
-    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
-
-    const token = await this.cipherTokenService.findOneBy({
-      token: bearerCreateAccountToken,
-      type: TokenTypeEnum.CreateAccount,
-    });
-
-    if (!token) {
-      throw new UnauthorizedException('CreateAccountToken is invalid');
-    }
-
-    await this.userService.submitKycInfo(token.userId, body);
-  }
-
-  @ApiOperation({ description: `KYC submission approved` })
-  @ApiBearerAuth()
-  @ApiTags('KYC')
-  @Patch('kyc/approved')
-  async kycApproved(@Req() req): Promise<void> {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing CreateAccountToken in the header');
-    }
-
-    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
-
-    const token = await this.cipherTokenService.findOneBy({
-      token: bearerCreateAccountToken,
-      type: TokenTypeEnum.CreateAccount,
-    });
-
-    if (!token) {
-      throw new UnauthorizedException('CreateAccountToken is invalid');
-    }
-
-    await this.userService.completeAccount(token.userId);
-
-    // Delete create-account token once onboarding is finished
-    await this.cipherTokenService.deleteByToken(token.token);
-  }
-
-  @ApiOperation({ description: `KYC submission rejected` })
-  @ApiBearerAuth()
-  @ApiTags('KYC')
-  @Patch('kyc/rejected')
-  async kycRejected(@Req() req): Promise<void> {
-    if (!req.headers.authorization) {
-      throw new UnauthorizedException('Missing CreateAccountToken in the header');
-    }
-
-    const bearerCreateAccountToken = req.headers.authorization.split(' ')[1];
-
-    const token = await this.cipherTokenService.findOneBy({
-      token: bearerCreateAccountToken,
-      type: TokenTypeEnum.CreateAccount,
-    });
-
-    if (!token) {
-      throw new UnauthorizedException('CreateAccountToken is invalid');
-    }
-
-    await this.userService.update(token.userId, { kycStatus: VerificationStatus.Rejected });
-  }
-
   // ------------ Beneficiary ----------------
 
   @ApiOperation({ description: `Verify if user exists` })
@@ -229,10 +142,8 @@ export class UserController {
   // -------------- SUMSUB WEBHOOK -------------------
 
   @ApiTags('Webhook Handler')
-  @Post('sumsub/kyc-verified')
-  async handleWebhookEvent(@Body() body: SumsubWebhookResponseDto) {
-    const { userId } = body;
-
-    await this.userService.completeAccount(userId);
+  @Post('sumsub/webhook')
+  async handleSumsubWebhookEvent(@Body() body: any) {
+    await this.userService.handleSumsubWebhookEvent(body);
   }
 }

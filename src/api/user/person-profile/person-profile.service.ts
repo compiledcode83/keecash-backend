@@ -6,10 +6,10 @@ import { PersonProfileRepository } from './person-profile.repository';
 export class PersonProfileService {
   constructor(private readonly personProfileRepository: PersonProfileRepository) {}
 
-  async save(personProfile: Partial<PersonProfile>): Promise<void> {
+  async create(personProfile: Partial<PersonProfile>): Promise<void> {
     const personProfileEntity = this.personProfileRepository.create(personProfile);
 
-    await this.personProfileRepository.save(personProfileEntity);
+    await this.personProfileRepository.create(personProfileEntity);
   }
 
   async update(id: number, data: Partial<PersonProfile>) {
