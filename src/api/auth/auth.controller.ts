@@ -409,7 +409,7 @@ export class AuthController {
 
     const userId = await this.cipherTokenService.checkIfValid(
       bearerResetPasswordToken,
-      TokenTypeEnum.AuthRefresh,
+      TokenTypeEnum.ResetPassword,
     );
 
     await this.cipherTokenService.deleteByToken(bearerResetPasswordToken);
