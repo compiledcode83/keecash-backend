@@ -129,7 +129,7 @@ export class AuthController {
       token,
       status: req.user.status,
       registerStatus,
-      isUserExist: true,
+      pincodeSet: req.user.pincodeSet,
     };
   }
 

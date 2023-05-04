@@ -85,6 +85,7 @@ export class AuthService {
         email: user.email,
         status: user.status,
         type: user.type,
+        pincodeSet: user.pincodeSet,
         countryId,
       };
     }
@@ -134,6 +135,7 @@ export class AuthService {
       email: user.email,
       status: user.status,
       type: user.type,
+      pincodeSet: user.pincodeSet,
       countryId: user.countryId,
     };
 

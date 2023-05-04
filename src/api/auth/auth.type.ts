@@ -9,5 +9,6 @@ export interface UserAccessTokenInterface {
   referralId: string;
   status: UserStatus;
   type: string;
+  pincodeSet: boolean;
   countryId?: number;
 }
