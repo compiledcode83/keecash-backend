@@ -11,6 +11,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { TwilioModule } from '@api/twilio/twilio.module';
 import { CountryModule } from '@api/country/country.module';
+import { RefreshTokenValidator } from './validators/refresh-token.validator';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { CountryModule } from '@api/country/country.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshTokenValidator],
   exports: [AuthService],
 })
 export class AuthModule {}

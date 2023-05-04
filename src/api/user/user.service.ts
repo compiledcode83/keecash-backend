@@ -280,16 +280,12 @@ export class UserService {
   }
 
   async setPincode(userId: number, pincode: string): Promise<void> {
-    try {
-      const encryptedPincode = await bcrypt.hash(pincode, 10);
+    const encryptedPincode = await bcrypt.hash(pincode, 10);
 
-      await this.userRepository.update(
-        { id: userId },
-        { pincode: encryptedPincode, pincodeSet: true },
-      );
-    } catch (error) {
-      throw error;
-    }
+    await this.userRepository.update(
+      { id: userId },
+      { pincode: encryptedPincode, pincodeSet: true },
+    );
   }
 
   async getAccountSettings(userId: number): Promise<any> {

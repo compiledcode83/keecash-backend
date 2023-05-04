@@ -261,6 +261,12 @@ export class AuthController {
       TokenTypeEnum.AuthRefresh,
     );
 
+    const { pincodeSet } = await this.userService.findOne({ where: { id: userId } });
+
+    if (pincodeSet) {
+      throw new BadRequestException('Pincode is already set');
+    }
+
     await this.userService.setPincode(userId, body.pincode);
 
     return {
