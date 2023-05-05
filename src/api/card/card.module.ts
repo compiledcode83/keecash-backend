@@ -16,9 +16,13 @@ import { HistoryController } from './history.controller';
 import { WebhookController } from './webhook.controller';
 import { CreateCardController } from './create-card.controller';
 import { TopupCardController } from './topup-card.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Card } from './card.entity';
+import { CardSubscriber } from './card.subscriber';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([Card]),
     TransactionModule,
     NotificationModule,
     CountryFeeModule,
@@ -37,7 +41,7 @@ import { TopupCardController } from './topup-card.controller';
     CreateCardController,
     TopupCardController,
   ],
-  providers: [CardService, CardRepository],
+  providers: [CardService, CardRepository, CardSubscriber],
   exports: [CardService],
 })
 export class CardModule {}

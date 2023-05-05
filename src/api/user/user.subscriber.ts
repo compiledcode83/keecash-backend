@@ -12,9 +12,9 @@ export class UserSubscriber implements EntitySubscriberInterface<User> {
     return User;
   }
 
-  beforeInsert(admin: InsertEvent<User>): void {
-    if (!admin.entity.uuid) {
-      admin.entity.uuid = uuid();
+  beforeInsert(user: InsertEvent<User>): void {
+    if (!user.entity.uuid) {
+      user.entity.uuid = uuid();
     }
   }
 }

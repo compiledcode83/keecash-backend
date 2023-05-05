@@ -157,11 +157,19 @@ export class CardService {
       cards.map(async (card) => {
         const balancePromise = this.bridgecardService.getCardBalance(card.card_id);
         const transactionsPromise = this.bridgecardService.getCardTransactions(card.card_id);
+        const keecashCardPromise = this.cardRepository.findOne({
+          where: { bridgecardId: card.card_id },
+        });
 
-        const [balance, transactions] = await Promise.all([balancePromise, transactionsPromise]);
+        const [balance, transactions, keecashCard] = await Promise.all([
+          balancePromise,
+          transactionsPromise,
+          keecashCardPromise,
+        ]);
 
         return {
           balance,
+          isBlockByAdmin: keecashCard.isBlocked,
           lastTransaction: transactions.transactions && {
             amount: transactions.transactions[0].amount,
             date: transactions.transactions[0].transaction_date, //2022-08-08 02:48:15
@@ -176,10 +184,11 @@ export class CardService {
     );
 
     const result = cards.map((card, i) => ({
-      bridgecardId: card.card_id,
+      cardId: card.card_id,
       balance: details[i].balance,
       currency: card.card_currency,
       isBlock: !card.is_active,
+      isBlockByAdmin: details[i].isBlockByAdmin,
       isExpired: new Date(`${card.expiry_year}-${card.expiry_month}-01`) < new Date(),
       cardNumber: card.card_number,
       name: card.meta_data.keecash_card_name,

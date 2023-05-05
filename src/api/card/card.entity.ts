@@ -10,6 +10,10 @@ export class Card {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
+  @ApiProperty({ description: 'Unique uid', maximum: 36 })
+  @Column({ type: 'varchar', nullable: false, length: 36 })
+  uuid: string;
+
   @ApiProperty({ description: 'Owner Id', maximum: 64, required: true })
   @Column({ type: 'int', nullable: false })
   userId: number;
@@ -29,6 +33,10 @@ export class Card {
   @ApiProperty({ description: 'Card ID registered in Bridgecard' })
   @Column({ type: 'varchar', nullable: true })
   bridgecardId: string;
+
+  @ApiProperty({ description: 'Is card blocked by admin' })
+  @Column({ type: 'boolean', default: false })
+  isBlocked: boolean;
 
   @ManyToOne(() => User, (user) => user.cards)
   user: User;

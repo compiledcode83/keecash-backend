@@ -26,7 +26,7 @@ export class User {
   id: number;
 
   @ApiProperty({ description: 'Unique uid', maximum: 36 })
-  @Column({ type: 'varchar', nullable: true, length: 36 })
+  @Column({ type: 'varchar', nullable: false, length: 36 })
   uuid: string;
 
   @ApiProperty({ description: 'First name', maximum: 128, required: true })
