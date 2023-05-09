@@ -1,4 +1,4 @@
-import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/transaction/transaction.types';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/common';
 
 export interface TripleADepositInterface {
   amount: number;

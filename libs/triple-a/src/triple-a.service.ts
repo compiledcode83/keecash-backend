@@ -3,14 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { v4 as uuid } from 'uuid';
 import * as qs from 'qs';
-import { FiatCurrencyEnum } from '@app/transaction/transaction.types';
+import { CipherTokenService } from '@app/cipher-token';
+import { FiatCurrencyEnum } from '@app/common';
 import {
   TripleADepositInterface,
   TripleADepositResponseInterface,
   TripleAWithdrawInterface,
   TripleAWithdrawResponseInterface,
 } from './triple-a.types';
-import { CipherTokenService } from '@app/cipher-token/cipher-token.service';
 
 const GRANT_TYPE = 'client_credentials';
 

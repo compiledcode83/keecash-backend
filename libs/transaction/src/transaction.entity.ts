@@ -1,13 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
-import {
-  CryptoCurrencyEnum,
-  FiatCurrencyEnum,
-  TransactionStatusEnum,
-  TransactionTypeEnum,
-} from './transaction.types';
-import { Card } from '@app/card/card.entity';
-import { User } from '@app/user/user.entity';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/common';
+import { Card } from '@app/card';
+import { User } from '@app/user';
+import { TransactionStatusEnum, TransactionTypeEnum } from './transaction.types';
 
 @Entity('transaction')
 export class Transaction {
@@ -50,7 +46,7 @@ export class Transaction {
 
   @ApiProperty({ description: 'Percentage fee', maximum: 64, required: false })
   @Column({ type: 'float', nullable: true, default: 0 })
-  percentageFee: number;
+  percentFee: number;
 
   // ---------------- Crypto Transaction -----------------------
 

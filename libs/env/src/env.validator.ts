@@ -17,7 +17,7 @@ export enum Environment {
 }
 
 class EnvironmentVariables {
-  @IsEnum(Environment, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsEnum(Environment, { groups: ['api', 'database', 'producer', 'consumer', 'admin'] })
   NODE_ENV: Environment;
 
   @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
@@ -88,134 +88,131 @@ class EnvironmentVariables {
   @MinLength(1, { groups: ['producer', 'consumer'] })
   KAFKA_PASSWORD: string;
 
-  @IsString()
-  @MinLength(64)
+  @IsString({ groups: ['api'] })
+  @MinLength(64, { groups: ['api'] })
   JWT_SECRET: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   JWT_REFRESH_TOKEN_COOKIE_DOMAIN: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   JWT_REFRESH_TOKEN_DURATION_DAYS: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   JWT_REFRESH_TOKEN_MAX_SESSIONS: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   JWT_ACCESS_TOKEN_DURATION_MINUTES: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   RESET_PASSWORD_TOKEN_DURATION_MINUTES: string;
 
-  @IsString()
-  @IsIn(['true', 'false'])
+  @IsString({ groups: ['api'] })
+  @IsIn(['true', 'false'], { groups: ['api'] })
   JWT_REFRESH_TOKEN_COOKIE_SECURE: 'true' | 'false';
 
-  @IsString()
-  @IsIn(['true', 'false'])
+  @IsString({ groups: ['api'] })
+  @IsIn(['true', 'false'], { groups: ['api'] })
   JWT_REFRESH_TOKEN_COOKIE_HTTPONLY: 'true' | 'false';
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TWILIO_VERIFICATION_SERVICE_SID: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TWILIO_AUTH_TOKEN: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TWILIO_ACCOUNT_SID: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   PROJECT_ID: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   PRIVATE_KEY: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   CLIENT_EMAIL: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   STORAGE_MEDIA_BUCKET: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TRIPLEA_API_BASE_URL: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TRIPLEA_EUR_CLIENT_ID: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TRIPLEA_EUR_CLIENT_SECRET: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TRIPLEA_EUR_MERCHANT_KEY: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TRIPLEA_USD_CLIENT_ID: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TRIPLEA_USD_CLIENT_SECRET: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   TRIPLEA_USD_MERCHANT_KEY: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   SUMSUB_APP_TOKEN: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   SUMSUB_SECRET_KEY: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   SUMSUB_BASE_URL: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   SUMSUB_ACCESS_TOKEN_DURATION_MINUTES: string;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   BRIDGECARD_AUTH_TOKEN;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   BRIDGECARD_SECRET_KEY;
 
-  @IsString()
-  @MinLength(1)
+  @IsString({ groups: ['api'] })
+  @MinLength(1, { groups: ['api'] })
   BRIDGECARD_ISSUING_ID;
 
   @IsString({ groups: ['api', 'producer', 'consumer'] })
   SENTRY_DSN: string;
 }
 
-export function validate(config: Record<string, unknown>) {
+export function validateApi(config: Record<string, unknown>) {
   const validatedConfig = plainToInstance(EnvironmentVariables, config, {
     enableImplicitConversion: true,
   });
-
-  const errors = validateSync(validatedConfig, {
-    skipMissingProperties: false,
-  });
+  const errors = validateSync(validatedConfig, { skipMissingProperties: false, groups: ['api'] });
 
   if (errors.length > 0) {
     throw new Error(errors.toString());
