@@ -1,0 +1,30 @@
+[
+  {
+    "reason": "Fees are too high for me",
+    "is_checked": false
+  },
+  {
+    "reason": "Bugs on the app",
+    "is_checked": false
+  },
+  {
+    "reason": "I found an other app",
+    "is_checked": false
+  },
+  {
+    "reason": "My preferred payment method is missing",
+    "is_checked": false
+  },
+  {
+    "reason": "My preferred withdrawal method is missing",
+    "is_checked": false
+  },
+  {
+    "reason": "My card is refused many times",
+    "is_checked": false
+  },
+  {
+    "reason": "One or more service isn’t activated in my country",
+    "is_checked": false
+  }
+]
