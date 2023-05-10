@@ -11,10 +11,15 @@ import { ClosureReasonModule } from '@app/closure-reason';
 import { BridgecardModule } from '@app/bridgecard';
 import { TransactionModule } from '@api/transaction/transaction.module';
 import { CardModule } from '@api/card/card.module';
+import { CountryModule } from '@api/country/country.module';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
-import { CountryModule } from '@api/country/country.module';
+import { UserExistsByEmailValidator } from './validator/user-exists-by-email.validator';
+import { UserExistsByPhoneNumberValidator } from './validator/user-exists-by-phone-number.validator';
+import { CountryExistsByNameValidator } from './validator/country-exists-by-name.validator';
+import { ReferralIdExistsValidator } from './validator/referral-id-exists.validator';
+import { LegitEmailValidator } from './validator/legit-email.validator';
 
 @Module({
   imports: [
@@ -31,7 +36,16 @@ import { CountryModule } from '@api/country/country.module';
     SumsubModule,
   ],
   controllers: [UserController],
-  providers: [UserService, UserRepository, UserSubscriber],
+  providers: [
+    UserService,
+    UserRepository,
+    UserSubscriber,
+    UserExistsByEmailValidator,
+    UserExistsByPhoneNumberValidator,
+    CountryExistsByNameValidator,
+    ReferralIdExistsValidator,
+    LegitEmailValidator,
+  ],
   exports: [UserService],
 })
 export class UserModule {}

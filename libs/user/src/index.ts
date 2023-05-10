@@ -4,8 +4,3 @@ export * from './user.repository';
 export * from './user.service';
 export * from './user.subscriber';
 export * from './user.types';
-export * from '../../../apps/api/src/user/validator/country-exists-by-name.validator';
-export * from '../../../apps/api/src/user/validator/legit-email.validator';
-export * from '../../../apps/api/src/user/validator/referral-id-exists.validator';
-export * from '../../../apps/api/src/user/validator/user-exists-by-email.validator';
-export * from '../../../apps/api/src/user/validator/user-exists-by-phone-number.validator';
