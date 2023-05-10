@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
 import { User } from '@api/user/user.entity';
 import { Country } from '@api/country/country.entity';
+import { CountryActivation } from '@api/country-activation/country-activation.entity';
 
 @Entity('person_profile')
 export class PersonProfile {
@@ -42,4 +43,7 @@ export class PersonProfile {
 
   @ManyToOne(() => Country, (country) => country.personProfile)
   country: Country;
+
+  // @ManyToOne(() => CountryActivation, (countryActivation) => countryActivation.personProfile)
+  // countryActivation: CountryActivation;
 }

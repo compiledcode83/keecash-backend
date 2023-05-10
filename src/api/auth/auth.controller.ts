@@ -15,7 +15,7 @@ import {
 import { AuthService } from '@api/auth/auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PasswordLoginDto } from './dto/password-login.dto';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
@@ -40,6 +40,7 @@ import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
 import { UserStatus } from '@api/user/user.types';
 import { TokenTypeEnum } from '../cipher-token/cipher-token.types';
 import { SendEmailVerificationCodeDto } from '@api/twilio/dto/send-email-verification.dto';
+import { PersonProfileService } from '@api/user/person-profile/person-profile.service';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -49,6 +50,7 @@ export class AuthController {
     private readonly configService: ConfigService,
     private readonly userService: UserService,
     private readonly cipherTokenService: CipherTokenService,
+    private readonly personProfileService: PersonProfileService,
   ) {}
 
   @ApiOperation({ description: `Create account` })
@@ -275,6 +277,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: 'Verify PIN code' })
+  @ApiOkResponse({
+    description: 'Pin code set',
+    type: PincodeVerificationResponseDto,
+    isArray: false,
+  })
   @ApiBearerAuth()
   @Post('pin-code-verification')
   async verifyPinCode(
@@ -305,10 +312,16 @@ export class AuthController {
       domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
     });
 
+    const personProfile = await this.personProfileService.getPersonProfileWithCountry(userId);
+
     return {
       isConfirm: true,
       accessToken,
       status: 'pin_code_set',
+      isActive: personProfile.country.activation.isActive,
+      isAppInMaintenance: personProfile.country.activation.inMaintenance,
+      inactiveMessage: personProfile.country.activation.inactiveMessage,
+      maintenanceMessage: personProfile.country.activation.inMaintenanceMessage,
     };
   }
 

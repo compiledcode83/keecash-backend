@@ -12,11 +12,13 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { TwilioModule } from '@api/twilio/twilio.module';
 import { CountryModule } from '@api/country/country.module';
 import { RefreshTokenValidator } from './validators/refresh-token.validator';
+import { PersonProfileModule } from '@api/user/person-profile/person-profile.module';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
+    PersonProfileModule,
     CipherTokenModule,
     SumsubModule,
     TwilioModule,

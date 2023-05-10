@@ -18,4 +18,20 @@ export class PincodeVerificationResponseDto {
   @ApiProperty({ example: '', required: true, description: 'User pincode setting status' })
   @IsString()
   status: string;
+
+  @ApiProperty({ example: true, required: true, description: 'True if user country is activated' })
+  @IsBoolean()
+  isActive: boolean;
+
+  @ApiProperty({ example: false, required: true, description: 'Is app in maintenance' })
+  @IsBoolean()
+  isAppInMaintenance: boolean;
+
+  @ApiProperty({ example: '', required: true, description: 'Inactive app message' })
+  @IsString()
+  inactiveMessage: string;
+
+  @ApiProperty({ example: '', required: true, description: 'Maintenance app message' })
+  @IsString()
+  maintenanceMessage: string;
 }
