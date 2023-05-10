@@ -21,3 +21,8 @@ export enum VerificationStatus {
   Validated = 'VALIDATED',
   Rejected = 'REJECTED',
 }
+
+export enum UserEventPattern {
+  UserCreate = 'user.create',
+  UserCreateReply = 'user.create.reply',
+}
