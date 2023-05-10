@@ -30,12 +30,12 @@ export class AppBootstrapManager {
           },
           stopAtFirstError: true,
         }),
-      )
-      .enableCors({
-        origin: ['https://keecash-frontend-admin-nc7jsr3m4a-od.a.run.app', 'http://localhost:3002'],
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-        credentials: true,
-      });
+      );
+    // .enableCors({
+    //   origin: ['https://keecash-frontend-admin-nc7jsr3m4a-od.a.run.app', 'http://localhost:3002'],
+    //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    //   credentials: true,
+    // });
 
     return app;
   }
