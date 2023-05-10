@@ -1,7 +1,7 @@
 import { IsEnum, IsNumber, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { FiatCurrencyEnum } from 'libs/transaction/src/transaction.types';
-import { CardTypeEnum, CardUsageEnum } from '../card.types';
+import { FiatCurrencyEnum } from '@app/common';
+import { CardTypeEnum, CardUsageEnum } from '@app/card';
 
 export class CreateCardDto {
   @ApiProperty({ example: FiatCurrencyEnum.EUR, description: 'Keecash wallet currency' })

@@ -1,6 +1,6 @@
 import { IsEnum, IsNumber, IsString } from 'class-validator';
-import { FiatCurrencyEnum } from '@app/transaction/transaction.types';
-import { CardBrandEnum, CardTypeEnum } from '@app/card/card.types';
+import { FiatCurrencyEnum } from '@app/common';
+import { CardBrandEnum, CardTypeEnum } from '@app/card';
 
 export class CreateBridgecardDto {
   @IsNumber()

@@ -11,18 +11,22 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { FiatCurrencyEnum } from '@app/common';
+import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
+import { CardService } from '@api/card/card.service';
 import { KeecashService } from './keecash.service';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
 import { ManageCardDto } from './dto/manage-card.dto';
-import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
-import { FiatCurrencyEnum } from '@app/common';
 import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 import { CreateCardDto } from './dto/create-card.dto';
 
 @Controller()
 export class CardController {
-  constructor(private readonly keecashService: KeecashService) {}
+  constructor(
+    private readonly keecashService: KeecashService,
+    private readonly cardService: CardService,
+  ) {}
 
   @ApiOperation({ description: 'Get dashboard items' })
   @ApiTags('Dashboard')
@@ -82,7 +86,7 @@ export class CardController {
   @UseGuards(JwtAuthGuard)
   @Delete('card/remove/my-card')
   async removeMyCard(@Req() req, @Param() param: ManageCardDto) {
-    await this.keecashService.delete({ userId: req.user.id, bridgecardId: param.card_id });
+    await this.cardService.delete({ userId: req.user.id, bridgecardId: param.card_id });
 
     return { isSuccess: true };
   }

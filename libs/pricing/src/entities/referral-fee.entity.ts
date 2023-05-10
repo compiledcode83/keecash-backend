@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FiatCurrencyEnum } from 'libs/transaction/src/transaction.types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { FiatCurrencyEnum } from '@app/common';
 
 @Entity('referral_fee')
 export class ReferralFee {

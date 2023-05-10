@@ -203,9 +203,6 @@ class EnvironmentVariables {
   @IsString({ groups: ['api'] })
   @MinLength(1, { groups: ['api'] })
   BRIDGECARD_ISSUING_ID;
-
-  @IsString({ groups: ['api', 'producer', 'consumer'] })
-  SENTRY_DSN: string;
 }
 
 export function validateApi(config: Record<string, unknown>) {

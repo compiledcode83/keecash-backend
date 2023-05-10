@@ -7,7 +7,7 @@ import { EnvHelper, validateApi } from '@app/env';
 import appConfig from './config/app.config';
 import jwtConfig from './config/jwt.config';
 import storageConfig from '@app/common/configs/storage.config';
-import tripleAConfig from '@app/common/configs/tripla-a.config';
+import tripleAConfig from '@app/common/configs/triple-a.config';
 import bridgecardConfig from '@app/common/configs/bridgecard.config';
 import twilioConfig from '@app/common/configs/twilio.config';
 import sumsubConfig from '@app/common/configs/sumsub.config';

@@ -8,8 +8,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { CryptoCurrencyEnum } from '@app/transaction/transaction.types';
-import { User } from '@app/user/user.entity';
+import { CryptoCurrencyEnum } from '@app/common';
+import { User } from '@app/user';
 
 @Entity('beneficiary_wallet')
 export class BeneficiaryWallet {

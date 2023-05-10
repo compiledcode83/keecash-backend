@@ -55,9 +55,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('account/settings')
   async getAccountSettings(@Req() req) {
-    const settings = await this.userService.getAccountSettings(req.user.id);
-
-    return settings;
+    // const settings = await this.userService.getAccountSettings(req.user.id);
+    // return settings;
   }
 
   @ApiOperation({ description: 'Upload picture' })

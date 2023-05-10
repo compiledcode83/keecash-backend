@@ -1,7 +1,7 @@
-import { CryptoCurrencyEnum, TransactionTypeEnum } from 'libs/transaction/src/transaction.types';
-import { DateValidator } from 'app/libs/common/validators/date-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumberString, IsOptional, Validate, ValidateIf } from 'class-validator';
+import { CryptoCurrencyEnum, DateValidator } from '@app/common';
+import { TransactionTypeEnum } from '@app/transaction';
 
 export class GetWalletTransactionsQueryDto {
   @ApiProperty({ description: 'From amount', example: '50', required: false })

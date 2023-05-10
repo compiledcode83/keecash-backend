@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CardUsageEnum } from './card.types';
-import { User } from '@app/user/user.entity';
-import { Transaction } from '@app/transaction/transaction.entity';
-import { FiatCurrencyEnum } from '@app/transaction/transaction.types';
+import { User } from '@app/user';
+import { Transaction } from '@app/transaction';
+import { FiatCurrencyEnum } from '@app/common';
 
 @Entity('card')
 export class Card {

@@ -1,5 +1,5 @@
 import { IsEnum, IsNumber, IsString } from 'class-validator';
-import { FiatCurrencyEnum } from '@app/transaction/transaction.types';
+import { FiatCurrencyEnum } from '@app/common';
 
 export class FundBridgecardDto {
   @IsString()

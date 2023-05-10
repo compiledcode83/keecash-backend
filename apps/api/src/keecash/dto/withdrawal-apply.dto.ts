@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CryptoCurrencyEnum, FiatCurrencyEnum } from 'libs/transaction/src/transaction.types';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/common';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class WithdrawalApplyDto {

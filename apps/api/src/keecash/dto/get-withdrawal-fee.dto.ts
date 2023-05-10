@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumber } from 'class-validator';
-import { CryptoCurrencyEnum, FiatCurrencyEnum } from 'libs/transaction/src/transaction.types';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/common';
 
 export class GetWithdrawalFeeDto {
   @ApiProperty({ example: FiatCurrencyEnum.EUR, description: 'Keecash wallet address' })

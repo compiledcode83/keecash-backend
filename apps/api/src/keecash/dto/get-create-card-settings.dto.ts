@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum } from 'class-validator';
-import { FiatCurrencyEnum } from 'libs/transaction/src/transaction.types';
+import { FiatCurrencyEnum } from '@app/common';
 
 export class GetCreateCardSettingsDto {
   @ApiProperty({

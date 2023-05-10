@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/transaction/transaction.types';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/common';
 
 @Entity('wallet_withdrawal_fee')
 export class WalletWithdrawalFee {

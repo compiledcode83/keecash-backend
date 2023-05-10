@@ -1,4 +1,4 @@
-import { FiatCurrencyEnum } from 'libs/transaction/src/transaction.types';
+import { FiatCurrencyEnum } from '@app/common';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsInt, IsNumber, IsString } from 'class-validator';
 

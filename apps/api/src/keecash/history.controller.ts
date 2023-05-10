@@ -12,6 +12,7 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { BridgecardService } from '@app/bridgecard';
 import { FiatCurrencyEnum } from '@app/common';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
+import { CardService } from '@api/card/card.service';
 import { KeecashService } from './keecash.service';
 import { GetCardHistoryFilterDto } from './dto/get-card-history-filter.dto';
 import { GetWalletTransactionsQueryDto } from './dto/get-wallet-transactions.query.dto';
@@ -23,6 +24,7 @@ export class HistoryController {
   constructor(
     private readonly keecashService: KeecashService,
     private readonly bridgecardService: BridgecardService,
+    private readonly cardService: CardService,
   ) {}
 
   @ApiOperation({ description: 'Get Keecash wallet transactions by currency' })
@@ -83,7 +85,7 @@ export class HistoryController {
     @Param() param: ManageCardDto,
     @Query() query: GetCardHistoryFilterDto,
   ) {
-    const card = await this.keecashService.findOne({ bridgecardId: param.card_id });
+    const card = await this.cardService.findOne({ bridgecardId: param.card_id });
 
     if (!card) {
       throw new NotFoundException(`Cannot find the card: ${param.card_id}`);

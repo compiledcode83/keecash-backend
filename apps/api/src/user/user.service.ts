@@ -7,27 +7,26 @@ import {
 import { customAlphabet } from 'nanoid';
 import * as bcrypt from 'bcrypt';
 import * as isoCountries from 'i18n-iso-countries';
-import { CountryService } from '@app/country';
+// import { CountryService } from '@app/country';
 import { DocumentTypeEnum, DocumentService } from '@app/document';
 import { EnterpriseProfileService } from '@app/enterprise-profile';
 import { PersonProfileService } from '@app/person-profile';
-import { ShareholderService } from '@app/shareholder/shareholder.service';
+import { ShareholderService } from '@app/shareholder';
 import { TwilioService } from '@app/twilio';
-import { User } from '@app/user/user.entity';
 import { BridgecardService } from '@app/bridgecard';
 import { SumsubService } from '@app/sumsub';
-import { AccountType, Language, UserStatus, VerificationStatus } from '@app/user';
+import { User, AccountType, Language, UserStatus, VerificationStatus } from '@app/user';
 import { ClosureReasonService } from '@app/closure-reason';
 import { TransactionService } from '@api/transaction/transaction.service';
-import { KeecashService } from '@api/keecash/keecash.service';
 import { CardService } from '@api/card/card.service';
+import { CreateUserDto } from '@api/auth/dto/create-user.dto';
 import { UserRepository } from './user.repository';
 import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
-import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
+import { CountryService } from '@api/country/country.service';
 
-const closure_reasons = require('../closure-reason/closure-reasons.json');
+const closure_reasons = require('../../../../libs/closure-reason/src/closure-reasons.json');
 
 const REFERRAL_ID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const REFERRAL_ID_LENGTH = 7;
@@ -169,94 +168,6 @@ export class UserService {
     return 'success';
   }
 
-  async createEnterpriseUser(body: CreateEnterpriseUserDto) {
-    const referralId = this.generateReferralId();
-    // TODO: Add DB check for referral id duplication.
-
-    const newUser = await this.userRepository.save({
-      firstName: body.firstName,
-      lastName: body.lastName,
-      referralId,
-      referralAppliedId: body?.referralAppliedId,
-      email: body.email,
-      language: body.language,
-      type: AccountType.Enterprise,
-      password: await bcrypt.hash(body.password, 10),
-    });
-
-    const savedUser = await this.findOne({ id: newUser.id });
-    const country = await this.countryService.findOne({ name: body.country });
-
-    const enterpriseProfile = await this.enterpriseProfileService.save({
-      position: body.position,
-      entityType: body.entityType,
-      companyName: body.companyName,
-      countryId: country.id,
-      companyRegisterationNumber: body.companyRegisterationNumber,
-      vatNumber: body.vatNumber,
-      address1: body.address1,
-      address2: body.address2,
-      zipcode: body.zipcode,
-      city: body.city,
-      user: savedUser,
-    });
-
-    for (const shareholderItem of body.shareholders) {
-      await this.shareholderservice.save({
-        firstName: shareholderItem.firstName,
-        lastName: shareholderItem.lastName,
-        enterpriseProfileId: enterpriseProfile.id,
-      });
-    }
-    {
-      await this.documentService.save({
-        userId: savedUser.id,
-        type: body.documentType,
-        imageLink: body.verificationImageLink,
-      });
-    }
-    {
-      await this.documentService.save({
-        userId: savedUser.id,
-        type: DocumentTypeEnum.UBO,
-        imageLink: body.uboImageLink,
-      });
-    }
-    {
-      await this.documentService.save({
-        userId: savedUser.id,
-        type: DocumentTypeEnum.ProofCompanyRegistration,
-        imageLink: body.companyRegisterationImageLink,
-      });
-    }
-
-    return 'success';
-  }
-
-  async submitKycInfo(userId: number, body: SubmitKycInfoDto): Promise<void> {
-    const user = await this.findOne({ id: userId });
-
-    if (!user.emailValidated || !user.phoneValidated) {
-      throw new BadRequestException('Email or phone is not verified yet');
-    }
-
-    const { id: countryId } = await this.countryService.findOne({ name: body.country });
-
-    await this.personProfileService.create({
-      address1: body.address1,
-      address2: body.address2,
-      city: body.city,
-      countryId,
-      userId,
-    });
-
-    await this.userRepository.update(userId, {
-      firstName: body.firstName,
-      lastName: body.lastName,
-      kycStatus: VerificationStatus.Pending,
-    });
-  }
-
   async setPincode(userId: number, pincode: string): Promise<void> {
     const encryptedPincode = await bcrypt.hash(pincode, 10);
 
@@ -296,8 +207,6 @@ export class UserService {
     }
 
     const keecash_wallets = await this.transactionService.getBalanceArrayByCurrency(userId);
-
-    // const cards = await this.keecashService.getCardListByUserId(userId);
 
     // Get cards
     const bridgecards = await this.bridgecardService.getAllCardholderCards(user.cardholderId);
@@ -490,7 +399,7 @@ export class UserService {
     switch (type) {
       case 'applicantReviewed':
         if (reviewResult.reviewAnswer === 'GREEN') {
-          await this.completeAccount(applicantId);
+          // await this.completeAccount(applicantId);
         } else {
           await this.userRepository.update(
             { uuid: applicantId },
