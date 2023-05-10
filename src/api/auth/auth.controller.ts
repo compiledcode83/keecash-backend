@@ -18,6 +18,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -47,6 +48,17 @@ import { UserStatus } from '@api/user/user.types';
 import { TokenTypeEnum } from '../cipher-token/cipher-token.types';
 import { SendEmailVerificationCodeDto } from '@api/twilio/dto/send-email-verification.dto';
 import { PersonProfileService } from '@api/user/person-profile/person-profile.service';
+import { CreateAccountResponseDto } from './dto/create-account-response.dto';
+import { UserLoginResponseDto } from './dto/user-login-response.dto';
+import { RefreshTokenResponseDto } from './dto/refresh-token-response.dto';
+import { UserProfileResponseDto } from './dto/user-profile-response.dto';
+import { ConfirmEmailVerificationCodeResponseDto } from './dto/confirm-email-verification-code-response.dto';
+import { SendPhoneNumberVerificationCodeResponseDto } from './dto/send-phone-number-verification-code-response.dto';
+import { ConfirmPhoneNumberVerificationCodeResponseDto } from './dto/confirm-phone-number-verification-code-response.dto';
+import { ConfirmEmailVerificationCodeForForgotPincodeResponseDto } from './dto/confirm-email-verification-code-for-forgot-pincode-response.dto';
+import { ConfirmEmailverificationCodeForForgetPasswordResponseDto } from './dto/confirm-email-verification-code-for-forgot-password-response.dto';
+import { PasswordResetResponseDto } from './dto/password-reset-response.dto';
+import { SumsubTokenResponseDto } from './dto/sumsub-token-response.dto';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -60,6 +72,11 @@ export class AuthController {
   ) {}
 
   @ApiOperation({ description: `Create account` })
+  @ApiCreatedResponse({
+    description: 'Create account response',
+    type: CreateAccountResponseDto,
+    isArray: false,
+  })
   @Post('create-account')
   async createAccount(@Req() req, @Body() body: CreateUserDto, @RealIP() ip: string): Promise<any> {
     const user = await this.userService.create(body);
@@ -80,6 +97,11 @@ export class AuthController {
 
   @ApiOperation({ description: `User login` })
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @ApiCreatedResponse({
+    description: 'Create account response',
+    type: UserLoginResponseDto,
+    isArray: false,
+  })
   @UseGuards(LocalAuthGuard)
   @Post('user-login')
   async loginByPassword(
@@ -143,6 +165,11 @@ export class AuthController {
 
   @UseInterceptors(new CookieToBodyInterceptor('refreshToken', 'refreshToken'))
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({
+    description: 'Create account response',
+    type: RefreshTokenResponseDto,
+    isArray: false,
+  })
   @Post('refresh-tokens')
   async refreshTokens(
     @Req() req,
@@ -169,6 +196,11 @@ export class AuthController {
   }
 
   @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'Get profile of user. only available after set pincode',
+    type: UserProfileResponseDto,
+    isArray: false,
+  })
   @UseGuards(JwtAuthGuard)
   @Get('user-profile')
   async successUser(@Req() req) {
@@ -177,6 +209,11 @@ export class AuthController {
 
   @ApiOperation({ description: `Send email verification code` })
   @ApiBearerAuth()
+  @ApiCreatedResponse({
+    description: 'Email verification code is sent',
+    type: SendEmailVerificationCodeDto,
+    isArray: false,
+  })
   @Post('send-email-verification-code')
   async sendEmailVerificationCode(@Req() req) {
     const token = await this.authService.validateBearerToken(
@@ -192,6 +229,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Confirm email verification code` })
+  @ApiCreatedResponse({
+    description: 'Email OTP is confirmed',
+    type: ConfirmEmailVerificationCodeResponseDto,
+    isArray: false,
+  })
   @ApiBearerAuth()
   @Post('confirm-email-verification-code')
   async confirmEmailVerificationCode(
@@ -215,6 +257,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Send phone number verification code` })
+  @ApiCreatedResponse({
+    description: 'Phone OTP sent',
+    type: SendPhoneNumberVerificationCodeResponseDto,
+    isArray: false,
+  })
   @ApiBearerAuth()
   @Post('send-phone-verification-code')
   async sendPhoneVerificationCode(
@@ -238,6 +285,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Confirm phone number verification code` })
+  @ApiCreatedResponse({
+    description: 'Phone number confirmation',
+    type: ConfirmPhoneNumberVerificationCodeResponseDto,
+    isArray: false,
+  })
   @ApiBearerAuth()
   @Post('confirm-phone-verification-code')
   async confirmPhoneNumberVerificationCode(
@@ -262,6 +314,11 @@ export class AuthController {
 
   @ApiOperation({ description: `Set PIN code` })
   @ApiBearerAuth()
+  @ApiCreatedResponse({
+    description: 'Pin code is set',
+    type: PincodeResetResponseDto,
+    isArray: false,
+  })
   @Post('set-pin-code')
   async setPinCode(@Req() req, @Body() body: PincodeSetDto): Promise<PincodeSetResponseDto> {
     const userId = await this.authService.validateBearerToken(
@@ -332,6 +389,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Send email verification code for forgot pincode` })
+  @ApiCreatedResponse({
+    description: 'Email verification code is sent',
+    type: SendEmailVerificationCodeDto,
+    isArray: false,
+  })
   @ApiBearerAuth()
   @Post('send-email-verification-code-for-forgot-pincode')
   async sendEmailVerificationCodeForForgotPincode(@Req() req): Promise<any> {
@@ -348,6 +410,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Confirm email verification code for forgot pincode` })
+  @ApiCreatedResponse({
+    description: 'Email OTP is confirmed',
+    type: ConfirmEmailVerificationCodeForForgotPincodeResponseDto,
+    isArray: false,
+  })
   @ApiBearerAuth()
   @Post('confirm-email-verification-code-for-forgot-pincode')
   async confirmEmailVerificationCodeForForgotPincode(
@@ -368,6 +435,11 @@ export class AuthController {
 
   @ApiOperation({ description: 'Reset PIN code' })
   @ApiBearerAuth()
+  @ApiCreatedResponse({
+    description: 'PIN Code reset',
+    type: PincodeResetResponseDto,
+    isArray: false,
+  })
   @Post('reset-pin-code')
   async resetPinCode(@Req() req, @Body() body: PincodeSetDto): Promise<PincodeResetResponseDto> {
     if (!req.headers.authorization) {
@@ -391,6 +463,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Send email verification code for forgot password` })
+  @ApiOkResponse({
+    description: 'Email OTP is confirmed',
+    type: PincodeResetResponseDto,
+    isArray: false,
+  })
   @HttpCode(HttpStatus.OK)
   @Post('send-email-verification-code-for-forgot-password')
   async sendEmailVerificationCodeForForgotPassword(
@@ -404,6 +481,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Confirm email verification code for forgot password` })
+  @ApiCreatedResponse({
+    description: 'Email sent confirmed for reset password',
+    type: ConfirmEmailverificationCodeForForgetPasswordResponseDto,
+    isArray: false,
+  })
   @Post('confirm-email-verification-code-for-forgot-password')
   async confirmEmailForForgotPassword(@Body() body: ConfirmEmailVerificationCodeForAdminDto) {
     const { id } = await this.userService.findOne({ email: body.email });
@@ -416,6 +498,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Reset password` })
+  @ApiOkResponse({
+    description: 'Password is reset',
+    type: PasswordResetResponseDto,
+    isArray: false,
+  })
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @Post('password-reset')
@@ -441,6 +528,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `User log out` })
+  @ApiOkResponse({
+    description: 'User logout and return refresh token',
+    type: 'true|false',
+    isArray: false,
+  })
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   async logout(@Req() req: Request): Promise<void> {
@@ -454,6 +546,11 @@ export class AuthController {
   }
 
   @ApiOperation({ description: `Get sumsub api access token for development` })
+  @ApiCreatedResponse({
+    description: 'Sumsub token access',
+    type: SumsubTokenResponseDto,
+    isArray: false,
+  })
   @ApiTags('Sumsub')
   @ApiBearerAuth()
   @Get('sumsub-access-token')
