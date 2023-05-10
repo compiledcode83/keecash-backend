@@ -360,7 +360,17 @@ export class AuthController {
 
     const validatedUser = await this.authService.validateUserByPincode(userId, body.pincode);
 
-    if (!validatedUser) throw new UnauthorizedException('Pincode is incorrect');
+    if (!validatedUser) {
+      return {
+        isConfirm: false,
+        accessToken: '',
+        status: '',
+        isActive: false,
+        isAppInMaintenance: false,
+        inactiveMessage: '',
+        maintenanceMessage: '',
+      };
+    }
 
     const { accessToken, refreshToken } = await this.authService.login(
       validatedUser,
