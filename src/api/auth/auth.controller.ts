@@ -15,7 +15,13 @@ import {
 import { AuthService } from '@api/auth/auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { PasswordLoginDto } from './dto/password-login.dto';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
@@ -277,7 +283,7 @@ export class AuthController {
   }
 
   @ApiOperation({ description: 'Verify PIN code' })
-  @ApiOkResponse({
+  @ApiCreatedResponse({
     description: 'Pin code set',
     type: PincodeVerificationResponseDto,
     isArray: false,
