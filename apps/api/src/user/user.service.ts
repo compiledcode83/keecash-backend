@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -8,21 +9,28 @@ import { customAlphabet } from 'nanoid';
 import * as bcrypt from 'bcrypt';
 import * as isoCountries from 'i18n-iso-countries';
 import { CountryService } from '@app/country';
-import { DocumentTypeEnum, DocumentService } from '@app/document';
+import { DocumentService } from '@app/document';
 import { EnterpriseProfileService } from '@app/enterprise-profile';
 import { PersonProfileService } from '@app/person-profile';
 import { ShareholderService } from '@app/shareholder';
 import { TwilioService } from '@app/twilio';
 import { BridgecardService } from '@app/bridgecard';
 import { SumsubService } from '@app/sumsub';
-import { User, AccountType, Language, UserStatus, VerificationStatus } from '@app/user';
+import {
+  User,
+  AccountType,
+  Language,
+  UserStatus,
+  VerificationStatus,
+  UserCreateMessage,
+  UserEventPattern,
+} from '@app/user';
 import { ClosureReasonService } from '@app/closure-reason';
+import { OutboxService } from '@app/outbox';
 import { TransactionService } from '@api/transaction/transaction.service';
 import { CardService } from '@api/card/card.service';
 import { CreateUserDto } from '@api/auth/dto/create-user.dto';
 import { UserRepository } from './user.repository';
-import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
-import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
 
 const closure_reasons = require('../../../../libs/closure-reason/src/closure-reasons.json');
@@ -47,12 +55,17 @@ export class UserService {
     private readonly bridgecardService: BridgecardService,
     private readonly sumsubService: SumsubService,
     private readonly cardService: CardService,
+    private readonly outboxService: OutboxService,
   ) {
     this.generateReferralId = customAlphabet(REFERRAL_ID_ALPHABET, REFERRAL_ID_LENGTH);
   }
 
   async findOne(param: any): Promise<User> {
     return this.userRepository.findOne({ where: param });
+  }
+
+  async findByUuid(uuid: string): Promise<User> {
+    return this.userRepository.findOne({ where: { uuid } });
   }
 
   async findByEmailPhoneNumberReferralId(userInfo: string): Promise<User> {
@@ -115,18 +128,30 @@ export class UserService {
       if (!userExists) referralIdDuplicated = false;
     }
 
-    const user: Partial<User> = {
-      referralId,
-      referralAppliedId: body.referralAppliedId,
-      email: body.email,
-      language: body.language,
-      type: AccountType.Person,
-      password: await bcrypt.hash(body.password, 10),
-    };
+    const queryRunner = this.userRepository.dataSource.createQueryRunner();
 
-    const newUser = await this.userRepository.save(user);
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-    return newUser;
+      const user = await queryRunner.manager.save(this.userRepository.create(body));
+      const savedUser = await queryRunner.manager.findOneBy(User, { uuid: user.uuid });
+
+      const payload = new UserCreateMessage({
+        user: savedUser,
+      });
+
+      await this.outboxService.create(queryRunner, UserEventPattern.UserCreate, payload);
+      await queryRunner.commitTransaction();
+
+      return this.findByUuid(user.uuid);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async update(param: any, data: Partial<User>) {
@@ -341,30 +366,29 @@ export class UserService {
     });
 
     // Bridgecard Onboarding
-
-    // const body = {
-    //   first_name: firstName,
-    //   last_name: lastName,
-    //   address: {
-    //     address: street,
-    //     city: town,
-    //     state,
-    //     country: countryName,
-    //     postal_code: postCode,
-    //     house_no: subStreet,
-    //   },
-    //   phone: phoneNumber,
-    //   email_address: email,
-    //   identity: {
-    //     id_type: 'UNITED_STATES_DRIVERS_LICENSE', // user.documents[0].type
-    //     id_no: '',
-    //     id_image: '',
-    //     bvn: '',
-    //   },
-    //   meta_data: {
-    //     keecash_user_id: userUuid,
-    //   },
-    // };
+    const body = {
+      first_name: firstName,
+      last_name: lastName,
+      address: {
+        address: street,
+        city: town,
+        state,
+        country: countryName,
+        postal_code: postCode,
+        house_no: subStreet,
+      },
+      phone: phoneNumber,
+      email_address: email,
+      identity: {
+        id_type: 'UNITED_STATES_DRIVERS_LICENSE', // user.documents[0].type
+        id_no: '',
+        id_image: '',
+        bvn: '',
+      },
+      meta_data: {
+        keecash_user_id: userUuid,
+      },
+    };
 
     // const body = {
     //   first_name: 'HOL',
@@ -390,14 +414,14 @@ export class UserService {
     //   meta_data: { keecash_user_id: 1 },
     // };
 
-    // const res = await this.bridgecardService.registerCardholderAsync(body);
+    const res = await this.bridgecardService.registerCardholderAsync(body);
 
-    // if (res.status === HttpStatus.CREATED) {
-    //   await this.userRepository.update(body.meta_data.keecash_user_id, {
-    //     cardholderId: res.data.data.cardholder_id,
-    //     status: UserStatus.Completed,
-    //   });
-    // }
+    if (res.status === HttpStatus.CREATED) {
+      await this.userRepository.update(body.meta_data.keecash_user_id, {
+        cardholderId: res.data.data.cardholder_id,
+        status: UserStatus.Completed,
+      });
+    }
   }
 
   async handleSumsubWebhookEvent({ applicantId, type, reviewResult }) {

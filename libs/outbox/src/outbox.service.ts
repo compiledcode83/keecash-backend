@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { Outbox } from './outbox.entity';
 import { OutboxRepository } from './outbox.repository';
+import { OutboxEventName, OutboxPayload } from './outbox.types';
 
 @Injectable()
 export class OutboxService {
@@ -17,8 +18,8 @@ export class OutboxService {
 
   async create(
     queryRunner: QueryRunner,
-    eventName: any, // OutboxEventName
-    payload: any, // OutboxPayload
+    eventName: OutboxEventName,
+    payload: OutboxPayload,
     sendAfter: Date = new Date(),
   ): Promise<Outbox> {
     return queryRunner.manager.save(

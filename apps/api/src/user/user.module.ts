@@ -9,6 +9,7 @@ import { EnterpriseProfileModule } from '@app/enterprise-profile';
 import { PersonProfileModule } from '@app/person-profile';
 import { ClosureReasonModule } from '@app/closure-reason';
 import { BridgecardModule } from '@app/bridgecard';
+import { OutboxModule } from '@app/outbox';
 import { TransactionModule } from '@api/transaction/transaction.module';
 import { CardModule } from '@api/card/card.module';
 import { UserController } from './user.controller';
@@ -33,6 +34,7 @@ import { LegitEmailValidator } from './validator/legit-email.validator';
     CardModule,
     BridgecardModule,
     SumsubModule,
+    OutboxModule,
   ],
   controllers: [UserController],
   providers: [
