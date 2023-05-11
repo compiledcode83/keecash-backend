@@ -1,0 +1,26 @@
+version: "3.2"
+
+services:
+  kafka:
+    image: moeenz/docker-kafka-kraft:latest
+    restart: always
+    ports:
+      - "9093:9093"
+    environment:
+      - KRAFT_CONTAINER_HOST_NAME=kafka
+      - KRAFT_CREATE_TOPICS=healthcheck
+      - KRAFT_PARTITIONS_PER_TOPIC=1
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    restart: always
+    links:
+      - kafka:kafka
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092

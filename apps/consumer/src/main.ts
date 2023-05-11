@@ -3,8 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Environment, EnvHelper } from '@app/env';
 import kafkaConfig from '@app/common/configs/kafka.config';
-import { ConsumerModule } from './consumer.module';
 import * as appConfig from './config/app.config';
+import { ConsumerModule } from './consumer.module';
 
 EnvHelper.verifyNodeEnv();
 
