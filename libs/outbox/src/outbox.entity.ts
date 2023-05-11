@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 import { OutboxStatus } from './outbox.types';
 
 @Entity('outbox')
@@ -15,13 +15,13 @@ export class Outbox {
   @Column({ type: 'text', nullable: false })
   payload: string;
 
-  @Column({ type: 'datetime', nullable: false })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ type: 'datetime', nullable: false })
+  @Column({ type: 'timestamp', nullable: false })
   sendAfter: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   sentAt: Date;
 
   @Column({ type: 'enum', nullable: false, enum: OutboxStatus })

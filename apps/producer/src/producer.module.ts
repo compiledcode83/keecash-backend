@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EnvHelper, validateProducer } from '@app/env';
 import { DatabaseModule } from '@app/database';
+import { OutboxModule } from '@app/outbox';
 import kafkaConfig from '@app/common/configs/kafka.config';
 import redisConfig from '@app/common/configs/redis.config';
 import appConfig from './config/app.config';
@@ -20,6 +21,7 @@ const imports = [
     validate: validateProducer,
   }),
   DatabaseModule,
+  OutboxModule,
 ];
 
 if (!EnvHelper.isTest()) {
