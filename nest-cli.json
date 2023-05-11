@@ -18,6 +18,15 @@
         "tsConfigPath": "apps/api/tsconfig.app.json"
       }
     },
+    "producer": {
+      "type": "application",
+      "root": "apps/producer",
+      "entryFile": "main",
+      "sourceRoot": "apps/producer/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/producer/tsconfig.app.json"
+      }
+    },
     "consumer": {
       "type": "application",
       "root": "apps/consumer",
