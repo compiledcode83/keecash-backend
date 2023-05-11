@@ -3,6 +3,7 @@ import { BeneficiaryUserService } from './beneficiary-user/beneficiary-user.serv
 import { BeneficiaryWalletService } from './beneficiary-wallet/beneficiary-wallet.service';
 import { BeneficiaryWallet } from './beneficiary-wallet/beneficiary-wallet.entity';
 import { BeneficiaryUser } from './beneficiary-user/beneficiary-user.entity';
+import { TypesOfBeneficiary } from './beneficiary.types';
 
 @Injectable()
 export class BeneficiaryService {
@@ -13,7 +14,9 @@ export class BeneficiaryService {
 
   async findAllByUserId(userId: number, isAdmin = false) {
     const beneficiaryUsers = await this.beneficiaryUserService.findByPayerId(userId, isAdmin);
-    const beneficiaryWallets = await this.beneficiaryWalletService.findMany({ userId });
+    const beneficiaryWallets = await this.beneficiaryWalletService.findManyForUserBeneficiary({
+      userId,
+    });
 
     return {
       users: beneficiaryUsers,
@@ -31,5 +34,9 @@ export class BeneficiaryService {
 
   async createBeneficiaryWallet(param: Partial<BeneficiaryWallet>) {
     return this.beneficiaryWalletService.create(param);
+  }
+
+  getBeneficiaryTypes() {
+    return Object.values(TypesOfBeneficiary).filter((v) => isNaN(Number(v)));
   }
 }

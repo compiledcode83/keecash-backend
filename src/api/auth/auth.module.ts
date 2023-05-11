@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -13,14 +13,16 @@ import { TwilioModule } from '@api/twilio/twilio.module';
 import { CountryModule } from '@api/country/country.module';
 import { RefreshTokenValidator } from './validators/refresh-token.validator';
 import { PersonProfileModule } from '@api/user/person-profile/person-profile.module';
+import { BeneficiaryUserModule } from '@api/beneficiary/beneficiary-user/beneficiary-user.module';
 
 @Module({
   imports: [
-    UserModule,
+    forwardRef(() => UserModule),
     PassportModule,
     PersonProfileModule,
     CipherTokenModule,
     SumsubModule,
+    forwardRef(() => BeneficiaryUserModule),
     TwilioModule,
     CountryModule,
     JwtModule.registerAsync({

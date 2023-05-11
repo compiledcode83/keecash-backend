@@ -43,7 +43,4 @@ export class PersonProfile {
 
   @ManyToOne(() => Country, (country) => country.personProfile)
   country: Country;
-
-  // @ManyToOne(() => CountryActivation, (countryActivation) => countryActivation.personProfile)
-  // countryActivation: CountryActivation;
 }

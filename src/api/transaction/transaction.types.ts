@@ -7,12 +7,13 @@ export enum TransactionStatusEnum {
 
 export enum CryptoCurrencyEnum {
   BTC = 'BTC',
+  BTC_LIGHTNING = 'BTC_LIGHTNING',
   LBTC = 'LBTC',
   ETH = 'ETH',
-  USDT_ERC20 = 'USDT',
+  USDT_ERC20 = 'USDT_ERC20',
   USDT_TRC20 = 'USDT_TRC20',
-  USDC_ERC20 = 'USDC',
-  USDC_TRC20 = 'USDC_TRC20',
+  USDC = 'USDC',
+  BINANCE = 'BINANCE',
 }
 
 export enum FiatCurrencyEnum {

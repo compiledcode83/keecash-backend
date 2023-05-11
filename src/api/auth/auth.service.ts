@@ -1,9 +1,11 @@
 import * as bcrypt from 'bcrypt';
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@api/user/user.service';
@@ -21,7 +23,7 @@ import { CountryService } from '@api/country/country.service';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UserService,
+    @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly cipherTokenService: CipherTokenService,
     private readonly sumsubService: SumsubService,
@@ -140,6 +142,10 @@ export class AuthService {
     };
 
     return this.jwtService.signAsync(payload);
+  }
+
+  async getUserPayload(accessToken: string): Promise<UserAccessTokenInterface> {
+    return this.jwtService.decode(accessToken) as UserAccessTokenInterface;
   }
 
   async refreshTokens(

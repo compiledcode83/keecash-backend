@@ -7,7 +7,10 @@ export class VerifyUserExistResponseDto {
   valid: boolean;
 
   @ApiProperty({ example: 2, required: true, description: `Beneficiary user's id` })
-  @IsOptional()
   @IsString()
-  beneficiaryUserId?: number;
+  beneficiaryUserId: number;
+
+  @ApiProperty({ example: 'my name', required: true, description: `Beneficiary user's name` })
+  @IsString()
+  beneficiaryName: string;
 }

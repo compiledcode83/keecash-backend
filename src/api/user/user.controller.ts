@@ -11,7 +11,7 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { GetReferralResponseDto } from './dto/get-referral-response.dto';
@@ -125,6 +125,11 @@ export class UserController {
   // ------------ Beneficiary ----------------
 
   @ApiOperation({ description: `Verify if user exists` })
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    description: 'Verification response',
+    type: VerifyUserExistResponseDto,
+  })
   @ApiTags('Manage beneficiaries')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -133,9 +138,17 @@ export class UserController {
     const user = await this.userService.findByEmailPhoneNumberReferralId(query.user);
 
     if (user) {
-      return { valid: true, beneficiaryUserId: user.id };
+      return {
+        valid: true,
+        beneficiaryUserId: user.id,
+        beneficiaryName: `${user.lastName} ${user.firstName}`,
+      };
     } else {
-      return { valid: false };
+      return {
+        valid: false,
+        beneficiaryUserId: 0,
+        beneficiaryName: '',
+      };
     }
   }
 

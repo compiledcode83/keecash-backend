@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { BeneficiaryWallet } from './beneficiary-wallet.entity';
 import { BeneficiaryWalletRepository } from './beneficiary-wallet.repository';
+import { CryptoCurrencyEnum } from '@api/transaction/transaction.types';
+import WAValidator = require('multicoin-address-validator');
+import { getRawBlockchainForValidation } from '@common/helpers/tools.helper';
 
 @Injectable()
 export class BeneficiaryWalletService {
@@ -8,6 +11,13 @@ export class BeneficiaryWalletService {
 
   async findMany(param: Partial<BeneficiaryWallet>) {
     return this.beneficiaryWalletRepository.find({ where: param });
+  }
+
+  async findManyForUserBeneficiary(param: Partial<BeneficiaryWallet>) {
+    return this.beneficiaryWalletRepository.find({
+      where: param,
+      select: ['address', 'name', 'type'],
+    });
   }
 
   async create(param: Partial<BeneficiaryWallet>) {
@@ -27,5 +37,18 @@ export class BeneficiaryWalletService {
     const wallets = await this.beneficiaryWalletRepository.findBy(params);
 
     return wallets.length > 0;
+  }
+
+  validateCryptoAddress(blockchain: string | CryptoCurrencyEnum, cryptoAddress: string) {
+    //we can't validate Binance Pay ID so we believe customer info without any check
+    if (blockchain == CryptoCurrencyEnum.BINANCE) {
+      return true;
+    }
+
+    const rawBlockchain = getRawBlockchainForValidation(blockchain);
+
+    const valid = WAValidator.validate(cryptoAddress, rawBlockchain, 'prod');
+
+    return valid;
   }
 }

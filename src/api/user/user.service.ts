@@ -49,7 +49,6 @@ export class UserService {
     private readonly twilioService: TwilioService,
     private readonly closureReasonService: ClosureReasonService,
     private readonly transactionService: TransactionService,
-    private readonly bridgecardService: BridgecardService,
     private readonly sumsubService: SumsubService,
     @Inject(forwardRef(() => CardService)) private readonly cardService: CardService,
   ) {

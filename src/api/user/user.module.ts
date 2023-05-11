@@ -21,6 +21,8 @@ import { BridgecardModule } from '@api/bridgecard/bridgecard.module';
 import { User } from './user.entity';
 import { UserSubscriber } from './user.subscriber';
 import { SumsubModule } from '@api/sumsub/sumsub.module';
+import { AuthModule } from '@api/auth/auth.module';
+import { BeneficiaryUserModule } from '@api/beneficiary/beneficiary-user/beneficiary-user.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { SumsubModule } from '@api/sumsub/sumsub.module';
     ClosureReasonModule,
     TransactionModule,
     forwardRef(() => CardModule),
+    forwardRef(() => AuthModule),
+    forwardRef(() => BeneficiaryUserModule),
     BridgecardModule,
     SumsubModule,
   ],
