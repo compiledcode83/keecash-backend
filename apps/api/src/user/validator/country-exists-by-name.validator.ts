@@ -5,7 +5,7 @@ import {
 } from 'class-validator';
 import { CountryService } from '@app/country';
 
-@ValidatorConstraint({ name: 'userExistsByEmailValidator', async: true })
+@ValidatorConstraint({ name: 'countryExistsByEmailValidator', async: true })
 export class CountryExistsByNameValidator implements ValidatorConstraintInterface {
   constructor(private readonly countryService: CountryService) {}
 

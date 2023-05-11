@@ -7,7 +7,7 @@ import {
 import { customAlphabet } from 'nanoid';
 import * as bcrypt from 'bcrypt';
 import * as isoCountries from 'i18n-iso-countries';
-// import { CountryService } from '@app/country';
+import { CountryService } from '@app/country';
 import { DocumentTypeEnum, DocumentService } from '@app/document';
 import { EnterpriseProfileService } from '@app/enterprise-profile';
 import { PersonProfileService } from '@app/person-profile';
@@ -24,7 +24,6 @@ import { UserRepository } from './user.repository';
 import { SubmitKycInfoDto } from './dto/submit-kyc-info.dto';
 import { CreateEnterpriseUserDto } from './dto/create-enterprise-user.dto';
 import { CreatePersonUserDto } from './dto/create-person-user.dto';
-import { CountryService } from '@api/country/country.service';
 
 const closure_reasons = require('../../../../libs/closure-reason/src/closure-reasons.json');
 
@@ -399,7 +398,7 @@ export class UserService {
     switch (type) {
       case 'applicantReviewed':
         if (reviewResult.reviewAnswer === 'GREEN') {
-          // await this.completeAccount(applicantId);
+          await this.completeAccount(applicantId);
         } else {
           await this.userRepository.update(
             { uuid: applicantId },

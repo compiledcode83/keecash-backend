@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TwilioModule } from '@app/twilio';
-// import { CountryModule } from '@app/country';
+import { CountryModule } from '@app/country';
 import { DocumentModule } from '@app/document';
 import { SumsubModule } from '@app/sumsub';
 import { UserSubscriber } from '@app/user';
@@ -11,7 +11,6 @@ import { ClosureReasonModule } from '@app/closure-reason';
 import { BridgecardModule } from '@app/bridgecard';
 import { TransactionModule } from '@api/transaction/transaction.module';
 import { CardModule } from '@api/card/card.module';
-import { CountryModule } from '@api/country/country.module';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
