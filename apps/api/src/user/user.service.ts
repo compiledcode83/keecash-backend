@@ -106,8 +106,14 @@ export class UserService {
   }
 
   async create(body: CreateUserDto): Promise<User> {
-    const referralId = this.generateReferralId();
-    // TODO: Add DB check for referral id duplication.
+    let referralId;
+    let referralIdDuplicated = true;
+
+    while (referralIdDuplicated) {
+      referralId = this.generateReferralId();
+      const userExists = await this.userRepository.findOne({ where: { referralId } });
+      if (!userExists) referralIdDuplicated = false;
+    }
 
     const user: Partial<User> = {
       referralId,
