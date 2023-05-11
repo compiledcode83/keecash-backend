@@ -56,6 +56,8 @@
       "@app/env/*": ["libs/env/src/*"],
       "@app/notification": ["libs/notification/src"],
       "@app/notification/*": ["libs/notification/src/*"],
+      "@app/outbox": ["libs/outbox/src"],
+      "@app/outbox/*": ["libs/outbox/src/*"],
       "@app/person-profile": ["libs/person-profile/src"],
       "@app/person-profile/*": ["libs/person-profile/src/*"],
       "@app/pricing": ["libs/pricing/src"],
