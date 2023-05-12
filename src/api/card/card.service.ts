@@ -131,6 +131,7 @@ export class CardService {
     }
 
     return {
+      isSuccess: true,
       wallets: [
         {
           balance: walletBalance.eur,
