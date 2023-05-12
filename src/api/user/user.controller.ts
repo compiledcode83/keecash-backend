@@ -90,7 +90,9 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @Post('account/request-email-change')
   async requestEmailChange(@Req() req, @Body() body: RequestEmailChangeDto): Promise<void> {
-    await this.twilioService.sendEmailVerificationCode(body.email);
+    const user = await this.userService.findOne(body.email);
+
+    await this.twilioService.sendEmailVerificationCode(body.email, user.language);
   }
 
   @ApiOperation({ description: 'Confirm OTP & change email' })

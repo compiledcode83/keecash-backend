@@ -21,6 +21,7 @@ import { VerifyWalletAddressDto } from './beneficiary-wallet/dto/verify-wallet-a
 import { VerifyWalletExistResponseDto } from './beneficiary-wallet/dto/verify-wallet-address-response.dto';
 import { GetBeneficiaryWalletsDto } from './dto/get-beneficiary-wallets.dto';
 import { BeneficiaryAllResponseDto } from './dto/beneficiary-all-response.dto';
+import { BeneficiaryWalletsDto } from './beneficiary-wallet/dto/beneficiary-wallets.dto';
 @Controller('beneficiary')
 @ApiTags('Manage beneficiaries')
 export class BeneficiaryController {
@@ -126,6 +127,10 @@ export class BeneficiaryController {
   }
 
   @ApiOperation({ description: 'Get withdrawal beneficiaries wallets' })
+  @ApiOkResponse({
+    description: 'Wallet list response',
+    type: BeneficiaryWalletsDto,
+  })
   @ApiParam({ name: 'currency', required: true, description: 'Keecash wallet currency' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)

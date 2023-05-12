@@ -179,18 +179,16 @@ export class AuthService {
 
   // --------------- OTP Verification -------------------
 
-  async sendEmailOtp(userId: number): Promise<void> {
+  async sendEmailOtp(userId: number): Promise<boolean> {
     const user = await this.userService.findOne({ id: userId });
 
     if (user.emailValidated) {
       throw new BadRequestException('Email is already validated');
     }
 
-    const res = await this.twilioService.sendEmailVerificationCode(user.email);
+    const res = await this.twilioService.sendEmailVerificationCode(user.email, user.language);
 
-    if (!res) {
-      throw new BadRequestException('Cannot send email OTP');
-    }
+    return res;
   }
 
   async confirmEmailOtp(userId: number, code: string): Promise<boolean> {
@@ -199,7 +197,7 @@ export class AuthService {
     const res = await this.twilioService.confirmEmailVerificationCode(email, code);
 
     if (!res) {
-      throw new BadRequestException('Cannot confirm email verification code');
+      return false;
     }
 
     const updatedUser = await this.userService.update({ email }, { emailValidated: true });
@@ -210,9 +208,9 @@ export class AuthService {
   }
 
   async sendEmailVerificationCodeForForgotPincode(userId: number) {
-    const { email } = await this.userService.findOne({ id: userId });
+    const { email, language } = await this.userService.findOne({ id: userId });
 
-    const res = await this.twilioService.sendEmailVerificationCode(email);
+    const res = await this.twilioService.sendEmailVerificationCode(email, language);
 
     if (!res) {
       throw new BadRequestException('Failed to send verification code');
@@ -226,21 +224,17 @@ export class AuthService {
       throw new NotFoundException('User not found with this email');
     }
 
-    const res = await this.twilioService.sendEmailVerificationCode(email);
+    const res = await this.twilioService.sendEmailVerificationCode(email, user.language);
 
-    if (!res) {
-      throw new BadRequestException('Failed to send verification code');
-    }
+    return res;
   }
 
-  async confirmEmailOtpForForgotPassword(userId: number, code: string): Promise<void> {
+  async confirmEmailOtpForForgotPassword(userId: number, code: string): Promise<boolean> {
     const { email } = await this.userService.findOne({ id: userId });
 
     const res = await this.twilioService.confirmEmailVerificationCode(email, code);
 
-    if (!res) {
-      throw new BadRequestException('Cannot confirm email verification code');
-    }
+    return res;
   }
 
   async sendPhoneOtp(userId: number, body: SendPhoneNumberVerificationCodeDto): Promise<boolean> {
@@ -260,10 +254,10 @@ export class AuthService {
       throw new BadRequestException('Phone number format is incorrect');
     }
 
-    const res = await this.twilioService.sendPhoneVerificationCode(body.phoneNumber);
+    const res = await this.twilioService.sendPhoneVerificationCode(body.phoneNumber, user.language);
 
     if (!res) {
-      throw new BadRequestException('Cannot send phone OTP');
+      return res;
     }
 
     const updatedUser = await this.userService.update(userId, { phoneNumber: body.phoneNumber });
@@ -279,7 +273,7 @@ export class AuthService {
     const res = await this.twilioService.confirmPhoneVerificationCode(user.phoneNumber, code);
 
     if (!res) {
-      throw new BadRequestException('Sorry, Can not confirm phone number');
+      return res;
     }
 
     const updatedUser = await this.userService.update(userId, { phoneValidated: true });
@@ -341,5 +335,29 @@ export class AuthService {
       default:
         break;
     }
+  }
+
+  async validateTokenForSetPincode(headers: any): Promise<number> {
+    //user can set pin code when cipher.type = TokenTypeEnum.AuthRefresh (account validated) or when cipher.type = TokenTypeEnum.CreateAccount
+
+    let userId = 0;
+    try {
+      userId = await this.validateBearerToken(headers, TokenTypeEnum.AuthRefresh);
+    } catch (e) {
+      if (e instanceof UnauthorizedException) {
+        //we try case TokenTypeEnum.CreateAccount
+        const token = await this.validateBearerToken(headers, TokenTypeEnum.CreateAccount);
+
+        userId = token.userId;
+      } else {
+        throw e;
+      }
+    }
+
+    if (!userId) {
+      throw new UnauthorizedException('Token is invalid');
+    }
+
+    return userId;
   }
 }

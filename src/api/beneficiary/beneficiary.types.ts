@@ -6,5 +6,5 @@ export enum TypesOfBeneficiary {
   'ETH',
   'USDT_ERC20',
   'USDC',
-  'BINANCE'
+  'BINANCE',
 }

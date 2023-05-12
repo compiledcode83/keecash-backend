@@ -163,10 +163,11 @@ export class AuthController {
     };
   }
 
+  @ApiOperation({ description: `refresh-tokens` })
   @UseInterceptors(new CookieToBodyInterceptor('refreshToken', 'refreshToken'))
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatedResponse({
-    description: 'Create account response',
+    description: 'refresh-tokens response',
     type: RefreshTokenResponseDto,
     isArray: false,
   })
@@ -195,9 +196,10 @@ export class AuthController {
     };
   }
 
+  @ApiOperation({ description: `Get profile of user. only available after set pincode` })
   @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'Get profile of user. only available after set pincode',
+    description: 'User profile response',
     type: UserProfileResponseDto,
     isArray: false,
   })
@@ -207,7 +209,9 @@ export class AuthController {
     return req.user;
   }
 
-  @ApiOperation({ description: `Send email verification code` })
+  @ApiOperation({
+    description: `Send email verification code - Only when user has create an account and is email invalid`,
+  })
   @ApiBearerAuth()
   @ApiCreatedResponse({
     description: 'Email verification code is sent',
@@ -221,10 +225,10 @@ export class AuthController {
       TokenTypeEnum.CreateAccount,
     );
 
-    await this.authService.sendEmailOtp(token.userId);
+    const res = await this.authService.sendEmailOtp(token.userId);
 
     return {
-      isSent: true,
+      isSent: res,
     };
   }
 
@@ -247,16 +251,14 @@ export class AuthController {
 
     const res = await this.authService.confirmEmailOtp(token.userId, body.code);
 
-    if (!res) {
-      throw new BadRequestException('Email verification failed');
-    }
-
     return {
-      isConfirmed: true,
+      isConfirmed: res,
     };
   }
 
-  @ApiOperation({ description: `Send phone number verification code` })
+  @ApiOperation({
+    description: `Send phone number verification code - Only with login token of a user who just validated his email`,
+  })
   @ApiCreatedResponse({
     description: 'Phone OTP sent',
     type: SendPhoneNumberVerificationCodeResponseDto,
@@ -275,16 +277,14 @@ export class AuthController {
 
     const res = await this.authService.sendPhoneOtp(token.userId, body);
 
-    if (!res) {
-      return { isSent: false };
-    }
-
     return {
-      isSent: true,
+      isSent: res,
     };
   }
 
-  @ApiOperation({ description: `Confirm phone number verification code` })
+  @ApiOperation({
+    description: `Confirm phone number verification code - Only with login token of a user who just validated his email`,
+  })
   @ApiCreatedResponse({
     description: 'Phone number confirmation',
     type: ConfirmPhoneNumberVerificationCodeResponseDto,
@@ -303,13 +303,29 @@ export class AuthController {
 
     const res = await this.authService.confirmPhoneOtp(token.userId, body.code);
 
-    if (!res) {
-      throw new BadRequestException('Phone number verification failed');
-    }
-
     return {
-      isConfirmed: true,
+      isConfirmed: res,
     };
+  }
+
+  @ApiOperation({ description: `Get sumsub api access token for development` })
+  @ApiCreatedResponse({
+    description: 'Sumsub token access',
+    type: SumsubTokenResponseDto,
+    isArray: false,
+  })
+  @ApiTags('Sumsub')
+  @ApiBearerAuth()
+  @Get('sumsub-access-token')
+  async getSumsubAccessToken(@Req() req): Promise<{ token: string }> {
+    const createAccountToken = await this.authService.validateBearerToken(
+      req.headers,
+      TokenTypeEnum.CreateAccount,
+    );
+
+    const accessToken = await this.authService.getSumsubAccessToken(createAccountToken.userId);
+
+    return { token: accessToken };
   }
 
   @ApiOperation({ description: `Set PIN code` })
@@ -321,10 +337,7 @@ export class AuthController {
   })
   @Post('set-pin-code')
   async setPinCode(@Req() req, @Body() body: PincodeSetDto): Promise<PincodeSetResponseDto> {
-    const userId = await this.authService.validateBearerToken(
-      req.headers,
-      TokenTypeEnum.AuthRefresh,
-    );
+    const userId = await this.authService.validateTokenForSetPincode(req.headers);
 
     const { pincodeSet } = await this.userService.findOne({ id: userId });
 
@@ -339,7 +352,7 @@ export class AuthController {
     };
   }
 
-  @ApiOperation({ description: 'Verify PIN code' })
+  @ApiOperation({ description: 'Verify PIN code - > the user must have finalized his KYC/KYB' })
   @ApiCreatedResponse({
     description: 'Pin code set',
     type: PincodeVerificationResponseDto,
@@ -353,10 +366,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @RealIP() ipAddress: string,
   ): Promise<PincodeVerificationResponseDto> {
-    const userId = await this.authService.validateBearerToken(
-      req.headers,
-      TokenTypeEnum.AuthRefresh,
-    );
+    //user can validate his code with create token or loginToken
+    const userId = await this.authService.validateTokenForSetPincode(req.headers);
 
     const validatedUser = await this.authService.validateUserByPincode(userId, body.pincode);
 
@@ -398,7 +409,9 @@ export class AuthController {
     };
   }
 
-  @ApiOperation({ description: `Send email verification code for forgot pincode` })
+  @ApiOperation({
+    description: `Send email verification code for forgot pincode - only with loginToken (so the user must be revoke the pincodeToken first before use this)`,
+  })
   @ApiCreatedResponse({
     description: 'Email verification code is sent',
     type: SendEmailVerificationCodeDto,
@@ -443,7 +456,10 @@ export class AuthController {
     return { resetPincodeToken };
   }
 
-  @ApiOperation({ description: 'Reset PIN code' })
+  @ApiOperation({
+    description:
+      'Reset PIN code - work only with token received after `POST auth/confirm-email-verification-code-for-forgot-pincode`',
+  })
   @ApiBearerAuth()
   @ApiCreatedResponse({
     description: 'PIN Code reset',
@@ -483,10 +499,10 @@ export class AuthController {
   async sendEmailVerificationCodeForForgotPassword(
     @Body() body: SendEmailVerificationCodeDto,
   ): Promise<any> {
-    await this.authService.sendEmailOtpForForgotPassword(body.email);
+    const res = await this.authService.sendEmailOtpForForgotPassword(body.email);
 
     return {
-      isSent: true,
+      isSent: res,
     };
   }
 
@@ -500,14 +516,25 @@ export class AuthController {
   async confirmEmailForForgotPassword(@Body() body: ConfirmEmailVerificationCodeForAdminDto) {
     const { id } = await this.userService.findOne({ email: body.email });
 
-    await this.authService.confirmEmailOtpForForgotPassword(id, body.code);
+    const res = await this.authService.confirmEmailOtpForForgotPassword(id, body.code);
+
+    if (!res) {
+      return {
+        isConfirmed: res,
+      };
+    }
 
     const resetPasswordToken = await this.cipherTokenService.generateResetPasswordToken(id);
 
-    return { resetPasswordToken };
+    return {
+      isConfirmed: res,
+      resetPasswordToken: resetPasswordToken,
+    };
   }
 
-  @ApiOperation({ description: `Reset password` })
+  @ApiOperation({
+    description: `Reset password - work only with \`resetPasswordToken\` from \`POST auth/confirm-email-verification-code-for-forgot-password\``,
+  })
   @ApiOkResponse({
     description: 'Password is reset',
     type: PasswordResetResponseDto,
@@ -539,7 +566,7 @@ export class AuthController {
 
   @ApiOperation({ description: `User log out` })
   @ApiOkResponse({
-    description: 'User logout and return refresh token',
+    description: 'User logout and return refresh token. return `true|false`',
     type: 'true|false',
     isArray: false,
   })
@@ -553,25 +580,5 @@ export class AuthController {
     }
 
     return this.authService.logout(String(refreshToken));
-  }
-
-  @ApiOperation({ description: `Get sumsub api access token for development` })
-  @ApiCreatedResponse({
-    description: 'Sumsub token access',
-    type: SumsubTokenResponseDto,
-    isArray: false,
-  })
-  @ApiTags('Sumsub')
-  @ApiBearerAuth()
-  @Get('sumsub-access-token')
-  async getSumsubAccessToken(@Req() req): Promise<{ token: string }> {
-    const createAccountToken = await this.authService.validateBearerToken(
-      req.headers,
-      TokenTypeEnum.CreateAccount,
-    );
-
-    const accessToken = await this.authService.getSumsubAccessToken(createAccountToken.userId);
-
-    return { token: accessToken };
   }
 }

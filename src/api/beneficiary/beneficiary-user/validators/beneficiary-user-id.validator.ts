@@ -1,11 +1,12 @@
 import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
+import { AddBeneficiaryUserDto } from '../dto/add-beneficiary-user.dto';
 
 export function BeneficiaryUserIdValidator(
   minLength: number,
   maxLength: number,
   validationOptions?: ValidationOptions,
 ) {
-  return function (object: number, propertyName: string) {
+  return function (object: AddBeneficiaryUserDto, propertyName: string) {
     registerDecorator({
       name: 'BeneficiaryUserIdValidator',
       target: object.constructor,

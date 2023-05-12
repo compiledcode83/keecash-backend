@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class ConfirmEmailverificationCodeForForgetPasswordResponseDto {
   @ApiProperty({
@@ -8,5 +8,14 @@ export class ConfirmEmailverificationCodeForForgetPasswordResponseDto {
     description: 'Reset password token',
   })
   @IsString()
+  @IsOptional()
   resetPasswordToken: string;
+
+  @ApiProperty({
+    example: true,
+    required: true,
+    description: 'Email code is confirmed',
+  })
+  @IsBoolean()
+  isConfirmed: boolean;
 }
