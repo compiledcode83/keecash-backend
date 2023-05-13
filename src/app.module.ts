@@ -15,6 +15,7 @@ import { PublicSubModule } from '@api/public.sub.module';
 import bridgecardConfig from '@config/bridgecard.config';
 import twilioConfig from '@config/twilio.config';
 import sumsubConfig from '@config/sumsub.config';
+import coinlayerConfig from '@config/coinlayer.config';
 
 EnvHelper.verifyNodeEnv();
 
@@ -32,6 +33,7 @@ EnvHelper.verifyNodeEnv();
         bridgecardConfig,
         sumsubConfig,
         twilioConfig,
+        coinlayerConfig,
       ],
       validate: validate,
     }),

@@ -14,6 +14,7 @@ import {
   FiatCurrencyEnum,
   TxTypeEnum,
   TransactionStatusEnum,
+  CryptoCurrencyEnum,
 } from '@api/transaction/transaction.types';
 import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
 import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
@@ -40,6 +41,8 @@ import { GetWalletTransactionsQueryDto } from './dto/get-wallet-transactions.que
 import { ApplyCardTopupDto } from './dto/card-topup-apply.dto';
 import { GetCardWithdrawalSettingDto } from './dto/get-card-withdrawal-setting.dto';
 import { ApplyCardWithdrawalDto } from './dto/card-withdrawal-apply.dto';
+import { AuthService } from '@api/auth/auth.service';
+import { CoinlayerService } from '@api/coinlayer/coinlayer.service';
 
 @Injectable()
 export class CardService {
@@ -53,6 +56,8 @@ export class CardService {
     private readonly beneficiaryService: BeneficiaryService,
     private readonly notificationService: NotificationService,
     private readonly tripleAService: TripleAService,
+    private readonly authService: AuthService,
+    private readonly coinlayerService: CoinlayerService,
     @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
   ) {}
 
@@ -223,7 +228,189 @@ export class CardService {
 
   // -------------- DEPOSIT -------------------
 
+  async getDepositSettings(headers: any) {
+    const { id } = await this.authService.getUserPayload(headers.authorization.split(' ')[1]);
+
+    const walletBalance = await this.transactionService.getWalletBalances(id);
+
+    const exchangeRates = await this.coinlayerService.getExchangeRate();
+
+    //TODO:Take min,max, after_decimal, activation from the DB according to method
+
+    const deposit_methods = [
+      {
+        name: 'Bitcoin',
+        code: 'BTC',
+        exchange_rate: [exchangeRates.EUR.BTC, exchangeRates.USD.BTC],
+        activations: [
+          {
+            //EUR
+            is_active: true,
+            inactive_message: '',
+          },
+          {
+            //USD
+            is_active: true,
+            inactive_message: '',
+          },
+        ],
+        is_checked: false,
+        min: 0,
+        max: 10,
+        after_decimal: 6,
+      },
+      {
+        name: 'Bitcoin Lightning',
+        code: 'BTC_LIGHTNING',
+        exchange_rate: [exchangeRates.EUR.BTC, exchangeRates.USD.BTC],
+        activations: [
+          {
+            //EUR
+            is_active: true,
+            inactive_message: '',
+          },
+          {
+            //USD
+            is_active: true,
+            inactive_message: '',
+          },
+        ],
+        is_checked: false,
+        min: 0,
+        max: 10,
+        after_decimal: 6,
+      },
+      {
+        name: 'Ethereum',
+        code: 'ETH',
+        exchange_rate: [exchangeRates.EUR.ETH, exchangeRates.USD.ETH],
+        activations: [
+          {
+            //EUR
+            is_active: true,
+            inactive_message: '',
+          },
+          {
+            //USD
+            is_active: true,
+            inactive_message: '',
+          },
+        ],
+        is_checked: false,
+        min: 0,
+        max: 140,
+        after_decimal: 4,
+      },
+      {
+        name: 'Tether USD (TRC20)',
+        code: 'USDT_TRC20',
+        exchange_rate: [exchangeRates.EUR.USDT, exchangeRates.USD.USDT],
+        activations: [
+          {
+            //EUR
+            is_active: true,
+            inactive_message: '',
+          },
+          {
+            //USD
+            is_active: true,
+            inactive_message: '',
+          },
+        ],
+        is_checked: 'false',
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+      {
+        name: 'Tether USD (ERC20)',
+        code: 'USDT_ERC20',
+        exchange_rate: [exchangeRates.EUR.USDT, exchangeRates.USD.USDT],
+        activations: [
+          {
+            //EUR
+            is_active: true,
+            inactive_message: '',
+          },
+          {
+            //USD
+            is_active: true,
+            inactive_message: '',
+          },
+        ],
+        is_checked: 'false',
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+      {
+        name: 'USD Coin',
+        code: 'USDC',
+        exchange_rate: [exchangeRates.EUR.USDT, exchangeRates.USD.USDT],
+        activations: [
+          {
+            //EUR
+            is_active: true,
+            inactive_message: '',
+          },
+          {
+            //USD
+            is_active: true,
+            inactive_message: '',
+          },
+        ],
+        is_checked: 'false',
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+      {
+        name: 'Binance Pay',
+        code: 'BINANCE',
+        exchange_rate: [exchangeRates.EUR.USDT, exchangeRates.USD.USDT],
+        activations: [
+          {
+            //EUR
+            is_active: true,
+            inactive_message: '',
+          },
+          {
+            //USD
+            is_active: true,
+            inactive_message: '',
+          },
+        ],
+        is_checked: 'false',
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+    ];
+
+    const keecash_wallets = [
+      {
+        currency: 'EUR',
+        balance: walletBalance.eur,
+        is_checked: true, // the first element always true
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+      {
+        currency: 'USD',
+        balance: walletBalance.usd,
+        is_checked: false,
+        min: 0,
+        max: 100000,
+        after_decimal: 2,
+      },
+    ];
+
+    return { keecash_wallets, deposit_methods };
+  }
+
   async getDepositFee(countryId: number, query: GetDepositFeeDto) {
+    //TODO:Implement the new deposit DB sources here
     const { depositFixedFee, depositPercentFee } =
       await this.countryFeeService.findOneWalletDepositWithdrawalFee({
         countryId,
@@ -232,15 +419,15 @@ export class CardService {
       });
 
     const feesApplied = parseFloat(
-      ((parseFloat(query.fiat_amount) * depositPercentFee) / 100 + depositFixedFee).toFixed(2),
+      ((parseFloat(query.desired_amount) * depositPercentFee) / 100 + depositFixedFee).toFixed(2),
     );
-    const amountAfterFee = parseFloat(query.fiat_amount) + feesApplied;
+    const amountAfterFee = parseFloat(query.desired_amount) + feesApplied;
 
     return {
       fix_fees: depositFixedFee,
       percent_fees: depositPercentFee,
       fees_applied: feesApplied,
-      amount_after_fee: amountAfterFee,
+      total_to_pay: amountAfterFee,
     };
   }
 
@@ -257,12 +444,20 @@ export class CardService {
     );
     const amountAfterFee = body.desired_amount + feesApplied;
 
+    const userProfile = await this.userService.findOneWithProfileAndDocuments(
+      { id: user.id },
+      true,
+      true,
+    );
+
     // Trigger TripleA API
     const res = await this.tripleAService.deposit({
       amount: amountAfterFee,
       currency: body.keecash_wallet,
       email: user.email,
       keecashUserId: user.referralId,
+      crypto: body.deposit_method,
+      user: userProfile,
     });
 
     // Create a deposit transaction

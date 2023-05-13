@@ -1,10 +1,13 @@
 import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@api/transaction/transaction.types';
+import { User } from '@api/user/user.entity';
 
 export interface TripleADepositInterface {
   amount: number;
   currency: FiatCurrencyEnum;
   email: string;
   keecashUserId: string; // Referral ID
+  crypto: CryptoCurrencyEnum;
+  user: User;
   // Webhook data
   // keecashTransactionId: number;
 }

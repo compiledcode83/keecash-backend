@@ -1,6 +1,6 @@
 import { CryptoCurrencyEnum } from '@api/transaction/transaction.types';
 
-//enable to get raw blockchain to use in validation crypto tools below
+//enable to get raw blockchain to use in validation crypto tools
 export const getRawBlockchainForValidation = (blockchain: string | CryptoCurrencyEnum): string => {
   switch (blockchain) {
     case CryptoCurrencyEnum.BTC_LIGHTNING:

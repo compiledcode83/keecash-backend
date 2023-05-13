@@ -21,6 +21,7 @@ import { NotificationModule } from './notification/notification.module';
 import { BridgecardModule } from './bridgecard/bridgecard.module';
 import { TripleAModule } from './triple-a/triple-a.module';
 import { TwilioModule } from './twilio/twilio.module';
+import { CoinlayerModule } from './coinlayer/coinlayer.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { TwilioModule } from './twilio/twilio.module';
     NotificationModule,
     BridgecardModule,
     TwilioModule,
+    CoinlayerModule,
   ],
 })
 export class PublicSubModule {}

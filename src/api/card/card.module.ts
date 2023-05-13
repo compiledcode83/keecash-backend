@@ -19,6 +19,8 @@ import { TopupCardController } from './topup-card.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Card } from './card.entity';
 import { CardSubscriber } from './card.subscriber';
+import { AuthModule } from '@api/auth/auth.module';
+import { CoinlayerModule } from '@api/coinlayer/coinlayer.module';
 
 @Module({
   imports: [
@@ -28,8 +30,10 @@ import { CardSubscriber } from './card.subscriber';
     CountryFeeModule,
     BridgecardModule,
     TripleAModule,
+    AuthModule,
     forwardRef(() => BeneficiaryModule),
     forwardRef(() => UserModule),
+    CoinlayerModule,
   ],
   controllers: [
     CardController,

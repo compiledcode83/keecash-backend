@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { v4 as uuid } from 'uuid';
 import * as qs from 'qs';
-import { FiatCurrencyEnum } from '../transaction/transaction.types';
+import { CryptoCurrencyEnum, FiatCurrencyEnum } from '../transaction/transaction.types';
 import {
   TripleADepositInterface,
   TripleADepositResponseInterface,
@@ -86,8 +86,18 @@ export class TripleAService {
     }
   }
 
+  getDepositCryptoID(symbol: CryptoCurrencyEnum, fiat: FiatCurrencyEnum) {
+    return this.configService.get(`tripleAConfig.tripleA${fiat}${symbol}ID`);
+  }
+
   async deposit(dto: TripleADepositInterface): Promise<TripleADepositResponseInterface> {
     try {
+      const documents = dto.user.documents;
+
+      const moreRecentDocument = dto.user.documents[dto.user.documents.length - 1].imageLink;
+
+      this.logger.debug(moreRecentDocument);
+
       const body = {
         type: 'widget',
         merchant_key: this.tripleAMerchatKey[dto.currency],
@@ -95,8 +105,12 @@ export class TripleAService {
         order_amount: dto.amount,
         payer_id: `keecash+${dto.keecashUserId}`,
         notify_url: `${this.tripleANotifyUrl}/crypto-tx/payment-notifiy-deposit`,
-        success_url: 'https://www.success.io/success.html',
-        cancel_url: 'https://www.failure.io/cancel.html',
+        payer_name: `${dto.user.lastName} ${dto.user.firstName}`,
+        payer_email: dto.email,
+        //TODO: Implement the checking of notify secret in the webhook to avoid against hacker
+        notify_secret: this.configService.get('tripleAConfig.tripleANotifySecret'),
+        payer_address: dto.user.personProfile.country.name,
+        payer_poi: moreRecentDocument,
         webhook_data: {},
       };
 
@@ -116,7 +130,13 @@ export class TripleAService {
         },
       };
 
-      const res = await this.axiosInstance.post('/payment', body, config);
+      const cryptoAccountOnTripleA = this.getDepositCryptoID(dto.crypto, dto.currency);
+
+      const res = await this.axiosInstance.post(
+        `/payment/account/${cryptoAccountOnTripleA}`,
+        body,
+        config,
+      );
 
       return {
         hosted_url: res.data.hosted_url,

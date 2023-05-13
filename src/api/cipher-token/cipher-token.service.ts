@@ -16,6 +16,12 @@ export class CipherTokenService {
     return this.cipherTokenRepository.findOneBy({ ...params });
   }
 
+  async findLastNotExpiredExchangeRate(): Promise<CipherToken> {
+    return this.cipherTokenRepository.findValidToken({
+      type: TokenTypeEnum.ExchangeRateEncoded,
+    });
+  }
+
   async findValidTripleAAccessToken(currency: FiatCurrencyEnum): Promise<CipherToken> {
     return this.cipherTokenRepository.findValidToken({
       type: TokenTypeEnum.TripleAAccessToken,
@@ -109,6 +115,17 @@ export class CipherTokenService {
       token,
       duration,
       type: TokenTypeEnum.SumsubAccessToken,
+    });
+  }
+
+  async generateExchangeRateEncoded(
+    exchangeRateEncoded: string,
+    duration: number,
+  ): Promise<CipherToken> {
+    return this.cipherTokenRepository.generateToken({
+      exchangeRateEncoded,
+      duration,
+      type: TokenTypeEnum.ExchangeRateEncoded,
     });
   }
 
