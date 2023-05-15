@@ -1,17 +1,23 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
-  Param,
   Patch,
   Post,
   Query,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { FiatCurrencyEnum } from '@app/common';
+import {
+  FiatCurrencyEnum,
+  ParamToBodyInterceptor,
+  RequestToBodyInterceptor,
+  RequestToQueryInterceptor,
+} from '@app/common';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from '@api/card/card.service';
 import { KeecashService } from './keecash.service';
@@ -21,6 +27,8 @@ import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
 import { GetCreateCardTotalFeeDto } from './dto/get-create-card-total-fee.dto';
 import { CreateCardDto } from './dto/create-card.dto';
 
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller()
 export class CardController {
   constructor(
@@ -30,24 +38,24 @@ export class CardController {
 
   @ApiOperation({ description: 'Get dashboard items' })
   @ApiTags('Dashboard')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor, new RequestToQueryInterceptor('user', 'user'))
   @Get('get-dashboard-items')
-  async getDashboardItems(
-    @Req() req,
-  ): Promise<{ wallets: object; recommended: FiatCurrencyEnum; transactions: object }> {
-    const dashboardItems = await this.keecashService.getDashboardItemsByUserId(req.user.id);
+  async getDashboardItems(@Query('user') user): Promise<{
+    wallets: object;
+    recommended: FiatCurrencyEnum;
+    transactions: object;
+  }> {
+    const dashboardItems = await this.keecashService.getDashboardItemsByUserUuid(user.uuid);
 
     return dashboardItems;
   }
 
   @ApiOperation({ description: 'Get my cards' })
   @ApiTags('Card Management')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor, new RequestToQueryInterceptor('user', 'user'))
   @Get('get-my-cards')
-  async getCards(@Req() req): Promise<GetCardsResponseDto> {
-    const cards = await this.keecashService.getCardListByUserId(req.user.id);
+  async getCards(@Query('user') user): Promise<GetCardsResponseDto> {
+    const cards = await this.keecashService.getCardListByUserUuid(user.uuid);
 
     return {
       isSuccess: true,
@@ -58,11 +66,14 @@ export class CardController {
   @ApiOperation({ description: 'Block my cards' })
   @ApiParam({ name: 'card_id', required: true, description: 'Bridgecard ID' })
   @ApiTags('Card Management')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    ClassSerializerInterceptor,
+    new RequestToBodyInterceptor('user', 'user'),
+    new ParamToBodyInterceptor('card_id', 'cardId'),
+  )
   @Patch('card/block/:card_id')
-  async blockCard(@Req() req, @Param() param: ManageCardDto) {
-    await this.keecashService.blockCard(req.user.id, param.card_id);
+  async blockCard(@Body() body: ManageCardDto) {
+    await this.keecashService.blockCard(body.user.uuid, body.cardId);
 
     return { isSuccess: true };
   }
@@ -70,11 +81,14 @@ export class CardController {
   @ApiOperation({ description: 'Unlock my cards' })
   @ApiParam({ name: 'card_id', required: true, description: 'Bridgecard ID' })
   @ApiTags('Card Management')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    ClassSerializerInterceptor,
+    new RequestToBodyInterceptor('user', 'user'),
+    new ParamToBodyInterceptor('card_id', 'cardId'),
+  )
   @Patch('card/unlock/:card_id')
-  async unlockCard(@Req() req, @Param() param: ManageCardDto) {
-    await this.keecashService.unlockCard(req.user.id, param.card_id);
+  async unlockCard(@Body() body: ManageCardDto) {
+    await this.keecashService.unlockCard(body.user.uuid, body.cardId);
 
     return { isSuccess: true };
   }
@@ -82,38 +96,37 @@ export class CardController {
   @ApiOperation({ description: 'Remove all my cards' })
   @ApiParam({ name: 'card_id', required: true, description: 'Bridgecard ID' })
   @ApiTags('Card Management')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Delete('card/remove/my-card')
-  async removeMyCard(@Req() req, @Param() param: ManageCardDto) {
-    await this.cardService.delete({ userId: req.user.id, bridgecardId: param.card_id });
+  @UseInterceptors(
+    ClassSerializerInterceptor,
+    new RequestToBodyInterceptor('user', 'user'),
+    new ParamToBodyInterceptor('card_id', 'cardId'),
+  )
+  @Delete('card/remove/:card_id')
+  async removeMyCard(@Body() body: ManageCardDto) {
+    await this.keecashService.removeCard(body.user.uuid, body.cardId);
 
     return { isSuccess: true };
   }
 
   @ApiOperation({ description: 'Get create card settings' })
   @ApiTags('Create Card')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('card/create-cardget-settings')
-  async getCreateCardSettings(@Req() req, @Query() query: GetCreateCardSettingsDto) {
-    return this.keecashService.getCreateCardSettings(req.user.countryId, query.currency);
+  @UseInterceptors(ClassSerializerInterceptor, new RequestToQueryInterceptor('user', 'user'))
+  @Get('card/create-card/get-settings')
+  async getCreateCardSettings(@Query() query: GetCreateCardSettingsDto) {
+    return this.keecashService.getCreateCardSettings(query.user.countryId, query.currency);
   }
 
   @ApiOperation({ description: 'Get fees while creating card' })
   @ApiTags('Create Card')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('card/create-cardget-fees-applied-total-to-pay')
-  async getFeesAppliedTotalToPay(@Req() req, @Query() query: GetCreateCardTotalFeeDto) {
-    return this.keecashService.getFeesAppliedTotalToPay(req.user.id, query);
+  @UseInterceptors(ClassSerializerInterceptor, new RequestToQueryInterceptor('user', 'user'))
+  @Get('card/create-card/get-fees-applied-total-to-pay')
+  async getFeesAppliedTotalToPay(@Query() query: GetCreateCardTotalFeeDto) {
+    return this.keecashService.getFeesAppliedTotalToPay(query.user.uuid, query);
   }
 
   @ApiOperation({ description: 'Create card' })
   @ApiTags('Create Card')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post('card/create-cardapply')
+  @Post('card/create-card-apply')
   async applyCreateCard(@Req() req, @Body() body: CreateCardDto) {
     return this.keecashService.createCard(req.user.id, req.user.countryId, body);
   }

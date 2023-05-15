@@ -19,13 +19,13 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { CookieToBodyInterceptor, ApiResponseHelper } from '@app/common';
 import { CipherTokenService, TokenTypeEnum } from '@app/cipher-token';
 import { User, UserStatus } from '@app/user';
-import { AuthService } from './auth.service';
 import { UserService } from '@api/user/user.service';
+import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { ConfirmEmailVerificationCodeDto } from './dto/confirm-email-verification.dto';
-import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
+import { SendPhoneVerificationCodeDto } from './dto/send-phone-verification.dto';
 import { ConfirmPhoneNumberVerificationCodeDto } from './dto/confirm-phone-verification.dto';
 import { ConfirmEmailVerificationCodeForAdminDto } from './dto/confirm-email-verification-for-admin.dto';
 import { SendEmailVerificationCodeDto } from './dto/send-email-verification.dto';
@@ -58,8 +58,6 @@ export class AuthController {
       ipAddress: ip,
       userAgent: req.headers['user-agent'],
     });
-
-    await this.authService.sendEmailOtp(user.id);
 
     return {
       isCreated: true,
@@ -107,14 +105,6 @@ export class AuthController {
           ipAddress: ip,
         });
         token = refreshToken;
-
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
-          secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
-          maxAge:
-            this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
-          domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
-        });
 
         break;
 
@@ -173,7 +163,7 @@ export class AuthController {
       TokenTypeEnum.CreateAccount,
     );
 
-    await this.authService.sendEmailOtp(token.userId);
+    await this.authService.sendEmailVerificationCode(token.userId);
 
     return {
       isSent: true,
@@ -192,11 +182,7 @@ export class AuthController {
       TokenTypeEnum.CreateAccount,
     );
 
-    const res = await this.authService.confirmEmailOtp(token.userId, body.code);
-
-    if (!res) {
-      throw new BadRequestException('Email verification failed');
-    }
+    await this.authService.confirmEmailVerificationCode(token.userId, body.code);
 
     return {
       isConfirmed: true,
@@ -208,18 +194,14 @@ export class AuthController {
   @Post('send-phone-verification-code')
   async sendPhoneVerificationCode(
     @Req() req,
-    @Body() body: SendPhoneNumberVerificationCodeDto,
+    @Body() body: SendPhoneVerificationCodeDto,
   ): Promise<any> {
     const token = await this.authService.validateBearerToken(
       req.headers,
       TokenTypeEnum.CreateAccount,
     );
 
-    const res = await this.authService.sendPhoneOtp(token.userId, body);
-
-    if (!res) {
-      return { isSent: false };
-    }
+    await this.authService.sendPhoneVerificationCode(token.userId, body);
 
     return {
       isSent: true,
@@ -238,7 +220,7 @@ export class AuthController {
       TokenTypeEnum.CreateAccount,
     );
 
-    const res = await this.authService.confirmPhoneOtp(token.userId, body.code);
+    const res = await this.authService.confirmPhoneVerificationCode(token.userId, body.code);
 
     if (!res) {
       throw new BadRequestException('Phone number verification failed');
@@ -294,13 +276,6 @@ export class AuthController {
       req.headers['user-agent'],
       ipAddress,
     );
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: this.configService.get('jwtConfig.refreshTokenCookieHttpOnly'),
-      secure: this.configService.get('jwtConfig.refreshTokenCookieSecure'),
-      maxAge: this.configService.get('jwtConfig.refreshTokenDurationDays') * 1000 * 60 * 60 * 24,
-      domain: this.configService.get('jwtConfig.refreshTokenCookieDomain'),
-    });
 
     return {
       isConfirm: true,
@@ -374,7 +349,7 @@ export class AuthController {
   async sendEmailVerificationCodeForForgotPassword(
     @Body() body: SendEmailVerificationCodeDto,
   ): Promise<any> {
-    await this.authService.sendEmailOtpForForgotPassword(body.email);
+    await this.authService.sendEmailVerificationCodeForForgotPassword(body.email);
 
     return {
       isSent: true,

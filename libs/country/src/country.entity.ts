@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, JoinColumn, OneToOne } from 'typeorm';
 import { CountryActivation } from '@app/country-activation/country-activation.entity';
-import { PersonProfile } from '@app/person-profile/person-profile.entity';
+import { User } from '@app/user';
 
 @Entity('country')
 export class Country {
@@ -25,7 +25,7 @@ export class Country {
   @OneToOne(() => CountryActivation, (activation) => activation.country, { cascade: true })
   activation: CountryActivation;
 
-  @OneToMany(() => PersonProfile, (personProfile) => personProfile.country)
+  @OneToMany(() => User, (user) => user.country)
   @JoinColumn({ name: 'id', referencedColumnName: 'country_id' })
-  personProfile: PersonProfile[];
+  user: User[];
 }

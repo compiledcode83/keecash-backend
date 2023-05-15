@@ -24,5 +24,5 @@ export enum VerificationStatus {
 
 export enum UserEventPattern {
   UserCreate = 'user.create',
-  UserCreateReply = 'user.create.reply',
+  UserComplete = 'user.complete',
 }

@@ -12,7 +12,7 @@ export class TransactionRepository extends CommonRepository {
   async findManyByFilter(
     userId: number,
     currency: FiatCurrencyEnum = null,
-    query: GetWalletTransactionsQueryDto,
+    query: Partial<GetWalletTransactionsQueryDto>,
   ): Promise<Transaction[]> {
     const queryBuilder = this.createQueryBuilder('transaction')
       .select()

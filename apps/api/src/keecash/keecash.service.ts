@@ -54,7 +54,13 @@ export class KeecashService {
 
   // -------------- MANAGE CARD -------------------
 
-  async getDashboardItemsByUserId(userId: number): Promise<any> {
+  async getDashboardItemsByUserUuid(userUuid: string): Promise<any> {
+    const {
+      id: userId,
+      cardholderId,
+      cardholderVerified,
+    } = await this.userService.findByUuid(userUuid);
+
     const walletBalance = await this.transactionService.getWalletBalances(userId);
 
     const transactions = await this.transactionService
@@ -68,8 +74,6 @@ export class KeecashService {
           type: tx.affectedAmount > 0 ? 'income' : 'outgoing',
         })),
       );
-
-    const { cardholderId, cardholderVerified } = await this.userService.findOne({ id: userId });
 
     let eurCards = [];
     let usdCards = [];
@@ -122,8 +126,8 @@ export class KeecashService {
     };
   }
 
-  async getCardListByUserId(userId: number): Promise<any> {
-    const { cardholderId } = await this.userService.findOne({ id: userId });
+  async getCardListByUserUuid(userUuid: string): Promise<any> {
+    const { cardholderId } = await this.userService.findByUuid(userUuid);
 
     const cards = await this.bridgecardService.getAllCardholderCards(cardholderId);
 
@@ -172,7 +176,9 @@ export class KeecashService {
     return result;
   }
 
-  async blockCard(userId: number, cardId: string): Promise<void> {
+  async blockCard(userUuid: string, cardId: string): Promise<void> {
+    const { id: userId } = await this.userService.findByUuid(userUuid);
+
     const card = this.cardService.findOne({ userId, bridgecardId: cardId });
 
     if (!card) {
@@ -182,7 +188,9 @@ export class KeecashService {
     await this.bridgecardService.freezeCard(cardId);
   }
 
-  async unlockCard(userId: number, cardId: string): Promise<void> {
+  async unlockCard(userUuid: string, cardId: string): Promise<void> {
+    const { id: userId } = await this.userService.findByUuid(userUuid);
+
     const card = this.cardService.findOne({ userId, bridgecardId: cardId });
 
     if (!card) {
@@ -190,6 +198,12 @@ export class KeecashService {
     }
 
     await this.bridgecardService.unfreezeCard(cardId);
+  }
+
+  async removeCard(userUuid: string, cardId: string): Promise<void> {
+    const { id: userId } = await this.userService.findByUuid(userUuid);
+
+    await this.cardService.delete({ userId, bridgecardId: cardId });
   }
 
   // -------------- DEPOSIT -------------------
@@ -215,9 +229,16 @@ export class KeecashService {
   }
 
   async getDepositPaymentLink(user: UserAccessTokenInterface, body: DepositPaymentLinkDto) {
+    const {
+      id: userId,
+      countryId,
+      email,
+      referralId,
+    } = await this.userService.findByUuid(user.uuid);
+
     // Calculate fees
     const { fixedFee, percentFee } = await this.pricingService.findWalletDepositFee({
-      countryId: user.countryId,
+      countryId: countryId,
       currency: body.keecash_wallet,
       method: body.deposit_method,
     });
@@ -230,13 +251,13 @@ export class KeecashService {
     const res = await this.tripleAService.deposit({
       amount: amountAfterFee,
       currency: body.keecash_wallet,
-      email: user.email,
-      keecashUserId: user.referralId,
+      email: email,
+      keecashUserId: referralId,
     });
 
     // Create a deposit transaction
     await this.transactionService.create({
-      userId: user.id,
+      userId,
       currency: body.keecash_wallet,
       affectedAmount: body.desired_amount,
       appliedFee: feesApplied,
@@ -253,7 +274,7 @@ export class KeecashService {
     // TODO: Add to Redis/BullMQ message queue asynchronously
     // Create a notification for the transaction
     await this.notificationService.create({
-      userId: user.id,
+      userId,
       type: NotificationType.Deposit,
       amount: body.desired_amount,
       currency: body.keecash_wallet,
@@ -285,9 +306,11 @@ export class KeecashService {
   }
 
   async applyWithdrawal(user: UserAccessTokenInterface, body: WithdrawalApplyDto) {
+    const { id: userId } = await this.userService.findByUuid(user.uuid);
+
     // Check if user has enough balance
     const { balance } = await this.transactionService.getBalanceArrayByCurrency(
-      user.id,
+      userId,
       body.keecash_wallet,
     );
     if (balance < body.target_amount) {
@@ -297,7 +320,7 @@ export class KeecashService {
     // Add beneficiary user wallet
     if (body.to_save_as_beneficiary) {
       await this.beneficiaryService.createBeneficiaryWallet({
-        userId: user.id,
+        userId,
         address: body.wallet_address,
         name: body.wallet_name,
         type: body.withdrawal_method,
@@ -327,7 +350,7 @@ export class KeecashService {
 
     // Create a withdrawal transaction in database
     await this.transactionService.create({
-      userId: user.id,
+      userId,
       currency: body.keecash_wallet,
       affectedAmount: -body.target_amount,
       appliedFee: feesApplied,
@@ -343,7 +366,7 @@ export class KeecashService {
     // TODO: Add to BullMQ
     // Create a notification for the transaction
     await this.notificationService.create({
-      userId: user.id,
+      userId,
       type: NotificationType.Withdrawal,
       amount: body.target_amount,
       currency: body.keecash_wallet,
@@ -450,10 +473,12 @@ export class KeecashService {
   // -------------- HISTORY -------------------
 
   async getWalletTransactions(
-    userId: number,
+    userUuid: string,
     currency: FiatCurrencyEnum,
     query: GetWalletTransactionsQueryDto,
   ) {
+    const { id: userId } = await this.userService.findByUuid(userUuid);
+
     const transactions = await this.transactionService.findManyByFilter(userId, currency, query);
 
     return transactions;
@@ -501,10 +526,8 @@ export class KeecashService {
     };
   }
 
-  async getFeesAppliedTotalToPay(userId: number, query: GetCreateCardTotalFeeDto) {
-    const {
-      personProfile: { countryId },
-    } = await this.userService.findOneWithProfileAndDocuments({ id: userId }, true, false);
+  async getFeesAppliedTotalToPay(userUuid: string, query: GetCreateCardTotalFeeDto) {
+    const { countryId } = await this.userService.findByUuid(userUuid);
 
     const { percentFee, fixedFee } = await this.pricingService.findCardTopupFee({
       countryId,
@@ -607,8 +630,10 @@ export class KeecashService {
   // -------------- CARD TOPUP -------------------
 
   async getCardTopupSettings(user: UserAccessTokenInterface, query: GetCardTopupSettingDto) {
+    const { id: userId } = await this.userService.findByUuid(user.uuid);
+
     const card = await this.cardService.findOne({
-      userId: user.id,
+      userId,
       bridgecardId: query.bridgecardId,
     });
 
@@ -818,11 +843,7 @@ export class KeecashService {
     if (details.status === 'done') {
       const keecashId = details.payer_id.split('+')[1]; // payer_id looks like 'keecash+SV08DV8'
 
-      const receiver = await this.userService.findOneWithProfileAndDocuments(
-        { referralId: keecashId },
-        true,
-        false,
-      );
+      const receiver = await this.userService.findOne({ referralId: keecashId });
 
       // Update IN PROGRESS transaction's status to 'PERFORMED'
       await this.transactionService.update(
@@ -838,7 +859,7 @@ export class KeecashService {
 
       if (referralUser) {
         const { fixedFee, percentFee } = await this.pricingService.findReferralFee({
-          countryId: receiver.personProfile.countryId,
+          countryId: receiver.countryId,
         });
 
         await this.transactionService.create({

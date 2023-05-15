@@ -6,10 +6,8 @@ import { PersonProfileRepository } from './person-profile.repository';
 export class PersonProfileService {
   constructor(private readonly personProfileRepository: PersonProfileRepository) {}
 
-  async create(personProfile: Partial<PersonProfile>): Promise<void> {
-    const personProfileEntity = this.personProfileRepository.create(personProfile);
-
-    await this.personProfileRepository.create(personProfileEntity);
+  async create(personProfile: Partial<PersonProfile>): Promise<PersonProfile> {
+    return this.personProfileRepository.create(personProfile);
   }
 
   async update(id: number, data: Partial<PersonProfile>) {

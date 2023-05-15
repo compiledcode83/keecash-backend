@@ -8,7 +8,7 @@ import {
 import { customAlphabet } from 'nanoid';
 import * as bcrypt from 'bcrypt';
 import * as isoCountries from 'i18n-iso-countries';
-import { CountryService } from '@app/country';
+import { Country, CountryService } from '@app/country';
 import { DocumentService } from '@app/document';
 import { EnterpriseProfileService } from '@app/enterprise-profile';
 import { PersonProfileService } from '@app/person-profile';
@@ -31,7 +31,7 @@ import { TransactionService } from '@api/transaction/transaction.service';
 import { CardService } from '@api/card/card.service';
 import { CreateUserDto } from '@api/auth/dto/create-user.dto';
 import { UserRepository } from './user.repository';
-import { CreatePersonUserDto } from './dto/create-person-user.dto';
+import { UserCompleteMessage } from '@app/user/messages/user-complete.message';
 
 const closure_reasons = require('../../../../libs/closure-reason/src/closure-reasons.json');
 
@@ -85,13 +85,13 @@ export class UserService {
       withDocuments,
     );
 
-    if (withProfile && !user.personProfile) {
-      throw new NotFoundException('Cannot find profile data for this user');
-    }
+    // if (withProfile && !user.personProfile) {
+    //   throw new NotFoundException('Cannot find profile data for this user');
+    // }
 
-    if (withDocuments && !user.documents.length) {
-      throw new NotFoundException('Cannot find any documents for this user');
-    }
+    // if (withDocuments && !user.documents.length) {
+    //   throw new NotFoundException('Cannot find any documents for this user');
+    // }
 
     return user;
   }
@@ -134,7 +134,13 @@ export class UserService {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      const user = await queryRunner.manager.save(this.userRepository.create(body));
+      const user = await queryRunner.manager.save(
+        this.userRepository.create({
+          ...body,
+          password: await bcrypt.hash(body.password, 10),
+          referralId,
+        }),
+      );
       const savedUser = await queryRunner.manager.findOneBy(User, { uuid: user.uuid });
 
       const payload = new UserCreateMessage({
@@ -164,40 +170,6 @@ export class UserService {
     return true;
   }
 
-  async createPersonalUser(body: CreatePersonUserDto) {
-    const referralId = this.generateReferralId();
-    // TODO: Add DB check for referral id duplication.
-
-    const res = await this.userRepository.save({
-      firstName: body.firstName,
-      lastName: body.lastName,
-      referralId,
-      referralAppliedId: body?.referralAppliedId,
-      email: body.email,
-      phoneNumber: body.phoneNumber,
-      language: body.language,
-      type: AccountType.Person,
-      password: await bcrypt.hash(body.password, 10),
-    });
-
-    const savedUser = await this.findOne({ id: res.id });
-
-    await this.personProfileService.create({
-      address1: body.address1,
-      address2: body.address2,
-      city: body.city,
-      user: savedUser,
-    });
-
-    await this.documentService.save({
-      userId: savedUser.id,
-      type: body.documentType,
-      imageLink: body.verificationImageLink,
-    });
-
-    return 'success';
-  }
-
   async setPincode(userId: number, pincode: string): Promise<void> {
     const encryptedPincode = await bcrypt.hash(pincode, 10);
 
@@ -207,39 +179,33 @@ export class UserService {
     );
   }
 
-  async getAccountSettings(userId: number): Promise<any> {
-    const user = await this.userRepository.findOneBy({ id: userId });
+  async getAccountSettings(userUuid: string): Promise<any> {
+    const userWithProfile = await this.findOneWithProfileAndDocuments(
+      { uuid: userUuid },
+      true,
+      false,
+    );
 
-    let countryId;
-
-    switch (user.type) {
-      case AccountType.Person:
-        const personProfile = await this.personProfileService.getByUserId(userId);
-        countryId = personProfile.countryId;
-        break;
-
-      case AccountType.Enterprise:
-        const enterpriseProfile = await this.enterpriseProfileService.getByUserId(userId);
-        countryId = enterpriseProfile.countryId;
-        break;
-    }
-
-    const { countryCode } = await this.countryService.findOne({ id: countryId });
+    const { countryCode } = await this.countryService.findOne({ id: userWithProfile.countryId });
 
     const defaultReasons = closure_reasons;
 
-    if (user.status === UserStatus.Closed) {
-      const reasonIds = await this.closureReasonService.findByUserId(userId);
+    if (userWithProfile.status === UserStatus.Closed) {
+      const reasonIds = await this.closureReasonService.findByUserId(userWithProfile.id);
 
       reasonIds.map((reasonId) => {
         defaultReasons[reasonId - 1].is_checked = true;
       });
     }
 
-    const keecash_wallets = await this.transactionService.getBalanceArrayByCurrency(userId);
+    const keecash_wallets = await this.transactionService.getBalanceArrayByCurrency(
+      userWithProfile.id,
+    );
 
     // Get cards
-    const bridgecards = await this.bridgecardService.getAllCardholderCards(user.cardholderId);
+    const bridgecards = await this.bridgecardService.getAllCardholderCards(
+      userWithProfile.cardholderId,
+    );
     const details = await Promise.all(
       bridgecards.map(async (card) => {
         const balancePromise = this.bridgecardService.getCardBalance(card.card_id);
@@ -283,16 +249,16 @@ export class UserService {
 
     // Format user setting
     const userSetting = {
-      firstname: user.firstName,
-      lastname: user.lastName,
-      url_avatar: user.urlAvatar,
-      email: user.email,
+      firstname: userWithProfile.personProfile.firstName,
+      lastname: userWithProfile.personProfile.lastName,
+      url_avatar: userWithProfile.urlAvatar,
+      email: userWithProfile.email,
       country_code: countryCode,
-      phone_number: user.phoneNumber,
-      account_level: user.type,
+      phone_number: userWithProfile.phoneNumber,
+      account_level: userWithProfile.type,
       list_lang: [
-        { lang: 'fr', is_checked: user.language === Language.French },
-        { lang: 'en', is_checked: user.language === Language.English },
+        { lang: 'fr', is_checked: userWithProfile.language === Language.French },
+        { lang: 'en', is_checked: userWithProfile.language === Language.English },
       ],
       list_reason_to_close_account: defaultReasons,
       keecash_wallets,
@@ -340,87 +306,52 @@ export class UserService {
       info: { country, addresses },
     } = await this.sumsubService.getApplicantData(userUuid);
 
-    const { id: userId, email, phoneNumber } = await this.findOne({ uuid: userUuid });
-
+    // Get country full name from 3-character code
     const countryName = isoCountries.getName(country, 'en', { select: 'alias' });
 
-    const { id: countryId } = await this.countryService.findOne({ name: countryName });
-
+    // TODO: Investigate more about address array of sumsub response data
     const { state, town, street, subStreet, postCode } = addresses[0] || {};
 
-    await this.personProfileService.create({
-      userId,
-      countryId,
-      state,
-      city: town,
-      zipcode: postCode,
-      address1: street,
-      address2: subStreet,
-    });
+    const queryRunner = this.userRepository.dataSource.createQueryRunner();
 
-    await this.userRepository.update(userId, {
-      firstName,
-      lastName,
-      kycStatus: VerificationStatus.Validated,
-      status: UserStatus.Completed,
-    });
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-    // Bridgecard Onboarding
-    const body = {
-      first_name: firstName,
-      last_name: lastName,
-      address: {
-        address: street,
-        city: town,
-        state,
-        country: countryName,
-        postal_code: postCode,
-        house_no: subStreet,
-      },
-      phone: phoneNumber,
-      email_address: email,
-      identity: {
-        id_type: 'UNITED_STATES_DRIVERS_LICENSE', // user.documents[0].type
-        id_no: '',
-        id_image: '',
-        bvn: '',
-      },
-      meta_data: {
-        keecash_user_id: userUuid,
-      },
-    };
-
-    // const body = {
-    //   first_name: 'HOL',
-    //   last_name: 'MAYISSA BOUSSAMBA',
-    //   address: {
-    //     address: 'Libreville',
-    //     city: 'Libreville',
-    //     state: 'Estuaire',
-    //     country: 'Gabon',
-    //     postal_code: '24100',
-    //     house_no: '01',
-    //   },
-    //   phone: '24166283620',
-    //   email_address: 'buy@keecash.com',
-    //   identity: {
-    //     id_type: 'GABON_PASSPORT',
-    //     id_no: '19GA17139',
-    //     id_image:
-    //       'https://firebasestorage.googleapis.com/v0/b/bridgecard-issuing.appspot.com/o/Screenshot%202023-02-16%20at%206.46.36%20PM.png?alt=media&token=d90d7c36-e761-4edf-9abc-c77791af846a',
-    //     selfie_image:
-    //       'https://firebasestorage.googleapis.com/v0/b/keecash-8b2cc.appspot.com/o/users%2FdZ5Ja2yRXcQBjHOnWU2HGXz0Lir1%2Fhol_selfie.jpg?alt=media&token=66426d57-91aa-4196-abde-a799cfb2824b',
-    //   },
-    //   meta_data: { keecash_user_id: 1 },
-    // };
-
-    const res = await this.bridgecardService.registerCardholderAsync(body);
-
-    if (res.status === HttpStatus.CREATED) {
-      await this.userRepository.update(body.meta_data.keecash_user_id, {
-        cardholderId: res.data.data.cardholder_id,
+      const { id: userId } = await queryRunner.manager.findOneBy(User, { uuid: userUuid });
+      const { id: countryId } = await queryRunner.manager.findOneBy(Country, { name: countryName });
+      await queryRunner.manager.save(
+        await this.personProfileService.create({
+          userId,
+          firstName,
+          lastName,
+          state,
+          city: town,
+          zipcode: postCode,
+          address1: street,
+          address2: subStreet,
+        }),
+      );
+      await queryRunner.manager.update(User, userId, {
+        countryId,
+        kycStatus: VerificationStatus.Validated,
         status: UserStatus.Completed,
       });
+      const updatedUser = await queryRunner.manager.findOneBy(User, { uuid: userUuid });
+
+      const payload = new UserCompleteMessage({
+        user: updatedUser,
+      });
+
+      await this.outboxService.create(queryRunner, UserEventPattern.UserComplete, payload);
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
   }
 

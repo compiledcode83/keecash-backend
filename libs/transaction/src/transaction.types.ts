@@ -14,3 +14,7 @@ export enum TransactionStatusEnum {
   Rejected = 'REJECTED',
   Refunded = 'REFUNDED',
 }
+
+export enum TransactionEventPattern {
+  TransactionCreate = 'transaction.create',
+}

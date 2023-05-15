@@ -2,30 +2,31 @@ import * as bcrypt from 'bcrypt';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TwilioService } from '@app/twilio';
 import { CipherTokenService, TokenTypeEnum } from '@app/cipher-token';
-import { CountryService } from '@app/country';
 import { SumsubService } from '@app/sumsub';
-import { UserStatus } from '@app/user';
+import { User } from '@app/user';
 import { UserService } from '@api/user/user.service';
 import { UserAccessTokenInterface } from './auth.type';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { TokensResponseDto } from './dto/tokens-response.dto';
-import { SendPhoneNumberVerificationCodeDto } from './dto/send-phone-verification.dto';
+import { SendPhoneVerificationCodeDto } from './dto/send-phone-verification.dto';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly cipherTokenService: CipherTokenService,
     private readonly sumsubService: SumsubService,
     private readonly twilioService: TwilioService,
-    private readonly countryService: CountryService,
   ) {}
 
   async login(user: any, userAgent: string, ipAddress: string): Promise<TokensResponseDto> {
@@ -52,44 +53,17 @@ export class AuthService {
     };
   }
 
-  async validateUserByPassword(emailOrPhoneNumber, password): Promise<UserAccessTokenInterface> {
+  async validateUserByPassword(emailOrPhoneNumber, password): Promise<User> {
     const user = await this.userService.findOne([
       { email: emailOrPhoneNumber },
       { phoneNumber: emailOrPhoneNumber },
     ]);
-
     if (!user) return null;
 
     const isValidated = await bcrypt.compare(password, user.password);
+    if (!isValidated) return null;
 
-    if (isValidated) {
-      let countryId;
-
-      if (user.status === UserStatus.Completed) {
-        const { personProfile } = await this.userService.findOneWithProfileAndDocuments(
-          { id: user.id },
-          true,
-          false,
-        );
-
-        countryId = personProfile.countryId;
-      }
-
-      return {
-        id: user.id,
-        uuid: user.uuid,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        referralId: user.referralId,
-        email: user.email,
-        status: user.status,
-        type: user.type,
-        pincodeSet: user.pincodeSet,
-        countryId,
-      };
-    }
-
-    return null;
+    return user;
   }
 
   async validateUserByPincode(userId, pincode): Promise<any> {
@@ -101,14 +75,10 @@ export class AuthService {
     const isValidated = await bcrypt.compare(pincode, user.pincode);
 
     if (isValidated) {
-      const {
-        personProfile: { countryId },
-      } = await this.userService.findOneWithProfileAndDocuments({ id: user.id }, true, false);
+      const { countryId } = await this.userService.findOne({ id: user.id });
 
       return {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
         referralId: user.referralId,
         email: user.email,
         status: user.status,
@@ -126,10 +96,7 @@ export class AuthService {
 
   async createAccessToken(user: any): Promise<string> {
     const payload: UserAccessTokenInterface = {
-      id: user.id,
       uuid: user.uuid,
-      firstName: user.firstName,
-      lastName: user.lastName,
       referralId: user.referralId,
       email: user.email,
       status: user.status,
@@ -172,47 +139,49 @@ export class AuthService {
 
   // --------------- OTP Verification -------------------
 
-  async sendEmailOtp(userId: number): Promise<void> {
+  async sendEmailVerificationCode(userId: number): Promise<void> {
     const user = await this.userService.findOne({ id: userId });
 
     if (user.emailValidated) {
       throw new BadRequestException('Email is already validated');
     }
 
-    const res = await this.twilioService.sendEmailVerificationCode(user.email);
-
-    if (!res) {
-      throw new BadRequestException('Cannot send email OTP');
+    try {
+      await this.twilioService.sendEmailVerificationCode(user.email);
+    } catch (err) {
+      this.logger.error(err);
+      throw new BadRequestException('Error occured while sending email verification code');
     }
   }
 
-  async confirmEmailOtp(userId: number, code: string): Promise<boolean> {
+  async confirmEmailVerificationCode(userId: number, code: string): Promise<void> {
     const { email } = await this.userService.findOne({ id: userId });
 
-    const res = await this.twilioService.confirmEmailVerificationCode(email, code);
+    try {
+      await this.twilioService.confirmEmailVerificationCode(email, code);
 
-    if (!res) {
-      throw new BadRequestException('Cannot confirm email verification code');
+      const updatedUser = await this.userService.update(userId, { emailValidated: true });
+
+      if (!updatedUser.affected)
+        throw new Error('Failed to update email verification status in database');
+    } catch (err) {
+      this.logger.error(err);
+      throw new BadRequestException('Failed to confirm email verification code');
     }
-
-    const updatedUser = await this.userService.update({ email }, { emailValidated: true });
-
-    if (updatedUser.affected) return true;
-
-    return false;
   }
 
   async sendEmailVerificationCodeForForgotPincode(userId: number) {
     const { email } = await this.userService.findOne({ id: userId });
 
-    const res = await this.twilioService.sendEmailVerificationCode(email);
-
-    if (!res) {
-      throw new BadRequestException('Failed to send verification code');
+    try {
+      await this.twilioService.sendEmailVerificationCode(email);
+    } catch (err) {
+      this.logger.error(err);
+      throw new BadRequestException('Failed to confirm email verification code');
     }
   }
 
-  async sendEmailOtpForForgotPassword(email: string) {
+  async sendEmailVerificationCodeForForgotPassword(email: string) {
     const user = await this.userService.findOne({ email });
 
     if (!user) {
@@ -236,7 +205,10 @@ export class AuthService {
     }
   }
 
-  async sendPhoneOtp(userId: number, body: SendPhoneNumberVerificationCodeDto): Promise<boolean> {
+  async sendPhoneVerificationCode(
+    userId: number,
+    body: SendPhoneVerificationCodeDto,
+  ): Promise<void> {
     const user = await this.userService.findOne({ id: userId });
 
     if (!user.emailValidated) {
@@ -247,26 +219,21 @@ export class AuthService {
       throw new BadRequestException('Phone number is already validated');
     }
 
-    const country = await this.countryService.findOne({ name: body.country });
+    // const country = await this.countryService.findOne({ name: body.country });
+    // if (!body.phoneNumber.startsWith(country.phoneCode)) {
+    //   throw new BadRequestException('Phone number format is incorrect');
+    // }
 
-    if (!body.phoneNumber.startsWith(country.phoneCode)) {
-      throw new BadRequestException('Phone number format is incorrect');
+    try {
+      await this.twilioService.sendPhoneVerificationCode(body.phoneNumber);
+    } catch (err) {
+      throw new BadRequestException('Failed to send phone verification code');
     }
 
-    const res = await this.twilioService.sendPhoneVerificationCode(body.phoneNumber);
-
-    if (!res) {
-      throw new BadRequestException('Cannot send phone OTP');
-    }
-
-    const updatedUser = await this.userService.update(userId, { phoneNumber: body.phoneNumber });
-
-    if (updatedUser.affected) return true;
-
-    return false;
+    await this.userService.update(userId, { phoneNumber: body.phoneNumber });
   }
 
-  async confirmPhoneOtp(userId: number, code: string): Promise<boolean> {
+  async confirmPhoneVerificationCode(userId: number, code: string): Promise<boolean> {
     const user = await this.userService.findOne({ id: userId });
 
     const res = await this.twilioService.confirmPhoneVerificationCode(user.phoneNumber, code);

@@ -1,4 +1,5 @@
 import {
+  ClassSerializerInterceptor,
   Controller,
   Get,
   NotFoundException,
@@ -7,18 +8,26 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BridgecardService } from '@app/bridgecard';
-import { FiatCurrencyEnum } from '@app/common';
+import {
+  ApiResponseHelper,
+  FiatCurrencyEnum,
+  ParamToQueryInterceptor,
+  RequestToQueryInterceptor,
+} from '@app/common';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { CardService } from '@api/card/card.service';
 import { KeecashService } from './keecash.service';
 import { GetCardHistoryFilterDto } from './dto/get-card-history-filter.dto';
 import { GetWalletTransactionsQueryDto } from './dto/get-wallet-transactions.query.dto';
-import { GetWalletTransactionsParamDto } from './dto/get-wallet-transactions.param.dto';
-import { ManageCardDto } from './dto/manage-card.dto';
 
+@ApiTags('Transaction History')
+@ApiResponse(ApiResponseHelper.unauthorized())
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('history')
 export class HistoryController {
   constructor(
@@ -29,24 +38,19 @@ export class HistoryController {
 
   @ApiOperation({ description: 'Get Keecash wallet transactions by currency' })
   @ApiParam({ name: 'currency', required: true, description: 'Currency of wallet' })
-  @ApiTags('Transaction History')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    ClassSerializerInterceptor,
+    new RequestToQueryInterceptor('user', 'user'),
+    new ParamToQueryInterceptor('currency', 'currency'),
+  )
   @Get('wallet/:currency')
-  async getWalletTransactions(
-    @Req() req,
-    @Param() param: GetWalletTransactionsParamDto,
-    @Query() query: GetWalletTransactionsQueryDto,
-  ) {
-    return this.keecashService.getWalletTransactions(req.user.id, param.currency, query);
+  async getWalletTransactions(@Query() query: GetWalletTransactionsQueryDto) {
+    return this.keecashService.getWalletTransactions(query.user.uuid, query.currency, query);
   }
 
   @ApiOperation({ description: '' })
   @ApiParam({ name: 'currency', required: true, description: 'Currency of wallet' })
   @ApiParam({ name: 'reference', required: true, description: 'Reference' })
-  @ApiTags('Transaction History')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get('wallet/:currency/transactions/:reference/invoice')
   async getWalletTransactionInvoice(
     @Req() req,
@@ -62,9 +66,6 @@ export class HistoryController {
   @ApiOperation({ description: 'Get card transaction invoices' })
   @ApiParam({ name: 'card_id', required: true, description: 'Card ID' })
   @ApiParam({ name: 'reference', required: true, description: 'Reference' })
-  @ApiTags('Transaction History')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get('card/:card_id/transactions/:reference/invoice')
   async getCardInvoice(@Param() param) {
     const result = {
@@ -76,26 +77,24 @@ export class HistoryController {
 
   @ApiOperation({ description: 'Get card transactions' })
   @ApiParam({ name: 'card_id', required: true, description: 'Card ID' })
-  @ApiTags('Transaction History')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    ClassSerializerInterceptor,
+    new RequestToQueryInterceptor('user', 'user'),
+    new ParamToQueryInterceptor('card_id', 'cardId'),
+  )
   @Get('card/:card_id')
-  async getCardTransactions(
-    @Req() req,
-    @Param() param: ManageCardDto,
-    @Query() query: GetCardHistoryFilterDto,
-  ) {
-    const card = await this.cardService.findOne({ bridgecardId: param.card_id });
+  async getCardTransactions(@Query() query: GetCardHistoryFilterDto) {
+    const card = await this.cardService.findOne({ bridgecardId: query.cardId });
 
     if (!card) {
-      throw new NotFoundException(`Cannot find the card: ${param.card_id}`);
+      throw new NotFoundException(`Cannot find the card: ${query.cardId}`);
     }
 
-    if (card.userId !== req.user.id) {
-      throw new UnauthorizedException(`Request sender is not the owner of card: ${param.card_id}`);
+    if (card.user.uuid !== query.user.uuid) {
+      throw new UnauthorizedException(`Request sender is not the owner of card: ${query.cardId}`);
     }
 
-    const transactions = await this.bridgecardService.getCardTransactions(param.card_id);
+    const transactions = await this.bridgecardService.getCardTransactions(query.cardId);
 
     return transactions;
   }

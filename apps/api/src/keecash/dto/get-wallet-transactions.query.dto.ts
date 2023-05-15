@@ -1,7 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumberString, IsOptional, Validate, ValidateIf } from 'class-validator';
-import { CryptoCurrencyEnum, DateValidator } from '@app/common';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  Validate,
+  ValidateIf,
+} from 'class-validator';
+import { CryptoCurrencyEnum, DateValidator, FiatCurrencyEnum } from '@app/common';
 import { TransactionTypeEnum } from '@app/transaction';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
 
 export class GetWalletTransactionsQueryDto {
   @ApiProperty({ description: 'From amount', example: '50', required: false })
@@ -43,4 +51,10 @@ export class GetWalletTransactionsQueryDto {
   @ApiProperty({ description: 'Array of cryptoTypes', example: ['BTC', 'USDT'], required: false })
   @IsOptional()
   cryptoTypes?: CryptoCurrencyEnum[];
+
+  @IsNotEmpty()
+  user: UserAccessTokenInterface;
+
+  @IsEnum(FiatCurrencyEnum)
+  currency: FiatCurrencyEnum;
 }

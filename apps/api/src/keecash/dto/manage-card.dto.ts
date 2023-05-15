@@ -1,8 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
 
 export class ManageCardDto {
-  @ApiProperty({ example: '70b34986c13c4026a9c160eabc49', description: 'Card ID' })
+  @IsNotEmpty()
+  user: UserAccessTokenInterface;
+
   @IsString()
-  card_id: string;
+  cardId: string;
 }

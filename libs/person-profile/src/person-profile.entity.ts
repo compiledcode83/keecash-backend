@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
 import { User } from '@app/user/user.entity';
-import { Country } from '@app/country/country.entity';
 
 @Entity('person_profile')
 export class PersonProfile {
@@ -11,6 +10,14 @@ export class PersonProfile {
   @ApiProperty({ description: 'User Id', maximum: 64, required: true })
   @Column({ type: 'int', nullable: true })
   userId: number;
+
+  @ApiProperty({ description: 'First name', maximum: 128, required: true })
+  @Column({ type: 'varchar', nullable: true, length: 128 })
+  firstName: string;
+
+  @ApiProperty({ description: 'Last name', maximum: 128, required: true })
+  @Column({ type: 'varchar', nullable: true, length: 128 })
+  lastName: string;
 
   @ApiProperty({ description: 'Address 1', maximum: 64, required: true })
   @Column({ type: 'varchar', nullable: false, length: 64 })
@@ -32,14 +39,7 @@ export class PersonProfile {
   @Column({ type: 'varchar', nullable: true, length: 64 })
   state: string;
 
-  @ApiProperty({ description: 'Country Id', maximum: 64, required: true })
-  @Column({ type: 'int', nullable: true })
-  countryId: number;
-
   @OneToOne(() => User)
   @JoinColumn()
   user: User;
-
-  @ManyToOne(() => Country, (country) => country.personProfile)
-  country: Country;
 }

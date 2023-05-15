@@ -15,7 +15,7 @@ export class TransactionService {
   async findManyByFilter(
     userId: number,
     currency: FiatCurrencyEnum = null,
-    query: GetWalletTransactionsQueryDto,
+    query: Partial<GetWalletTransactionsQueryDto>,
   ) {
     return this.transactionRepository.findManyByFilter(userId, currency, query);
   }

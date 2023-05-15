@@ -15,18 +15,12 @@ export class TwilioService {
   }
 
   async sendPhoneVerificationCode(phoneNumber: string): Promise<boolean> {
-    try {
-      const res = await this.twilioClient.verify
-        .services(this.serviceId)
-        .verifications.create({ to: phoneNumber, channel: SMSCHANNEL });
+    const res = await this.twilioClient.verify
+      .services(this.serviceId)
+      .verifications.create({ to: phoneNumber, channel: SMSCHANNEL });
 
-      if (res.status === 'pending') return true;
-      else return false;
-    } catch (error) {
-      this.logger.error('Cannot send phone verification code');
-
-      return false;
-    }
+    if (res.status === 'pending') return true;
+    else return false;
   }
 
   async confirmPhoneVerificationCode(phoneNumber: string, code: string): Promise<boolean> {
@@ -45,18 +39,12 @@ export class TwilioService {
   }
 
   async sendEmailVerificationCode(email: string): Promise<boolean> {
-    try {
-      const res = await this.twilioClient.verify
-        .services(this.serviceId)
-        .verifications.create({ to: email, channel: EMAILCHANNEL });
+    const res = await this.twilioClient.verify
+      .services(this.serviceId)
+      .verifications.create({ to: email, channel: EMAILCHANNEL });
 
-      if (res.status === 'pending') return true;
-      else return false;
-    } catch (error) {
-      this.logger.error('Cannot send email verification code');
-
-      return false;
-    }
+    if (res.status === 'pending') return true;
+    else return false;
   }
 
   async confirmEmailVerificationCode(email: string, code: string): Promise<boolean> {

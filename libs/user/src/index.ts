@@ -5,3 +5,4 @@ export * from './user.service';
 export * from './user.subscriber';
 export * from './user.types';
 export * from './messages/user-create.message';
+export * from './messages/user-complete.message';

@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { User } from '@app/user';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
 
 export class GetCardHistoryFilterDto {
   @ApiProperty({ example: 'card_name', required: false })
@@ -33,4 +35,10 @@ export class GetCardHistoryFilterDto {
   @ApiProperty({ example: 1000, required: false })
   @IsOptional()
   range_amount_max: string;
+
+  @IsNotEmpty()
+  user: UserAccessTokenInterface;
+
+  @IsString()
+  cardId: string;
 }

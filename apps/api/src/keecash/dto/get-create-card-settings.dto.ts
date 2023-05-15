@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 import { FiatCurrencyEnum } from '@app/common';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
 
 export class GetCreateCardSettingsDto {
   @ApiProperty({
@@ -10,4 +11,7 @@ export class GetCreateCardSettingsDto {
   })
   @IsEnum(FiatCurrencyEnum)
   currency: FiatCurrencyEnum;
+
+  @IsNotEmpty()
+  user: UserAccessTokenInterface;
 }

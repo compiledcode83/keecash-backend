@@ -10,6 +10,10 @@ export class Transaction {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
+  @ApiProperty({ description: 'Unique uid', maximum: 36 })
+  @Column({ type: 'varchar', nullable: false, length: 36 })
+  uuid: string;
+
   @ApiProperty({ description: 'User ID', maximum: 64, required: false })
   @Column({ type: 'int', nullable: true })
   userId: number;

@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AppBootstrapManager } from './app-bootstrap.manager';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,7 +13,7 @@ async function bootstrap() {
     .setDescription('API Gateway documentation')
     .setVersion('1.0')
     .addBearerAuth()
-    .addServer('/api/v1')
+    .addServer('')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -21,6 +21,6 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  await app.listen(process.env.PORT || 3006);
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();

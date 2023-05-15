@@ -24,6 +24,6 @@ export class Outbox {
   @Column({ type: 'timestamp', nullable: true })
   sentAt: Date;
 
-  @Column({ type: 'enum', nullable: false, enum: OutboxStatus })
+  @Column({ type: 'enum', nullable: false, enum: OutboxStatus, default: OutboxStatus.Created })
   status: OutboxStatus;
 }

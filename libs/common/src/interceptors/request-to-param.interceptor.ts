@@ -3,7 +3,10 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class RequestToParamInterceptor implements NestInterceptor {
-  constructor(private readonly requestAttributeName: string, private readonly paramAttributeName: string) {}
+  constructor(
+    private readonly requestAttributeName: string,
+    private readonly paramAttributeName: string,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();

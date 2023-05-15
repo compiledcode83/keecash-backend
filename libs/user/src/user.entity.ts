@@ -8,16 +8,18 @@ import {
   OneToMany,
   JoinColumn,
   OneToOne,
+  ManyToOne,
 } from 'typeorm';
-import { PersonProfile } from '@app/person-profile/person-profile.entity';
-import { Document } from '@app/document/document.entity';
-import { EnterpriseProfile } from '@app/enterprise-profile/enterprise-profile.entity';
-import { BeneficiaryUser } from '@app/beneficiary-user/beneficiary-user.entity';
+import { Country } from '@app/country';
+import { PersonProfile } from '@app/person-profile';
+import { Document } from '@app/document';
+import { EnterpriseProfile } from '@app/enterprise-profile';
+import { BeneficiaryUser } from '@app/beneficiary-user';
+import { BeneficiaryWallet } from '@app/beneficiary-wallet';
+import { Card } from '@app/card';
+import { Transaction } from '@app/transaction';
+import { UserClosureReason } from '@app/closure-reason';
 import { AccountType, Language, UserStatus, VerificationStatus } from './user.types';
-import { BeneficiaryWallet } from '@app/beneficiary-wallet/beneficiary-wallet.entity';
-import { Card } from '@app/card/card.entity';
-import { Transaction } from '@app/transaction/transaction.entity';
-import { UserClosureReason } from '@app/closure-reason/user-closure-reason.entity';
 
 @Entity('user')
 export class User {
@@ -28,14 +30,6 @@ export class User {
   @ApiProperty({ description: 'Unique uid', maximum: 36 })
   @Column({ type: 'varchar', nullable: false, length: 36 })
   uuid: string;
-
-  @ApiProperty({ description: 'First name', maximum: 128, required: true })
-  @Column({ type: 'varchar', nullable: true, length: 128 })
-  firstName: string;
-
-  @ApiProperty({ description: 'Last name', maximum: 128, required: true })
-  @Column({ type: 'varchar', nullable: true, length: 128 })
-  lastName: string;
 
   @ApiProperty({ description: 'Referral id', maximum: 8, required: true })
   @Column({ type: 'varchar', nullable: false, length: 8 })
@@ -64,6 +58,10 @@ export class User {
   @ApiProperty({ description: 'Avatar URL', maximum: 255, required: true })
   @Column({ type: 'varchar', nullable: true, length: 255 })
   urlAvatar: string;
+
+  @ApiProperty({ description: 'Country Id', maximum: 64, required: true })
+  @Column({ type: 'int', nullable: true })
+  countryId: number;
 
   @ApiProperty({ description: 'Language', maximum: 255, required: true })
   @Column({ type: 'enum', enum: Language, default: Language.English })
@@ -121,6 +119,10 @@ export class User {
   @Column({ type: 'boolean', default: false })
   cardholderVerified: boolean;
 
+  @Exclude()
+  @Column({ type: 'text', nullable: true })
+  errorData: string;
+
   @OneToMany(() => Card, (card) => card.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   cards: Card[];
@@ -128,6 +130,9 @@ export class User {
   @OneToMany(() => Document, (document) => document.user)
   @JoinColumn({ name: 'id', referencedColumnName: 'user_id' })
   documents: Document[];
+
+  @ManyToOne(() => Country, (country) => country.user)
+  country: Country;
 
   @OneToOne(() => PersonProfile, (personProfile) => personProfile.user)
   personProfile: PersonProfile;

@@ -120,16 +120,16 @@ class EnvironmentVariables {
   @IsIn(['true', 'false'], { groups: ['api'] })
   JWT_REFRESH_TOKEN_COOKIE_HTTPONLY: 'true' | 'false';
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TWILIO_VERIFICATION_SERVICE_SID: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TWILIO_AUTH_TOKEN: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TWILIO_ACCOUNT_SID: string;
 
   @IsString({ groups: ['api'] })
