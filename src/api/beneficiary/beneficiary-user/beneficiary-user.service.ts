@@ -36,11 +36,11 @@ export class BeneficiaryUserService {
     return this.beneficiaryUserRepository.save(beneficiaryUserEntity);
   }
 
-  async checkConditionsToAddBeneficiary(userId: number, masterUserId: number): Promise<void> {
+  async checkConditionsToAddBeneficiary(beneficiaryId: number, userId: number): Promise<void> {
     // ---------------------------------------------------------------------------
     //condition 1: Is beneficiary user exist in our DB ?
     // ---------------------------------------------------------------------------
-    const user = await this.userService.findOne({ id: userId });
+    const user = await this.userService.findOne({ id: beneficiaryId });
 
     const isUserExist = Boolean(user);
 
@@ -51,7 +51,7 @@ export class BeneficiaryUserService {
     // ---------------------------------------------------------------------------
     // condition 2: Is the master user trying to add himself as beneficiary ?
     // ---------------------------------------------------------------------------
-    const isIdReferToMasterId = masterUserId === userId;
+    const isIdReferToMasterId = userId === beneficiaryId;
 
     if (isIdReferToMasterId) {
       throw new UnauthorizedException(`You can't add yourself as beneficiary`);
@@ -61,8 +61,8 @@ export class BeneficiaryUserService {
     // condition 3 : Is beneficiary already save ?
     // ---------------------------------------------------------------------------
     const beneficiary = await this.beneficiaryUserRepository.findByPayerIdAndPayeeId(
-      masterUserId,
       userId,
+      beneficiaryId,
     );
 
     const isBeneficiaryAlreadyAdded = Boolean(beneficiary);

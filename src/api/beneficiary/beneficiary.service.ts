@@ -52,4 +52,8 @@ export class BeneficiaryService {
       userId,
     );
   }
+
+  async checkConditionsToAddBeneficiary(beneficiaryId: number, userId: number) {
+    return await this.beneficiaryUserService.checkConditionsToAddBeneficiary(beneficiaryId, userId);
+  }
 }

@@ -66,4 +66,16 @@ export class CountryFeeService {
 
     return fee;
   }
+
+  async findManyTransferReferralCardWithdrawalFee(
+    param: Partial<TransferReferralCardWithdrawalFee>,
+  ): Promise<TransferReferralCardWithdrawalFee[]> {
+    const fee = await this.transferReferralCardWithdrawalFeeRepository.find({ where: param });
+
+    if (!fee) {
+      throw new NotFoundException(`Cannot find fee data for request`);
+    }
+
+    return fee;
+  }
 }

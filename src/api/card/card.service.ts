@@ -706,23 +706,43 @@ export class CardService {
 
   // -------------- TRANSFER -------------------
 
-  async getTransferFee(countryId: number, query: GetTransferFeeDto) {
+  async getTransferSettings(countryId: number, userId: number) {
+    const walletBalance = await this.transactionService.getWalletBalances(userId);
+
+    const manyTransferSettings =
+      await this.countryFeeService.findManyTransferReferralCardWithdrawalFee({
+        countryId,
+      });
+
+    return manyTransferSettings.map((settings) => {
+      return {
+        currency: settings.currency,
+        balance: walletBalance[settings.currency],
+        is_checked: true, // the first element always true
+        min: settings.transferMinAmount,
+        max: settings.transferMaxAmount,
+        after_decimal: 2,
+      };
+    });
+  }
+
+  async getTransferFee(countryId: number, body: GetTransferFeeDto) {
     const { transferFixedFee, transferPercentFee } =
       await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
         countryId,
-        currency: query.keecash_wallet,
+        currency: body.keecash_wallet,
       });
 
     const feesApplied = parseFloat(
-      ((query.desired_amount * transferPercentFee) / 100 + transferFixedFee).toFixed(2),
+      ((body.desired_amount * transferPercentFee) / 100 + transferFixedFee).toFixed(2),
     );
-    const amountAfterFee = parseFloat((query.desired_amount - feesApplied).toFixed(2));
+    const amountAfterFee = parseFloat((body.desired_amount - feesApplied).toFixed(2));
 
     return {
       fix_fees: transferFixedFee,
       percent_fees: transferPercentFee,
       fees_applied: feesApplied,
-      amount_to_receive: amountAfterFee,
+      total_to_pay: amountAfterFee,
     };
   }
 
@@ -735,6 +755,9 @@ export class CardService {
     if (balance < body.desired_amount) {
       throw new BadRequestException('Requested transfer amount exceeds current wallet balance');
     }
+
+    //check condition on beneficiary before perform the transfer => throw error if not good
+    await this.beneficiaryService.checkConditionsToAddBeneficiary(body.beneficiary_user_id, userId);
 
     const senderProfile = await this.userService.findOneWithProfileAndDocuments(
       { id: userId },
