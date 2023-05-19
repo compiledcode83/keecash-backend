@@ -148,32 +148,32 @@ class EnvironmentVariables {
   @MinLength(1, { groups: ['api'] })
   STORAGE_MEDIA_BUCKET: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TRIPLEA_API_BASE_URL: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TRIPLEA_EUR_CLIENT_ID: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TRIPLEA_EUR_CLIENT_SECRET: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TRIPLEA_EUR_MERCHANT_KEY: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TRIPLEA_USD_CLIENT_ID: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TRIPLEA_USD_CLIENT_SECRET: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   TRIPLEA_USD_MERCHANT_KEY: string;
 
   @IsString({ groups: ['api'] })
@@ -192,16 +192,16 @@ class EnvironmentVariables {
   @MinLength(1, { groups: ['api'] })
   SUMSUB_ACCESS_TOKEN_DURATION_MINUTES: string;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   BRIDGECARD_AUTH_TOKEN;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   BRIDGECARD_SECRET_KEY;
 
-  @IsString({ groups: ['api'] })
-  @MinLength(1, { groups: ['api'] })
+  @IsString({ groups: ['api', 'consumer'] })
+  @MinLength(1, { groups: ['api', 'consumer'] })
   BRIDGECARD_ISSUING_ID;
 }
 

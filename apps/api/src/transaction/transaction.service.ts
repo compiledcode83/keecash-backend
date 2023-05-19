@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { TransactionRepository } from './transaction.repository';
-import { Transaction } from '@app/transaction/transaction.entity';
+import { Transaction } from '@app/transaction';
 import { FiatCurrencyEnum } from '@app/common';
 import { GetWalletTransactionsQueryDto } from '@api/keecash/dto/get-wallet-transactions.query.dto';
+import { TransactionRepository } from './transaction.repository';
 
 @Injectable()
 export class TransactionService {

@@ -1,7 +1,8 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { BridgecardModule } from '@app/bridgecard';
 import { PricingModule } from '@app/pricing';
 import { TripleAModule } from '@app/triple-a';
+import { OutboxModule } from '@app/outbox';
 import { TransactionModule } from '@api/transaction/transaction.module';
 import { UserModule } from '@api/user/user.module';
 import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
@@ -22,10 +23,11 @@ import { WithdrawalController } from './withdrawal.controller';
     NotificationModule,
     BridgecardModule,
     TripleAModule,
-    forwardRef(() => BeneficiaryModule),
-    forwardRef(() => UserModule),
+    BeneficiaryModule,
+    UserModule,
     PricingModule,
     CardModule,
+    OutboxModule,
   ],
   controllers: [
     CardController,

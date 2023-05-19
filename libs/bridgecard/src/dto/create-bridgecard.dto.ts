@@ -9,6 +9,9 @@ export class CreateBridgecardDto {
   @IsString()
   cardholderId: string;
 
+  @IsString()
+  cardUuid: string;
+
   @IsEnum(CardTypeEnum)
   type: CardTypeEnum;
 

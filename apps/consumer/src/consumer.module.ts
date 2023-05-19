@@ -5,10 +5,14 @@ import { DatabaseModule } from '@app/database';
 import { UserModule } from '@app/user';
 import { TwilioModule } from '@app/twilio';
 import { BridgecardModule } from '@app/bridgecard';
-import kafkaConfig from '@app/common/configs/kafka.config';
-import { ConsumerService } from './consumer.service';
-import appConfig from './config/app.config';
+import { TransactionModule } from '@app/transaction';
+import { OutboxModule } from '@app/outbox';
 import twilioConfig from '@app/common/configs/twilio.config';
+import bridgecardConfig from '@app/common/configs/bridgecard.config';
+import tripleAConfig from '@app/common/configs/triple-a.config';
+import kafkaConfig from '@app/common/configs/kafka.config';
+import appConfig from './config/app.config';
+import { ConsumerService } from './consumer.service';
 import { ConsumerController } from './consumer.controller';
 
 EnvHelper.verifyNodeEnv();
@@ -18,13 +22,15 @@ EnvHelper.verifyNodeEnv();
     ConfigModule.forRoot({
       envFilePath: EnvHelper.getEnvFilePath(),
       isGlobal: true,
-      load: [appConfig, kafkaConfig, twilioConfig],
+      load: [appConfig, kafkaConfig, twilioConfig, bridgecardConfig, tripleAConfig],
       validate: validateConsumer,
     }),
     DatabaseModule,
     UserModule,
     TwilioModule,
     BridgecardModule,
+    TransactionModule,
+    OutboxModule,
   ],
   providers: [ConsumerService],
   controllers: [ConsumerController],

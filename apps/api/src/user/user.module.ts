@@ -1,11 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TwilioModule } from '@app/twilio';
 import { CountryModule } from '@app/country';
-import { DocumentModule } from '@app/document';
 import { SumsubModule } from '@app/sumsub';
 import { UserSubscriber } from '@app/user';
-import { ShareholderModule } from '@app/shareholder';
-import { EnterpriseProfileModule } from '@app/enterprise-profile';
 import { PersonProfileModule } from '@app/person-profile';
 import { ClosureReasonModule } from '@app/closure-reason';
 import { BridgecardModule } from '@app/bridgecard';
@@ -25,10 +22,7 @@ import { LegitEmailValidator } from './validator/legit-email.validator';
   imports: [
     TwilioModule,
     CountryModule,
-    DocumentModule,
-    EnterpriseProfileModule,
     PersonProfileModule,
-    ShareholderModule,
     ClosureReasonModule,
     TransactionModule,
     CardModule,

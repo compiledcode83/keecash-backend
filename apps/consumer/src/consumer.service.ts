@@ -1,17 +1,32 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { UserCompleteMessage, UserCreateMessage, UserService, UserStatus } from '@app/user';
 import { TwilioService } from '@app/twilio';
-import { BridgecardService } from '@app/bridgecard';
-import { TransactionCreateMessage } from '@app/transaction';
+import {
+  BridgecardCreateMessage,
+  BridgecardFreezeMessage,
+  BridgecardService,
+  BridgecardUnfreezeMessage,
+} from '@app/bridgecard';
+import {
+  Transaction,
+  TransactionCreateMessage,
+  TransactionEventPattern,
+  TransactionService,
+  TransactionStatusEnum,
+  TransactionTypeEnum,
+} from '@app/transaction';
+import { OutboxService } from '@app/outbox';
 
 @Injectable()
 export class ConsumerService {
-  private readonly logger = new Logger(ConsumerService.name);
-
   constructor(
+    private readonly dataSource: DataSource,
     private readonly userService: UserService,
     private readonly twilioService: TwilioService,
     private readonly bridgecardService: BridgecardService,
+    private readonly transactionService: TransactionService,
+    private readonly outboxService: OutboxService,
   ) {}
 
   async handleUserCreate(message: UserCreateMessage): Promise<void> {
@@ -89,5 +104,82 @@ export class ConsumerService {
     }
   }
 
-  async handleTransactionCreate(message: TransactionCreateMessage) {}
+  async handleTransactionCreate(message: TransactionCreateMessage) {
+    console.log(message);
+  }
+
+  async handleBridgecardCreate(message: BridgecardCreateMessage) {
+    // Create Bridgecard
+    const bridgecardId = await this.bridgecardService.createCard({
+      userId: message.userId,
+      cardholderId: message.cardholderId,
+      cardUuid: message.cardUuid,
+      type: message.type,
+      brand: message.brand,
+      currency: message.currency,
+      cardName: message.cardName,
+    });
+
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      // Create a transaction
+      const transaction = await queryRunner.manager.save(
+        await this.transactionService.create({
+          userId: message.userId,
+          currency: message.currency,
+          cardPrice: message.cardPrice,
+          appliedFee: message.appliedFee,
+          affectedAmount: -message.totalToPay,
+          fixedFee: message.fixedFee,
+          percentFee: message.percentFee,
+          cardId: message.cardId,
+          type: TransactionTypeEnum.CardCreation,
+          status: TransactionStatusEnum.InProgress, // Should be set to PENDING and update by webhook
+          description: `Created a card "${message.cardName}" and topped up ${message.topupAmount} ${message.currency}`,
+        }),
+      );
+
+      // Topup Bridgecard
+      await this.bridgecardService.fundCard({
+        card_id: bridgecardId,
+        amount: message.topupAmount,
+        transaction_reference: transaction.uuid,
+        currency: message.currency,
+      });
+
+      // Update transaction status
+      await queryRunner.manager.update(Transaction, transaction.id, {
+        status: TransactionStatusEnum.Performed,
+      });
+      const updatedTransaction = await queryRunner.manager.findOneBy(Transaction, {
+        id: transaction.id,
+      });
+
+      // Produce another message for notification
+      const payload = new TransactionCreateMessage({
+        transaction: updatedTransaction,
+      });
+      this.outboxService.create(queryRunner, TransactionEventPattern.TransactionCreate, payload);
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async handleBridgecardFreeze(message: BridgecardFreezeMessage) {
+    return this.bridgecardService.freezeCard(message.bridgecardId);
+  }
+
+  async handleBridgecardUnfreeze(message: BridgecardUnfreezeMessage) {
+    return this.bridgecardService.unfreezeCard(message.bridgecardId);
+  }
 }

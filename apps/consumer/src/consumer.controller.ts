@@ -3,6 +3,12 @@ import { EventPattern, Payload } from '@nestjs/microservices';
 import { UserCompleteMessage, UserCreateMessage, UserEventPattern } from '@app/user';
 import { ConsumerService } from './consumer.service';
 import { TransactionCreateMessage, TransactionEventPattern } from '@app/transaction';
+import {
+  BridgecardCreateMessage,
+  BridgecardEventPattern,
+  BridgecardFreezeMessage,
+  BridgecardUnfreezeMessage,
+} from '@app/bridgecard';
 
 @Controller()
 export class ConsumerController {
@@ -32,5 +38,38 @@ export class ConsumerController {
   async handleTransactionCreate(@Payload() message: TransactionCreateMessage) {
     await this.consumerService.handleTransactionCreate(message);
     this.logger.log(`Notification is created for transaction ${message.transaction.uuid}`);
+  }
+
+  @EventPattern(BridgecardEventPattern.BridgecardCreate)
+  async handleBridgecardCreate(@Payload() message: BridgecardCreateMessage) {
+    try {
+      await this.consumerService.handleBridgecardCreate(message);
+      this.logger.log(`Create request is sent for card ${message.cardUuid}`);
+    } catch (err) {
+      const { data } = err.response || {};
+      this.logger.error(data?.message || 'Failed to create a new card and topup');
+    }
+  }
+
+  @EventPattern(BridgecardEventPattern.BridgecardFreeze)
+  async handleBridgecardFreeze(@Payload() message: BridgecardFreezeMessage) {
+    try {
+      await this.consumerService.handleBridgecardFreeze(message);
+      this.logger.log(`Freeze request is sent for card ${message.bridgecardId}`);
+    } catch (err) {
+      const { data } = err.response || {};
+      this.logger.error(`${data?.message || 'Failed to freeze card'} ${message.bridgecardId}`);
+    }
+  }
+
+  @EventPattern(BridgecardEventPattern.BridgecardUnfreeze)
+  async handleBridgecardUnfreeze(@Payload() message: BridgecardUnfreezeMessage) {
+    try {
+      await this.consumerService.handleBridgecardUnfreeze(message);
+      this.logger.log(`Freeze request is sent for card ${message.bridgecardId}`);
+    } catch (err) {
+      const { data } = err.response || {};
+      this.logger.error(`${data?.message || 'Failed to unfreeze card'} ${message.bridgecardId}`);
+    }
   }
 }

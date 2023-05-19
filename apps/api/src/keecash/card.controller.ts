@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -19,7 +18,6 @@ import {
   RequestToQueryInterceptor,
 } from '@app/common';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
-import { CardService } from '@api/card/card.service';
 import { KeecashService } from './keecash.service';
 import { GetCardsResponseDto } from './dto/get-cards-response.dto';
 import { ManageCardDto } from './dto/manage-card.dto';
@@ -31,10 +29,7 @@ import { CreateCardDto } from './dto/create-card.dto';
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class CardController {
-  constructor(
-    private readonly keecashService: KeecashService,
-    private readonly cardService: CardService,
-  ) {}
+  constructor(private readonly keecashService: KeecashService) {}
 
   @ApiOperation({ description: 'Get dashboard items' })
   @ApiTags('Dashboard')
@@ -73,7 +68,7 @@ export class CardController {
   )
   @Patch('card/block/:card_id')
   async blockCard(@Body() body: ManageCardDto) {
-    await this.keecashService.blockCard(body.user.uuid, body.cardId);
+    await this.keecashService.blockCard(body);
 
     return { isSuccess: true };
   }
@@ -88,7 +83,7 @@ export class CardController {
   )
   @Patch('card/unlock/:card_id')
   async unlockCard(@Body() body: ManageCardDto) {
-    await this.keecashService.unlockCard(body.user.uuid, body.cardId);
+    await this.keecashService.unlockCard(body);
 
     return { isSuccess: true };
   }
@@ -103,7 +98,7 @@ export class CardController {
   )
   @Delete('card/remove/:card_id')
   async removeMyCard(@Body() body: ManageCardDto) {
-    await this.keecashService.removeCard(body.user.uuid, body.cardId);
+    await this.keecashService.removeCard(body);
 
     return { isSuccess: true };
   }
@@ -113,7 +108,7 @@ export class CardController {
   @UseInterceptors(ClassSerializerInterceptor, new RequestToQueryInterceptor('user', 'user'))
   @Get('card/create-card/get-settings')
   async getCreateCardSettings(@Query() query: GetCreateCardSettingsDto) {
-    return this.keecashService.getCreateCardSettings(query.user.countryId, query.currency);
+    return this.keecashService.getCreateCardSettings(query);
   }
 
   @ApiOperation({ description: 'Get fees while creating card' })
@@ -121,13 +116,14 @@ export class CardController {
   @UseInterceptors(ClassSerializerInterceptor, new RequestToQueryInterceptor('user', 'user'))
   @Get('card/create-card/get-fees-applied-total-to-pay')
   async getFeesAppliedTotalToPay(@Query() query: GetCreateCardTotalFeeDto) {
-    return this.keecashService.getFeesAppliedTotalToPay(query.user.uuid, query);
+    return this.keecashService.getFeesAppliedTotalToPay(query);
   }
 
   @ApiOperation({ description: 'Create card' })
   @ApiTags('Create Card')
+  @UseInterceptors(ClassSerializerInterceptor, new RequestToBodyInterceptor('user', 'user'))
   @Post('card/create-card-apply')
-  async applyCreateCard(@Req() req, @Body() body: CreateCardDto) {
-    return this.keecashService.createCard(req.user.id, req.user.countryId, body);
+  async applyCreateCard(@Body() body: CreateCardDto) {
+    return this.keecashService.createCard(body);
   }
 }

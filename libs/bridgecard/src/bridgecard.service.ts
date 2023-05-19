@@ -83,28 +83,23 @@ export class BridgecardService {
   // ------------------ Card Management ----------------------
 
   async createCard(data: CreateBridgecardDto): Promise<string> {
-    try {
-      const body = {
-        cardholder_id: data.cardholderId,
-        card_type: data.type,
-        card_brand: data.brand,
-        card_currency: data.currency,
-        meta_data: {
-          keecash_user_id: data.userId,
-          keecash_card_name: data.cardName,
-        },
-      };
+    const body = {
+      cardholder_id: data.cardholderId,
+      card_type: data.type,
+      card_brand: data.brand,
+      card_currency: data.currency,
+      meta_data: {
+        keecash_user_id: data.userId,
+        keecash_card_uuid: data.cardUuid,
+        keecash_card_name: data.cardName,
+      },
+    };
 
-      const res = await this.axiosInstance.post('/cards/create_card', body);
+    const res = await this.axiosInstance.post('/cards/create_card', body);
 
-      this.logger.log(res.data.message);
+    this.logger.log(res.data.message);
 
-      return res.data.data.card_id;
-    } catch (error) {
-      const { status, statusText, data } = error.response || {};
-
-      throw new HttpException(data.message || statusText, status);
-    }
+    return res.data.data.card_id;
   }
 
   async getCardBalance(cardId: string) {
@@ -171,27 +166,12 @@ export class BridgecardService {
     }
   }
 
-  async freezeCard(cardId: string) {
-    try {
-      await this.axiosInstance.patch(`/cards/freeze_card?card_id=${cardId}`);
-    } catch (error) {
-      const { status, data } = error.response || {};
-
-      throw new HttpException(
-        data?.message || 'Bridgecard could not freeze the requested card',
-        status,
-      );
-    }
+  async freezeCard(cardId: string): Promise<any> {
+    return this.axiosInstance.patch(`/cards/freeze_card?card_id=${cardId}`);
   }
 
   async unfreezeCard(cardId: string) {
-    try {
-      await this.axiosInstance.patch(`/cards/unfreeze_card?card_id=${cardId}`);
-    } catch (error) {
-      const { status, statusText, data } = error.response || {};
-
-      throw new HttpException(data.message || statusText, status);
-    }
+    await this.axiosInstance.patch(`/cards/unfreeze_card?card_id=${cardId}`);
   }
 
   async fundCard(data: FundBridgecardDto): Promise<any> {

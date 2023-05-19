@@ -1,20 +1,26 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   Logger,
   NotFoundException,
   UnauthorizedException,
-  forwardRef,
 } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
+import { DataSource } from 'typeorm';
 import { TripleAService } from '@app/triple-a';
-import { BridgecardService } from '@app/bridgecard';
+import {
+  BridgecardEventPattern,
+  BridgecardFreezeMessage,
+  BridgecardCreateMessage,
+  BridgecardService,
+  BridgecardUnfreezeMessage,
+} from '@app/bridgecard';
 import { TransactionTypeEnum, TransactionStatusEnum } from '@app/transaction';
 import { CardBrandEnum, CardTypeEnum, CardUsageEnum } from '@app/card';
 import { PricingService } from '@app/pricing';
 import { NotificationType } from '@app/notification';
 import { FiatCurrencyEnum } from '@app/common';
+import { OutboxService } from '@app/outbox';
 import { TransactionService } from '@api/transaction/transaction.service';
 import { UserService } from '@api/user/user.service';
 import { TripleADepositNotifyDto } from '@api/keecash/dto/triple-a-deposit-notify.dto';
@@ -36,13 +42,16 @@ import { ApplyCardTopupDto } from './dto/card-topup-apply.dto';
 import { GetCardWithdrawalSettingDto } from './dto/get-card-withdrawal-setting.dto';
 import { ApplyCardWithdrawalDto } from './dto/card-withdrawal-apply.dto';
 import { TripleAWithdrawalNotifyDto } from './dto/triple-a-withdrawal-notify.dto';
+import { ManageCardDto } from './dto/manage-card.dto';
+import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
 
 @Injectable()
 export class KeecashService {
   private readonly logger = new Logger(BridgecardService.name);
 
   constructor(
-    @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
+    private readonly dataSource: DataSource,
+    private readonly userService: UserService,
     private readonly cardService: CardService,
     private readonly transactionService: TransactionService,
     private readonly bridgecardService: BridgecardService,
@@ -50,6 +59,7 @@ export class KeecashService {
     private readonly notificationService: NotificationService,
     private readonly tripleAService: TripleAService,
     private readonly pricingService: PricingService,
+    private readonly outboxService: OutboxService,
   ) {}
 
   // -------------- MANAGE CARD -------------------
@@ -84,7 +94,7 @@ export class KeecashService {
       eurCards = cards
         .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.EUR)
         .map((card) => ({
-          cardId: card.card_id,
+          cardId: card.meta_data.keecash_card_uuid,
           balance: card.balance,
           currency: card.card_currency,
           cardNumber: card.card_number,
@@ -97,7 +107,7 @@ export class KeecashService {
       usdCards = cards
         .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.USD)
         .map((card) => ({
-          cardId: card.card_id,
+          cardId: card.meta_data.keecash_card_uuid,
           balance: card.balance,
           currency: card.card_currency,
           cardNumber: card.card_number,
@@ -160,7 +170,7 @@ export class KeecashService {
     );
 
     const result = cards.map((card, i) => ({
-      cardId: card.card_id,
+      cardId: card.meta_data.keecash_card_uuid,
       balance: details[i].balance,
       currency: card.card_currency,
       isBlock: !card.is_active,
@@ -176,34 +186,76 @@ export class KeecashService {
     return result;
   }
 
-  async blockCard(userUuid: string, cardId: string): Promise<void> {
-    const { id: userId } = await this.userService.findByUuid(userUuid);
-
-    const card = this.cardService.findOne({ userId, bridgecardId: cardId });
-
+  async blockCard(body: ManageCardDto): Promise<void> {
+    const { id: userId } = await this.userService.findByUuid(body.user.uuid);
+    const card = await this.cardService.findOne({ userId, uuid: body.cardId });
     if (!card) {
-      throw new UnauthorizedException('Cannot find card with requested ID');
+      throw new UnauthorizedException('Cannot find card with requested uuid');
     }
 
-    await this.bridgecardService.freezeCard(cardId);
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const payload = new BridgecardFreezeMessage({
+        bridgecardId: card.bridgecardId,
+      });
+
+      await this.outboxService.create(
+        queryRunner,
+        BridgecardEventPattern.BridgecardFreeze,
+        payload,
+      );
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
-  async unlockCard(userUuid: string, cardId: string): Promise<void> {
-    const { id: userId } = await this.userService.findByUuid(userUuid);
-
-    const card = this.cardService.findOne({ userId, bridgecardId: cardId });
-
+  async unlockCard(body: ManageCardDto): Promise<void> {
+    const { id: userId } = await this.userService.findByUuid(body.user.uuid);
+    const card = await this.cardService.findOne({ userId, uuid: body.cardId });
     if (!card) {
       throw new UnauthorizedException('User does not have right to access the card');
     }
 
-    await this.bridgecardService.unfreezeCard(cardId);
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const payload = new BridgecardUnfreezeMessage({
+        bridgecardId: card.bridgecardId,
+      });
+
+      await this.outboxService.create(
+        queryRunner,
+        BridgecardEventPattern.BridgecardUnfreeze,
+        payload,
+      );
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
-  async removeCard(userUuid: string, cardId: string): Promise<void> {
-    const { id: userId } = await this.userService.findByUuid(userUuid);
+  async removeCard(body: ManageCardDto): Promise<void> {
+    const { id: userId } = await this.userService.findByUuid(body.user.uuid);
 
-    await this.cardService.delete({ userId, bridgecardId: cardId });
+    await this.cardService.delete({ userId, uuid: body.cardId });
   }
 
   // -------------- DEPOSIT -------------------
@@ -486,11 +538,11 @@ export class KeecashService {
 
   // -------------- CREATE CARD -------------------
 
-  async getCreateCardSettings(countryId: number, currency: FiatCurrencyEnum) {
+  async getCreateCardSettings(query: GetCreateCardSettingsDto) {
     const cardPrices = await this.pricingService.findAllCardPrices({
       type: CardTypeEnum.Virtual, // Bridgecard provides VIRTUAL cards only
-      countryId,
-      currency,
+      countryId: query.user.countryId,
+      currency: query.currency,
     });
 
     const multipleCardPrice = cardPrices.find((price) => price.usage === CardUsageEnum.Multiple);
@@ -507,7 +559,7 @@ export class KeecashService {
         description: 'Topped up multiple time',
         is_checked: true,
         price: multipleCardPrice.price,
-        currency,
+        currency: query.currency,
         cardValidity: '2 years',
       },
       {
@@ -516,7 +568,7 @@ export class KeecashService {
         description: 'Topped up one time',
         is_checked: false,
         price: uniqueCardPrice.price,
-        currency,
+        currency: query.currency,
         cardValidity: '2 years',
       },
     ];
@@ -526,8 +578,8 @@ export class KeecashService {
     };
   }
 
-  async getFeesAppliedTotalToPay(userUuid: string, query: GetCreateCardTotalFeeDto) {
-    const { countryId } = await this.userService.findByUuid(userUuid);
+  async getFeesAppliedTotalToPay(query: GetCreateCardTotalFeeDto) {
+    const { countryId } = await this.userService.findByUuid(query.user.uuid);
 
     const { percentFee, fixedFee } = await this.pricingService.findCardTopupFee({
       countryId,
@@ -557,9 +609,13 @@ export class KeecashService {
     };
   }
 
-  async createCard(userId: number, countryId: number, body: CreateCardDto) {
-    const { cardholderId, cardholderVerified } =
-      await this.userService.findOneWithProfileAndDocuments({ id: userId }, true, false);
+  async createCard(body: CreateCardDto) {
+    const {
+      id: userId,
+      countryId,
+      cardholderId,
+      cardholderVerified,
+    } = await this.userService.findByUuid(body.user.uuid);
 
     if (!cardholderId || !cardholderVerified) {
       throw new BadRequestException('User is not registered in Bridgecard provider');
@@ -572,59 +628,70 @@ export class KeecashService {
       type: body.cardType,
       usage: body.cardUsage,
     });
-
     const { fixedFee, percentFee } = await this.pricingService.findCardTopupFee({
       countryId,
       currency: body.keecashWallet,
       usage: body.cardUsage,
     });
-
     const targetAmount = body.topupAmount;
     const appliedFee = parseFloat((fixedFee + (targetAmount * percentFee) / 100).toFixed(2));
     const totalToPay = cardPrice + targetAmount + appliedFee;
 
+    // Check if wallet balance is enough
     const { balance } = await this.transactionService.getBalanceArrayByCurrency(
       userId,
       body.keecashWallet,
     );
-
     if (balance < totalToPay) {
       throw new BadRequestException('Total pay amount exceeds current wallet balance');
     }
 
-    // Create a Bridgecard
-    const bridgecardId = await this.bridgecardService.createCard({
-      userId,
-      cardholderId,
-      type: body.cardType,
-      brand: CardBrandEnum.Visa, // default
-      currency: body.keecashWallet,
-      cardName: body.name,
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
 
-    // TODO: Implement database transaction rollback mechanism, using queryRunnet.connect() startTransation(), commitTransaction(), rollbackTransaction(), release()
-    const { id: cardId } = await this.cardService.create({
-      userId,
-      name: body.name,
-      bridgecardId,
-      currency: body.keecashWallet,
-      usage: body.cardUsage,
-    });
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-    // Create a transaction
-    await this.transactionService.create({
-      userId,
-      currency: body.keecashWallet,
-      cardPrice,
-      appliedFee,
-      affectedAmount: -totalToPay,
-      fixedFee: fixedFee,
-      percentFee: percentFee,
-      cardId,
-      type: TransactionTypeEnum.CardCreation,
-      status: TransactionStatusEnum.Performed, // Should be set to PENDING and update by webhook
-      description: `Created a card "${body.name}" and topped up ${targetAmount} ${body.keecashWallet}`,
-    });
+      const card = await queryRunner.manager.save(
+        await this.cardService.create({
+          userId,
+          name: body.name,
+          currency: body.keecashWallet,
+          usage: body.cardUsage,
+        }),
+      );
+
+      const payload = new BridgecardCreateMessage({
+        userId,
+        cardholderId,
+        cardId: card.id,
+        cardUuid: card.uuid,
+        type: body.cardType,
+        brand: CardBrandEnum.Visa, // default
+        currency: body.keecashWallet,
+        cardName: body.name,
+        cardPrice,
+        topupAmount: body.topupAmount,
+        totalToPay,
+        appliedFee,
+        fixedFee,
+        percentFee,
+      });
+
+      await this.outboxService.create(
+        queryRunner,
+        BridgecardEventPattern.BridgecardCreate,
+        payload,
+      );
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   // -------------- CARD TOPUP -------------------
@@ -800,10 +867,10 @@ export class KeecashService {
 
       case 'card_creation_event.successful':
         const { id: userId } = await this.userService.findOne({ cardholderId: data.cardholder_id });
-        await this.cardService.create({
-          userId: userId,
-          bridgecardId: data.card_id,
-        });
+        // await this.cardService.create({
+        //   userId: userId,
+        //   bridgecardId: data.card_id,
+        // });
         break;
 
       case 'card_creation_event.failed':

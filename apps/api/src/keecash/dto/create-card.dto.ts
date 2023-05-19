@@ -1,7 +1,8 @@
-import { IsEnum, IsNumber, IsString, MinLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { FiatCurrencyEnum } from '@app/common';
 import { CardTypeEnum, CardUsageEnum } from '@app/card';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
 
 export class CreateCardDto {
   @ApiProperty({ example: FiatCurrencyEnum.EUR, description: 'Keecash wallet currency' })
@@ -27,4 +28,7 @@ export class CreateCardDto {
   @ApiProperty({ example: 60, description: 'Card topup amount' })
   @IsNumber()
   topupAmount: number;
+
+  @IsNotEmpty()
+  user: UserAccessTokenInterface;
 }

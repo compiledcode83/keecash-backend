@@ -1,24 +1,14 @@
-import {
-  BadRequestException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import * as bcrypt from 'bcrypt';
 import * as isoCountries from 'i18n-iso-countries';
 import { Country, CountryService } from '@app/country';
-import { DocumentService } from '@app/document';
-import { EnterpriseProfileService } from '@app/enterprise-profile';
 import { PersonProfileService } from '@app/person-profile';
-import { ShareholderService } from '@app/shareholder';
 import { TwilioService } from '@app/twilio';
 import { BridgecardService } from '@app/bridgecard';
 import { SumsubService } from '@app/sumsub';
 import {
   User,
-  AccountType,
   Language,
   UserStatus,
   VerificationStatus,
@@ -45,10 +35,7 @@ export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly countryService: CountryService,
-    private readonly documentService: DocumentService,
-    private readonly enterpriseProfileService: EnterpriseProfileService,
     private readonly personProfileService: PersonProfileService,
-    private readonly shareholderservice: ShareholderService,
     private readonly twilioService: TwilioService,
     private readonly closureReasonService: ClosureReasonService,
     private readonly transactionService: TransactionService,

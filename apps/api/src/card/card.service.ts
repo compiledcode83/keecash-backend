@@ -15,10 +15,8 @@ export class CardService {
     // return this.getPaginatedQueryBuilder({ ...searchParams, userId });
   }
 
-  async create(data: Partial<Card>) {
-    const cardEntity = await this.cardRepository.create(data);
-
-    return this.cardRepository.save(cardEntity);
+  async create(data: Partial<Card>): Promise<Card> {
+    return this.cardRepository.create(data);
   }
 
   async delete(param: Partial<Card>): Promise<boolean> {
