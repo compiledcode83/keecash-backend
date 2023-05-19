@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumberString, IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class GetCardTopupSettingDto {
   @ApiProperty({ example: '70b34986c13c4026a9c160eabc49', description: 'Card ID' })
@@ -7,6 +7,6 @@ export class GetCardTopupSettingDto {
   bridgecardId: string;
 
   @ApiProperty({ example: 123, description: 'Amount of money to be topped up' })
-  @IsNumberString()
-  desiredAmount: string;
+  @IsNumber()
+  desiredAmount: number;
 }

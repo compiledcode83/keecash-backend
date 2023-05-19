@@ -4,6 +4,7 @@ import { BeneficiaryWalletService } from './beneficiary-wallet/beneficiary-walle
 import { BeneficiaryWallet } from './beneficiary-wallet/beneficiary-wallet.entity';
 import { BeneficiaryUser } from './beneficiary-user/beneficiary-user.entity';
 import { TypesOfBeneficiary } from './beneficiary.types';
+import { CryptoCurrencyEnum } from '@api/transaction/transaction.types';
 
 @Injectable()
 export class BeneficiaryService {
@@ -38,5 +39,17 @@ export class BeneficiaryService {
 
   getBeneficiaryTypes() {
     return Object.values(TypesOfBeneficiary).filter((v) => isNaN(Number(v)));
+  }
+
+  async validateCryptoAddress(
+    blockchain: string | CryptoCurrencyEnum,
+    cryptoAddress: string,
+    userId: number,
+  ) {
+    return await this.beneficiaryWalletService.validateCryptoAddress(
+      blockchain,
+      cryptoAddress,
+      userId,
+    );
   }
 }

@@ -102,6 +102,7 @@ export class CipherTokenService {
       token,
       currency,
       type: TokenTypeEnum.TripleAAccessToken,
+      duration: this.configService.get('tripleAConfig.tripleATokenDurationMinutes') * 60,
     });
   }
 
@@ -123,7 +124,7 @@ export class CipherTokenService {
     duration: number,
   ): Promise<CipherToken> {
     return this.cipherTokenRepository.generateToken({
-      exchangeRateEncoded,
+      token: exchangeRateEncoded,
       duration,
       type: TokenTypeEnum.ExchangeRateEncoded,
     });
@@ -140,7 +141,12 @@ export class CipherTokenService {
     const now = new Date();
 
     if (expiryDate.getTime() < now.getTime()) {
-      throw new UnauthorizedException('Token is expired');
+      //we send a specific message when login token is check and is expired. That enable the frontend to check that and logout the user
+      throw new UnauthorizedException(
+        type === TokenTypeEnum.AuthRefresh || type === TokenTypeEnum.CreateAccount
+          ? 'loginToken expired'
+          : 'Token is expired',
+      );
     }
 
     return cipherToken.userId;

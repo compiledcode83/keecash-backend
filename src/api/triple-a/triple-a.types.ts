@@ -3,6 +3,7 @@ import { User } from '@api/user/user.entity';
 
 export interface TripleADepositInterface {
   amount: number;
+  desired_amount: number;
   currency: FiatCurrencyEnum;
   email: string;
   keecashUserId: string; // Referral ID

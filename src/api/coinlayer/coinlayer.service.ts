@@ -9,6 +9,7 @@ export class CoinlayerService {
   private readonly logger = new Logger(CoinlayerService.name);
 
   private coinlayerKey: string;
+  private coinlayerDurationMinutes: number;
   private axiosInstance: AxiosInstance;
 
   constructor(
@@ -16,6 +17,9 @@ export class CoinlayerService {
     private readonly cipherTokenService: CipherTokenService,
   ) {
     this.coinlayerKey = this.configService.get('coinlayerConfig.coinlayerKey');
+    this.coinlayerDurationMinutes = this.configService.get(
+      'coinlayerConfig.coinlayerRefreshExchangeRateDurationMinutes',
+    );
 
     this.axiosInstance = axios.create({
       baseURL: this.configService.get('coinlayerConfig.coinlayerBaseUrl'),
@@ -60,8 +64,7 @@ export class CoinlayerService {
 
         await this.cipherTokenService.generateExchangeRateEncoded(
           exchangeRateEncoded,
-          this.configService.get('coinlayerConfig.coinlayerRefreshExchangeRateDurationMinutes') *
-            60,
+          this.coinlayerDurationMinutes * 60,
         );
 
         return exchangeRate as ExchangeRateInterface;

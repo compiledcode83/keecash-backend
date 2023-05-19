@@ -21,6 +21,7 @@ import { Card } from './card.entity';
 import { CardSubscriber } from './card.subscriber';
 import { AuthModule } from '@api/auth/auth.module';
 import { CoinlayerModule } from '@api/coinlayer/coinlayer.module';
+import { SendgridModule } from '@api/sendgrid/sendgrid.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CoinlayerModule } from '@api/coinlayer/coinlayer.module';
     forwardRef(() => BeneficiaryModule),
     forwardRef(() => UserModule),
     CoinlayerModule,
+    SendgridModule,
   ],
   controllers: [
     CardController,

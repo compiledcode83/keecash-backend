@@ -13,9 +13,5 @@ export class GetWithdrawalFeeDto {
 
   @ApiProperty({ example: 100, description: 'Withdrawal amount in fiat (EUR, USD ...)' })
   @IsNumber()
-  fiat_amount: number;
-
-  @ApiProperty({ example: 0.032, description: 'Withdrawal amount in crypto (BTC, ETH ...)' })
-  @IsNumber()
-  crypto_amount: number;
+  desired_amount: number;
 }

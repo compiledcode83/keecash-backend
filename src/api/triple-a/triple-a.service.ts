@@ -11,6 +11,8 @@ import {
   TripleAWithdrawResponseInterface,
 } from './triple-a.types';
 import { CipherTokenService } from '@api/cipher-token/cipher-token.service';
+import { ToolsHelper } from '@common/helpers/tools.helper';
+import { TripleAPaymentDetails } from './dto/triple-a-payment-details.interface';
 
 const GRANT_TYPE = 'client_credentials';
 
@@ -22,6 +24,7 @@ export class TripleAService {
   private tripleAClientSecret;
   private tripleAMerchatKey;
   private tripleANotifyUrl: string;
+  private tripleANotifySecret: string;
   private axiosInstance: AxiosInstance;
 
   constructor(
@@ -41,6 +44,7 @@ export class TripleAService {
       EUR: this.configService.get('tripleAConfig.tripleAEURMerchantKey'),
     };
     this.tripleANotifyUrl = this.configService.get('tripleAConfig.tripleANotifyUrl');
+    this.tripleANotifySecret = this.configService.get('tripleAConfig.tripleANotifySecret');
 
     this.axiosInstance = axios.create({
       baseURL: this.configService.get('tripleAConfig.tripleAApiBaseUrl'),
@@ -87,16 +91,16 @@ export class TripleAService {
   }
 
   getDepositCryptoID(symbol: CryptoCurrencyEnum, fiat: FiatCurrencyEnum) {
-    return this.configService.get(`tripleAConfig.tripleA${fiat}${symbol}ID`);
+    return this.configService.get(
+      `tripleAConfig.tripleA${fiat}${ToolsHelper.getRawBlockchainForGetTripleAId(symbol)}Id`,
+    );
   }
 
   async deposit(dto: TripleADepositInterface): Promise<TripleADepositResponseInterface> {
     try {
       const documents = dto.user.documents;
 
-      const moreRecentDocument = dto.user.documents[dto.user.documents.length - 1].imageLink;
-
-      this.logger.debug(moreRecentDocument);
+      const moreRecentDocument = documents[documents.length - 1].imageLink;
 
       const body = {
         type: 'widget',
@@ -104,14 +108,17 @@ export class TripleAService {
         order_currency: dto.currency,
         order_amount: dto.amount,
         payer_id: `keecash+${dto.keecashUserId}`,
-        notify_url: `${this.tripleANotifyUrl}/crypto-tx/payment-notifiy-deposit`,
+        notify_url: `${this.tripleANotifyUrl}/payment-notify-deposit`,
         payer_name: `${dto.user.lastName} ${dto.user.firstName}`,
         payer_email: dto.email,
-        //TODO: Implement the checking of notify secret in the webhook to avoid against hacker
-        notify_secret: this.configService.get('tripleAConfig.tripleANotifySecret'),
+        payer_phone: dto.user.phoneNumber,
+        notify_secret: this.tripleANotifySecret,
         payer_address: dto.user.personProfile.country.name,
         payer_poi: moreRecentDocument,
-        webhook_data: {},
+        webhook_data: {
+          payer_id: `keecash+${dto.keecashUserId}`,
+          desired_amount: dto.desired_amount,
+        },
       };
 
       let accessToken;
@@ -150,34 +157,6 @@ export class TripleAService {
     }
   }
 
-  async getDepositDetails(paymentReference: string, currency: FiatCurrencyEnum): Promise<any> {
-    try {
-      let accessToken;
-      const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(currency);
-
-      if (!tokenInDB) {
-        const newToken = await this.getAccessToken(currency);
-        accessToken = newToken;
-      } else {
-        accessToken = tokenInDB.token;
-      }
-
-      const config = {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-
-      const res = await this.axiosInstance.get(`/payment/${paymentReference}`, config);
-
-      return res.data;
-    } catch (error) {
-      const { status, statusText, data } = error.response || {};
-
-      throw new HttpException(`Triple-A Message: ${data.message}` || statusText, status);
-    }
-  }
-
   async withdraw(dto: TripleAWithdrawInterface): Promise<TripleAWithdrawResponseInterface> {
     try {
       const prepareBody = {
@@ -190,7 +169,8 @@ export class TripleAService {
         name: dto.name,
         country: dto.country,
         order_id: `${dto.keecashUserId}-${uuid()}`,
-        notify_url: `${this.tripleANotifyUrl}/crypto-tx/payment-notifiy-withdraw`,
+        notify_url: `${this.tripleANotifyUrl}/payment-notify-withdraw`,
+        notify_secret: this.tripleANotifySecret,
       };
 
       let accessToken;

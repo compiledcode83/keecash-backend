@@ -22,6 +22,7 @@ import { BridgecardModule } from './bridgecard/bridgecard.module';
 import { TripleAModule } from './triple-a/triple-a.module';
 import { TwilioModule } from './twilio/twilio.module';
 import { CoinlayerModule } from './coinlayer/coinlayer.module';
+import { SendgridModule } from './sendgrid/sendgrid.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CoinlayerModule } from './coinlayer/coinlayer.module';
     BridgecardModule,
     TwilioModule,
     CoinlayerModule,
+    SendgridModule,
   ],
 })
 export class PublicSubModule {}

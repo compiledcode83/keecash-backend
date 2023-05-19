@@ -3,7 +3,7 @@ import { BeneficiaryWallet } from './beneficiary-wallet.entity';
 import { BeneficiaryWalletRepository } from './beneficiary-wallet.repository';
 import { CryptoCurrencyEnum } from '@api/transaction/transaction.types';
 import WAValidator = require('multicoin-address-validator');
-import { getRawBlockchainForValidation } from '@common/helpers/tools.helper';
+import { ToolsHelper } from '@common/helpers/tools.helper';
 
 @Injectable()
 export class BeneficiaryWalletService {
@@ -39,16 +39,30 @@ export class BeneficiaryWalletService {
     return wallets.length > 0;
   }
 
-  validateCryptoAddress(blockchain: string | CryptoCurrencyEnum, cryptoAddress: string) {
+  async validateCryptoAddress(
+    blockchain: string | CryptoCurrencyEnum,
+    cryptoAddress: string,
+    userId: number,
+  ) {
+    const rawBlockchain = ToolsHelper.getRawBlockchainForValidation(blockchain);
+
+    //------------------------------------------------------------------------
+    // - condition 1 : we check if address is acceptable with the crypto method
+    //------------------------------------------------------------------------
+    let isCryptoWalletOK = false;
     //we can't validate Binance Pay ID so we believe customer info without any check
     if (blockchain == CryptoCurrencyEnum.BINANCE) {
-      return true;
+      isCryptoWalletOK = true;
+    } else {
+      isCryptoWalletOK = WAValidator.validate(cryptoAddress, rawBlockchain, 'prod');
     }
 
-    const rawBlockchain = getRawBlockchainForValidation(blockchain);
+    //------------------------------------------------------------------------
+    // - condition 2 : Is this wallet not already saved by the user?
+    //------------------------------------------------------------------------
+    const isCryptoWalletAlreadySave = await this.checkIfExist({ address: cryptoAddress, userId });
 
-    const valid = WAValidator.validate(cryptoAddress, rawBlockchain, 'prod');
-
-    return valid;
+    //end
+    return { isCryptoWalletOK, isCryptoWalletAlreadySave };
   }
 }

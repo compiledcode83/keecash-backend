@@ -16,6 +16,7 @@ import bridgecardConfig from '@config/bridgecard.config';
 import twilioConfig from '@config/twilio.config';
 import sumsubConfig from '@config/sumsub.config';
 import coinlayerConfig from '@config/coinlayer.config';
+import sendgridConfig from '@config/sendgrid.config';
 
 EnvHelper.verifyNodeEnv();
 
@@ -34,6 +35,7 @@ EnvHelper.verifyNodeEnv();
         sumsubConfig,
         twilioConfig,
         coinlayerConfig,
+        sendgridConfig,
       ],
       validate: validate,
     }),

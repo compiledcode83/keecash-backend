@@ -72,14 +72,16 @@ export class BeneficiaryController {
   @UseGuards(JwtAuthGuard)
   @Post('verify-crypto-address')
   async verifyCryptoAddress(
+    @Req() req: any,
     @Body() body: VerifyWalletAddressDto,
   ): Promise<VerifyWalletExistResponseDto> {
-    const valid = this.beneficiaryWalletService.validateCryptoAddress(
+    const res = await this.beneficiaryWalletService.validateCryptoAddress(
       body.blockchain,
       body.cryptoAddress,
+      req.user.id,
     );
 
-    return { valid: valid };
+    return { valid: res.isCryptoWalletAlreadySave && res.isCryptoWalletOK };
   }
 
   @ApiOperation({ description: 'Add a user beneficiaries for transfer' })
@@ -91,7 +93,7 @@ export class BeneficiaryController {
       //check all condition before add a user
       await this.beneficiaryUserService.checkConditionsToAddBeneficiary(
         body.beneficiaryUserId,
-        req.headers,
+        req.user.id,
       );
 
       this.beneficiaryUserService.create({
@@ -110,10 +112,18 @@ export class BeneficiaryController {
   @UseGuards(JwtAuthGuard)
   @Post('add-wallet')
   async addBeneficiaryWallet(@Req() req, @Body() body: AddBeneficiaryWalletDto) {
-    const valid = this.beneficiaryWalletService.validateCryptoAddress(body.type, body.address);
+    const res = await this.beneficiaryWalletService.validateCryptoAddress(
+      body.type,
+      body.address,
+      req.user.id,
+    );
 
-    if (!valid) {
+    if (!res.isCryptoWalletOK) {
       throw new UnauthorizedException(`Address not valid for ${body.type}`);
+    }
+
+    if (res.isCryptoWalletAlreadySave) {
+      throw new UnauthorizedException(`User has already saved this wallet`);
     }
 
     this.beneficiaryService.createBeneficiaryWallet({

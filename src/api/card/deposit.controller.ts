@@ -28,154 +28,214 @@ export class DepositController {
         keecash_wallets: [
           {
             currency: 'EUR',
-            balance: 0,
+            balance: 0.2,
             is_checked: true,
-            min: 0,
-            max: 100000,
             after_decimal: 2,
+            min: {
+              BTC: 1,
+              BTC_LIGHTNING: 1,
+              ETH: 1,
+              USDT_TRC20: 1,
+              USDT_ERC20: 1,
+              USDC: 1,
+              BINANCE: 1,
+            },
+            max: {
+              BTC: 100000,
+              BTC_LIGHTNING: 100000,
+              ETH: 100000,
+              USDT_TRC20: 100000,
+              USDT_ERC20: 100000,
+              USDC: 100000,
+              BINANCE: 100000,
+            },
           },
           {
             currency: 'USD',
             balance: 0,
             is_checked: false,
-            min: 0,
-            max: 100000,
             after_decimal: 2,
+            min: {
+              BTC: 1,
+              BTC_LIGHTNING: 1,
+              ETH: 1,
+              USDT_TRC20: 1,
+              USDT_ERC20: 1,
+              USDC: 1,
+              BINANCE: 1,
+            },
+            max: {
+              BTC: 100000,
+              BTC_LIGHTNING: 100000,
+              ETH: 100000,
+              USDT_TRC20: 100000,
+              USDT_ERC20: 100000,
+              USDC: 100000,
+              BINANCE: 100000,
+            },
           },
         ],
         deposit_methods: [
           {
             name: 'Bitcoin',
             code: 'BTC',
-            exchange_rate: [24488.600182, 26789.72782],
-            activations: [
-              {
-                is_active: true,
-                inactive_message: '',
-              },
-              {
-                is_active: true,
-                inactive_message: '',
-              },
-            ],
             is_checked: false,
-            min: 0,
-            max: 10,
-            after_decimal: 6,
+            data: {
+              EUR: {
+                is_active: true,
+                inactive_message: '',
+                min: 0.00004,
+                max: 3.985915,
+                after_decimal: 6,
+                exchange_rate: 25088.344771,
+              },
+              USD: {
+                is_active: true,
+                inactive_message: '',
+                min: 0.000037,
+                max: 3.701401,
+                after_decimal: 6,
+                exchange_rate: 27016.796922,
+              },
+            },
           },
           {
             name: 'Bitcoin Lightning',
             code: 'BTC_LIGHTNING',
-            exchange_rate: [24488.600182, 26789.72782],
-            activations: [
-              {
-                is_active: true,
-                inactive_message: '',
-              },
-              {
-                is_active: true,
-                inactive_message: '',
-              },
-            ],
             is_checked: false,
-            min: 0,
-            max: 10,
-            after_decimal: 6,
+            data: {
+              EUR: {
+                is_active: true,
+                inactive_message: '',
+                min: 0.00004,
+                max: 3.985915,
+                after_decimal: 6,
+                exchange_rate: 25088.344771,
+              },
+              USD: {
+                is_active: true,
+                inactive_message: '',
+                min: 0.000037,
+                max: 3.701401,
+                after_decimal: 6,
+                exchange_rate: 27016.796922,
+              },
+            },
           },
           {
             name: 'Ethereum',
             code: 'ETH',
-            exchange_rate: [1649.548798, 1804.552444],
-            activations: [
-              {
-                is_active: true,
-                inactive_message: '',
-              },
-              {
-                is_active: true,
-                inactive_message: '',
-              },
-            ],
             is_checked: false,
-            min: 0,
-            max: 140,
-            after_decimal: 4,
+            data: {
+              EUR: {
+                is_active: true,
+                inactive_message: '',
+                min: 0.0006,
+                max: 59.3039,
+                after_decimal: 4,
+                exchange_rate: 1686.229472,
+              },
+              USD: {
+                is_active: true,
+                inactive_message: '',
+                min: 0.0006,
+                max: 55.0557,
+                after_decimal: 4,
+                exchange_rate: 1816.343488,
+              },
+            },
           },
           {
             name: 'Tether USD (TRC20)',
             code: 'USDT_TRC20',
-            exchange_rate: [0.918822, 1.005162],
-            activations: [
-              {
+            is_checked: false,
+            data: {
+              EUR: {
                 is_active: true,
                 inactive_message: '',
+                min: 1.07,
+                max: 106917.8,
+                after_decimal: 2,
+                exchange_rate: 0.935298,
               },
-              {
+              USD: {
                 is_active: true,
                 inactive_message: '',
+                min: 0.99,
+                max: 99251.94,
+                after_decimal: 2,
+                exchange_rate: 1.007537,
               },
-            ],
-            is_checked: 'false',
-            min: 0,
-            max: 100000,
-            after_decimal: 2,
+            },
           },
           {
             name: 'Tether USD (ERC20)',
             code: 'USDT_ERC20',
-            exchange_rate: [0.918822, 1.005162],
-            activations: [
-              {
+            is_checked: false,
+            data: {
+              EUR: {
                 is_active: true,
                 inactive_message: '',
+                min: 1.07,
+                max: 106917.8,
+                after_decimal: 2,
+                exchange_rate: 0.935298,
               },
-              {
+              USD: {
                 is_active: true,
                 inactive_message: '',
+                min: 0.99,
+                max: 99251.94,
+                after_decimal: 2,
+                exchange_rate: 1.007537,
               },
-            ],
-            is_checked: 'false',
-            min: 0,
-            max: 100000,
-            after_decimal: 2,
+            },
           },
           {
             name: 'USD Coin',
             code: 'USDC',
-            exchange_rate: [0.918822, 1.005162],
-            activations: [
-              {
+            is_checked: false,
+            data: {
+              EUR: {
                 is_active: true,
                 inactive_message: '',
+                min: 1.07,
+                max: 106917.8,
+                after_decimal: 2,
+                exchange_rate: 0.935298,
               },
-              {
+              USD: {
                 is_active: true,
                 inactive_message: '',
+                min: 0.99,
+                max: 99251.94,
+                after_decimal: 2,
+                exchange_rate: 1.007537,
               },
-            ],
-            is_checked: 'false',
-            min: 0,
-            max: 100000,
-            after_decimal: 2,
+            },
           },
           {
             name: 'Binance Pay',
             code: 'BINANCE',
-            exchange_rate: [0.918822, 1.005162],
-            activations: [
-              {
+            is_checked: false,
+            data: {
+              EUR: {
                 is_active: true,
                 inactive_message: '',
+                min: 1.07,
+                max: 106917.8,
+                after_decimal: 2,
+                exchange_rate: 0.935298,
               },
-              {
+              USD: {
                 is_active: true,
                 inactive_message: '',
+                min: 0.99,
+                max: 99251.94,
+                after_decimal: 2,
+                exchange_rate: 1.007537,
               },
-            ],
-            is_checked: 'false',
-            min: 0,
-            max: 100000,
-            after_decimal: 2,
+            },
           },
         ],
       },
@@ -184,8 +244,12 @@ export class DepositController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('settings')
-  async getSettings(@Req() req): Promise<any> {
-    return this.cardService.getDepositSettings(req.headers);
+  async getDepositSettings(@Req() req): Promise<any> {
+    return this.cardService.getDepositOrWithdrawalSettings(
+      req.user.countryId,
+      req.user.id,
+      'Deposit',
+    );
   }
 
   @ApiOperation({ description: 'Post deposit fees' })

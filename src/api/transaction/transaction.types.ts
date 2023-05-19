@@ -24,7 +24,8 @@ export enum FiatCurrencyEnum {
 export enum TxTypeEnum {
   Deposit = 'DEPOSIT',
   Withdrawal = 'WITHDRAWAL',
-  Transfer = 'TRANSFER',
+  TransferSent = 'TRANSFER_SENT',
+  TransferReceived = 'TRANSFER_SENT',
   CardCreation = 'CARD_CREATION',
   CardTopup = 'CARD_TOPUP',
   CardWithdrawal = 'CARD_WITHDRAWAL',

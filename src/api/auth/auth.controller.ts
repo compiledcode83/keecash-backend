@@ -568,17 +568,24 @@ export class AuthController {
   @ApiOkResponse({
     description: 'User logout and return refresh token. return `true|false`',
     type: 'true|false',
+    schema: { example: true },
     isArray: false,
   })
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   async logout(@Req() req: Request): Promise<void> {
-    const { refreshToken } = req.cookies || null;
-
-    if (!refreshToken) {
-      throw new BadRequestException('Refresh token is missing');
+    if (!req.headers.authorization) {
+      throw new BadRequestException('Token is missing');
     }
 
-    return this.authService.logout(String(refreshToken));
+    const bearerToken = req.headers.authorization.includes(' ')
+      ? req.headers.authorization.split(' ')[1]
+      : null;
+
+    if (!bearerToken) {
+      throw new BadRequestException('Token is missing');
+    }
+
+    return this.authService.logout(String(bearerToken));
   }
 }

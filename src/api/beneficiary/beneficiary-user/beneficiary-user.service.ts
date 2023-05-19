@@ -36,7 +36,7 @@ export class BeneficiaryUserService {
     return this.beneficiaryUserRepository.save(beneficiaryUserEntity);
   }
 
-  async checkConditionsToAddBeneficiary(userId: number, masterHeader: any): Promise<void> {
+  async checkConditionsToAddBeneficiary(userId: number, masterUserId: number): Promise<void> {
     // ---------------------------------------------------------------------------
     //condition 1: Is beneficiary user exist in our DB ?
     // ---------------------------------------------------------------------------
@@ -51,12 +51,6 @@ export class BeneficiaryUserService {
     // ---------------------------------------------------------------------------
     // condition 2: Is the master user trying to add himself as beneficiary ?
     // ---------------------------------------------------------------------------
-    const masterUserPayload = await this.authService.getUserPayload(
-      masterHeader.authorization.split(' ')[1],
-    );
-
-    const masterUserId = masterUserPayload.id;
-
     const isIdReferToMasterId = masterUserId === userId;
 
     if (isIdReferToMasterId) {
@@ -70,8 +64,6 @@ export class BeneficiaryUserService {
       masterUserId,
       userId,
     );
-
-    console.log(beneficiary);
 
     const isBeneficiaryAlreadyAdded = Boolean(beneficiary);
 

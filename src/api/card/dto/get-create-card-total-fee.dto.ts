@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumberString } from 'class-validator';
+import { IsEnum, IsNumber } from 'class-validator';
 import { CardUsageEnum } from '../card.types';
 import { FiatCurrencyEnum } from '@api/transaction/transaction.types';
 
@@ -13,6 +13,6 @@ export class GetCreateCardTotalFeeDto {
   cardUsageType: CardUsageEnum;
 
   @ApiProperty({ example: 123, description: 'Amount of money to be topped up' })
-  @IsNumberString()
-  desiredAmount: string;
+  @IsNumber()
+  desiredAmount: number;
 }

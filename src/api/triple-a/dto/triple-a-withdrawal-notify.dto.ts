@@ -6,4 +6,8 @@ export class TripleAWithdrawalNotifyDto {
   order_id: string;
 
   local_currency: FiatCurrencyEnum;
+
+  exchange_rate: number;
+
+  crypto_amount: number;
 }
