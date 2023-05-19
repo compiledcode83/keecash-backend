@@ -31,7 +31,6 @@ import { ConfirmEmailVerificationCodeForAdminDto } from './dto/confirm-email-ver
 import { SendEmailVerificationCodeDto } from './dto/send-email-verification.dto';
 import { PincodeVerificationDto } from './dto/pincode-verification.dto';
 import { PasswordLoginDto } from './dto/password-login.dto';
-import { PincodeVerificationResponseDto } from './dto/pincode-verification-response.dto';
 import { PincodeResetResponseDto } from './dto/pincode-reset-response.dto';
 import { PincodeSetResponseDto } from './dto/pincode-set-response.dto';
 import { PincodeSetDto } from './dto/pincode-set-dto';
@@ -99,6 +98,15 @@ export class AuthController {
         break;
 
       case UserStatus.Completed:
+        const oldRefreshToken = await this.cipherTokenService.findOneBy({
+          userId: req.user.id,
+          userAgent: req.headers['user-agent'],
+          ipAddress: ip,
+        });
+        if (oldRefreshToken) {
+          await this.cipherTokenService.deleteByToken(oldRefreshToken.token);
+        }
+
         const refreshToken = await this.cipherTokenService.generateRefreshToken({
           userId: req.user.id,
           userAgent: req.headers['user-agent'],
@@ -259,28 +267,16 @@ export class AuthController {
   async verifyPinCode(
     @Req() req,
     @Body() body: PincodeVerificationDto,
-    @Res({ passthrough: true }) res: Response,
-    @RealIP() ipAddress: string,
-  ): Promise<PincodeVerificationResponseDto> {
+  ): Promise<{ accessToken: string }> {
     const userId = await this.authService.validateBearerToken(
       req.headers,
       TokenTypeEnum.AuthRefresh,
     );
-
     const validatedUser = await this.authService.validateUserByPincode(userId, body.pincode);
-
-    if (!validatedUser) throw new UnauthorizedException('Pincode is incorrect');
-
-    const { accessToken, refreshToken } = await this.authService.login(
-      validatedUser,
-      req.headers['user-agent'],
-      ipAddress,
-    );
+    const accessToken = await this.authService.createAccessToken(validatedUser);
 
     return {
-      isConfirm: true,
       accessToken,
-      status: 'pin_code_set',
     };
   }
 

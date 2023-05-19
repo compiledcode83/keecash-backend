@@ -14,7 +14,6 @@ import { User } from '@app/user';
 import { UserService } from '@api/user/user.service';
 import { UserAccessTokenInterface } from './auth.type';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
-import { TokensResponseDto } from './dto/tokens-response.dto';
 import { SendPhoneVerificationCodeDto } from './dto/send-phone-verification.dto';
 
 @Injectable()
@@ -29,30 +28,6 @@ export class AuthService {
     private readonly twilioService: TwilioService,
   ) {}
 
-  async login(user: any, userAgent: string, ipAddress: string): Promise<TokensResponseDto> {
-    const oldRefreshToken = await this.cipherTokenService.findOneBy({
-      userId: user.id,
-      userAgent,
-      ipAddress,
-    });
-
-    if (oldRefreshToken) {
-      await this.cipherTokenService.deleteByToken(oldRefreshToken.token);
-    }
-
-    const accessToken = await this.createAccessToken(user);
-    const refreshToken = await this.cipherTokenService.generateRefreshToken({
-      userId: user.id,
-      userAgent,
-      ipAddress,
-    });
-
-    return {
-      accessToken,
-      refreshToken,
-    };
-  }
-
   async validateUserByPassword(emailOrPhoneNumber, password): Promise<User> {
     const user = await this.userService.findOne([
       { email: emailOrPhoneNumber },
@@ -66,28 +41,18 @@ export class AuthService {
     return user;
   }
 
-  async validateUserByPincode(userId, pincode): Promise<any> {
+  async validateUserByPincode(userId, pincode): Promise<User> {
     const user = await this.userService.findOne({ id: userId });
     if (!user || !user.pincodeSet) {
       return null;
     }
 
     const isValidated = await bcrypt.compare(pincode, user.pincode);
-
     if (isValidated) {
-      const { countryId } = await this.userService.findOne({ id: user.id });
-
-      return {
-        id: user.id,
-        referralId: user.referralId,
-        email: user.email,
-        status: user.status,
-        type: user.type,
-        countryId,
-      };
+      return user;
+    } else {
+      throw new UnauthorizedException('Pincode is incorrect');
     }
-
-    return null;
   }
 
   async logout(refreshToken: string): Promise<void> {
@@ -112,7 +77,7 @@ export class AuthService {
     tokenData: RefreshTokensDto,
     userAgent: string,
     ipAddress: string,
-  ): Promise<TokensResponseDto> {
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const oldRefreshToken = await this.cipherTokenService.findOneBy({
       token: tokenData.refreshToken,
     });
