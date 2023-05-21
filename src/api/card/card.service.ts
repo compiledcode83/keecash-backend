@@ -1339,11 +1339,21 @@ export class CardService {
       //in the case of short we need to check the amount paid and update all the transaction before apply PERFORMED
       else if (body.payment_tier === 'short') {
         canCheckReferral = true;
+        const { depositFixedFee, depositPercentFee, depositMinAmount, depositMaxAmount } =
+          await this.countryFeeService.findOneWalletDepositWithdrawalFee({
+            countryId: receiver.personProfile.countryId,
+            currency: body.order_currency as FiatCurrencyEnum,
+            method: body.crypto_currency as CryptoCurrencyEnum,
+          });
+
         try {
+          const desiredAmountRecalculated = parseFloat(
+            (body.payment_amount * (1 - depositPercentFee / 100) - depositFixedFee).toFixed(2),
+          );
           const depositFees: GetDepositFeeDto = {
             keecash_wallet: body.order_currency as FiatCurrencyEnum,
             deposit_method: body.crypto_currency as CryptoCurrencyEnum,
-            desired_amount: body.payment_amount,
+            desired_amount: desiredAmountRecalculated,
           };
           const fees = await this.getDepositFee(receiver.personProfile.countryId, depositFees);
 
@@ -1354,7 +1364,7 @@ export class CardService {
               status: TransactionStatusEnum.InProgress,
             },
             {
-              affectedAmount: body.payment_amount,
+              affectedAmount: desiredAmountRecalculated,
               appliedFee: fees.fees_applied,
               fixedFee: fees.fix_fees,
               percentageFee: fees.percent_fees,
@@ -1372,7 +1382,7 @@ export class CardService {
           await this.notificationService.create({
             userId: receiver.id,
             type: NotificationType.Deposit,
-            amount: body.webhook_data.desired_amount,
+            amount: desiredAmountRecalculated,
             currency: body.payment_currency,
           });
         } catch (e) {
@@ -1388,13 +1398,15 @@ export class CardService {
                 ? `Your payment was rejected because the amount is either too small or too large than what is acceptable in your country.` +
                   `\nHere is the amount we received: ` +
                   `\n${body.crypto_amount} ${body.crypto_currency} ↔ ${body.payment_amount} ${body.payment_currency}` +
-                  `\nYour crypto address that sent: ${body.crypto_address}` +
-                  `\nBecause you have not met the stated minimums, this amount will not be refunded to you in accordance with our Terms of Service`
+                  `\nCrypto where you send your crypto: ${body.crypto_address}` +
+                  `\nThe minimum expected is ${depositMinAmount} ${body.payment_currency} and the maximum is ${depositMaxAmount} ${body.payment_currency}` +
+                  `\nBecause you have not met the stated thresolds, this amount will not be refunded to you in accordance with our Terms of Service`
                 : `Votre paiement a été rejeté car le montant est soit trop petit ou soit trop grand que ce qui est acceptable dans votre pays.` +
                   `\nVoici le montant que nous avons reçu: ` +
-                  `\n${body.crypto_amount} ${body.crypto_currency} ↔ ${body.payment_amount} ${body.payment_currency}` +
-                  `\nVotre adress crypto ayant effectué l'envoi: ${body.crypto_address}` +
-                  `\nEtant donné que vous n'avez pas respecté les minimums indiqués, ce montant ne vous sera pas remboursé conformément à nos conditions d'utilisations`,
+                  `\n${body.payment_crypto_amount} ${body.crypto_currency} ↔ ${body.payment_amount} ${body.payment_currency}` +
+                  `\nLe minimum attendu est de ${depositMinAmount} ${body.payment_currency} et le maximum est de ${depositMaxAmount} ${body.payment_currency}` +
+                  `\nL'adresse où vous avez envoyé: ${body.crypto_address}` +
+                  `\nEtant donné que vous n'avez pas respecté les seuils indiqués, ce montant ne vous sera pas remboursé conformément à nos conditions d'utilisations`,
             emailTopImage: 'ko',
           });
         }
