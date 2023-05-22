@@ -24,19 +24,6 @@ EnvHelper.verifyNodeEnv();
       ],
       validate: validateApi,
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
-        const config = configService.get('databaseConfig');
-
-        return {
-          ...config,
-          namingStrategy: new SnakeNamingStrategy(),
-          autoLoadEntities: true,
-        };
-      },
-      inject: [ConfigService],
-    }),
     DatabaseModule,
     AuthModule,
     BeneficiaryModule,

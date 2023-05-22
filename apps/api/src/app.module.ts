@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { EnvHelper, validateApi } from '@app/env';
 import appConfig from './config/app.config';
 import jwtConfig from './config/jwt.config';
@@ -40,19 +37,6 @@ EnvHelper.verifyNodeEnv();
         twilioConfig,
       ],
       validate: validateApi,
-    }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
-        const config = configService.get('databaseConfig');
-
-        return {
-          ...config,
-          namingStrategy: new SnakeNamingStrategy(),
-          autoLoadEntities: true,
-        };
-      },
-      inject: [ConfigService],
     }),
     DatabaseModule,
     AuthModule,

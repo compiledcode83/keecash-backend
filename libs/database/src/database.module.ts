@@ -1,11 +1,10 @@
-import { EnvHelper } from '@app/env/env.helper';
-import { validateDatabaseConfig } from '@app/env/env.validator';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import { DatabaseService } from './database.service';
+import { EnvHelper, validateDatabaseConfig } from '@app/env';
 import databaseConfig from '@app/common/configs/database.config';
+import { DatabaseService } from './database.service';
 
 EnvHelper.verifyNodeEnv();
 
