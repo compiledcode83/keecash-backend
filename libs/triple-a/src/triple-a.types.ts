@@ -4,9 +4,8 @@ export interface TripleADepositInterface {
   amount: number;
   currency: FiatCurrencyEnum;
   email: string;
-  keecashUserId: string; // Referral ID
-  // Webhook data
-  // keecashTransactionId: number;
+  userUuid: string;
+  webhookData: any;
 }
 
 export interface TripleADepositResponseInterface {

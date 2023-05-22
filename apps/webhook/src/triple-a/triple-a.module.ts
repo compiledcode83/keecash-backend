@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TransactionModule } from '@app/transaction';
-import { UserModule } from '@app/user';
 import { TripleAModule } from '@app/triple-a';
-import { PricingModule } from '@app/pricing';
+import { OutboxModule } from '@app/outbox';
 import { TripleAWebhookController } from './triple-a.controller';
 import { TripleAWebhookService } from './triple-a.service';
 
 @Module({
-  imports: [TripleAModule, UserModule, TransactionModule, PricingModule],
+  imports: [TripleAModule, TransactionModule, OutboxModule],
   controllers: [TripleAWebhookController],
   providers: [TripleAWebhookService],
   exports: [TripleAWebhookService],

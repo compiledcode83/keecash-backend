@@ -9,11 +9,7 @@ export class NotificationService {
     return this.notificationRepository.findAllByUserId(userId);
   }
 
-  async create(notification: any) {
-    return this.notificationRepository.save(notification);
-  }
-
-  async markAsReadAdll(userId: number): Promise<void> {
+  async markAsReadAll(userId: number): Promise<void> {
     return this.notificationRepository.markAsReadAll(userId);
   }
 }

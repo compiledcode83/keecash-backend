@@ -18,9 +18,10 @@ const GRANT_TYPE = 'client_credentials';
 export class TripleAService {
   private readonly logger = new Logger(TripleAService.name);
 
-  private tripleAClientId;
-  private tripleAClientSecret;
-  private tripleAMerchatKey;
+  private isSandboxMode: boolean;
+  private tripleAClientId: { USD: string; EUR: string };
+  private tripleAClientSecret: { USD: string; EUR: string };
+  private tripleAMerchatKey: { USD: string; EUR: string };
   private tripleANotifyUrl: string;
   private axiosInstance: AxiosInstance;
 
@@ -28,6 +29,7 @@ export class TripleAService {
     private readonly configService: ConfigService,
     private readonly cipherTokenService: CipherTokenService,
   ) {
+    this.isSandboxMode = this.configService.get('appConfig.environment') === 'development';
     this.tripleAClientId = {
       USD: this.configService.get('tripleAConfig.tripleAUSDClientId'),
       EUR: this.configService.get('tripleAConfig.tripleAEURClientId'),
@@ -51,7 +53,7 @@ export class TripleAService {
     return new Promise((res) => setTimeout(res, ms));
   }
 
-  async getAccessToken(currency: FiatCurrencyEnum): Promise<string> {
+  async requestNewAccessToken(currency: FiatCurrencyEnum): Promise<string> {
     try {
       const body = qs.stringify({
         grant_type: GRANT_TYPE,
@@ -69,10 +71,11 @@ export class TripleAService {
 
       const res = await this.axiosInstance.post('/oauth/token', body, config);
 
-      const { token } = await this.cipherTokenService.generateTripleAAccessToken(
-        res.data.access_token,
+      const { token } = await this.cipherTokenService.generateTripleAAccessToken({
+        token: res.data.access_token,
         currency,
-      );
+        duration: res.data.expires_in,
+      });
 
       this.logger.log(`Triple-A Message: Access token refreshed`);
 
@@ -86,6 +89,20 @@ export class TripleAService {
     }
   }
 
+  async getAccessToken(currency: FiatCurrencyEnum): Promise<string> {
+    let accessToken;
+    const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(currency);
+
+    if (!tokenInDB) {
+      const newToken = await this.requestNewAccessToken(currency);
+      accessToken = newToken;
+    } else {
+      accessToken = tokenInDB.token;
+    }
+
+    return accessToken;
+  }
+
   async deposit(dto: TripleADepositInterface): Promise<TripleADepositResponseInterface> {
     try {
       const body = {
@@ -93,23 +110,15 @@ export class TripleAService {
         merchant_key: this.tripleAMerchatKey[dto.currency],
         order_currency: dto.currency,
         order_amount: dto.amount,
-        payer_id: `keecash+${dto.keecashUserId}`,
+        payer_id: `keecash+${dto.userUuid}`,
         notify_url: `${this.tripleANotifyUrl}/crypto-tx/payment-notifiy-deposit`,
         success_url: 'https://www.success.io/success.html',
         cancel_url: 'https://www.failure.io/cancel.html',
-        webhook_data: {},
+        webhook_data: dto.webhookData,
+        // sandbox: this.isSandboxMode,
       };
 
-      let accessToken;
-      const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(dto.currency);
-
-      if (!tokenInDB) {
-        const newToken = await this.getAccessToken(dto.currency);
-        accessToken = newToken;
-      } else {
-        accessToken = tokenInDB.token;
-      }
-
+      const accessToken = await this.getAccessToken(dto.currency);
       const config = {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -132,15 +141,7 @@ export class TripleAService {
 
   async getDepositDetails(paymentReference: string, currency: FiatCurrencyEnum): Promise<any> {
     try {
-      let accessToken;
-      const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(currency);
-
-      if (!tokenInDB) {
-        const newToken = await this.getAccessToken(currency);
-        accessToken = newToken;
-      } else {
-        accessToken = tokenInDB.token;
-      }
+      const accessToken = await this.getAccessToken(currency);
 
       const config = {
         headers: {
@@ -171,18 +172,10 @@ export class TripleAService {
         country: dto.country,
         order_id: `${dto.keecashUserId}-${uuid()}`,
         notify_url: `${this.tripleANotifyUrl}/crypto-tx/payment-notifiy-withdraw`,
+        sandbox: this.isSandboxMode,
       };
 
-      let accessToken;
-      const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(dto.currency);
-
-      if (!tokenInDB) {
-        const newToken = await this.getAccessToken(dto.currency);
-        accessToken = newToken;
-      } else {
-        accessToken = tokenInDB.token;
-      }
-
+      const accessToken = await this.getAccessToken(dto.currency);
       const config = {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -222,16 +215,7 @@ export class TripleAService {
 
   async getWithdrawalDetails(orderId: string, currency: FiatCurrencyEnum): Promise<any> {
     try {
-      let accessToken;
-      const tokenInDB = await this.cipherTokenService.findValidTripleAAccessToken(currency);
-
-      if (!tokenInDB) {
-        const newToken = await this.getAccessToken(currency);
-        accessToken = newToken;
-      } else {
-        accessToken = tokenInDB.token;
-      }
-
+      const accessToken = await this.getAccessToken(currency);
       const config = {
         headers: {
           Authorization: `Bearer ${accessToken}`,

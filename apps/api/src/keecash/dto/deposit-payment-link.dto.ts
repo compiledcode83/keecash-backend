@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/common';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
 
 export class DepositPaymentLinkDto {
   @ApiProperty({ example: FiatCurrencyEnum.EUR, description: 'Keecash wallet' })
@@ -18,4 +19,7 @@ export class DepositPaymentLinkDto {
   @ApiProperty({ example: 100, description: 'Desired amount' })
   @IsNumber()
   desired_amount: number;
+
+  @IsNotEmpty()
+  user: UserAccessTokenInterface;
 }

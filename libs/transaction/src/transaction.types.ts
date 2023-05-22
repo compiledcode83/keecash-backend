@@ -16,5 +16,11 @@ export enum TransactionStatusEnum {
 }
 
 export enum TransactionEventPattern {
-  TransactionCreate = 'transaction.create',
+  WalletDeposit = 'wallet.deposit',
+  WalletWithdrawal = 'wallet.withdrawal',
+  WalletTransfer = 'wallet.transfer',
+  CardCreation = 'card.creation',
+  CardTopup = 'card.topup',
+  CardWithdrawal = 'card.withdrawal',
+  ReferralFee = 'referral.fee',
 }

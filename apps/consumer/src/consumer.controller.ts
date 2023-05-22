@@ -2,7 +2,15 @@ import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { UserCompleteMessage, UserCreateMessage, UserEventPattern } from '@app/user';
 import { ConsumerService } from './consumer.service';
-import { TransactionCreateMessage, TransactionEventPattern } from '@app/transaction';
+import {
+  TransactionCardCreationMessage,
+  TransactionCardTopupMessage,
+  TransactionCardWithdrawalMessage,
+  TransactionEventPattern,
+  TransactionWalletDepositMessage,
+  TransactionWalletTransferMessage,
+  TransactionWalletWithdrawalMessage,
+} from '@app/transaction';
 import {
   BridgecardCreateMessage,
   BridgecardEventPattern,
@@ -34,10 +42,40 @@ export class ConsumerController {
     this.logger.log(`Bridgecard service is enabled for user ${message.user.uuid}`);
   }
 
-  @EventPattern(TransactionEventPattern.TransactionCreate)
-  async handleTransactionCreate(@Payload() message: TransactionCreateMessage) {
-    await this.consumerService.handleTransactionCreate(message);
-    this.logger.log(`Notification is created for transaction ${message.transaction.uuid}`);
+  @EventPattern(TransactionEventPattern.WalletDeposit)
+  async handleTransactionCreate(@Payload() message: TransactionWalletDepositMessage) {
+    await this.consumerService.handleTransactionWalletDeposit(message);
+    // this.logger.log(`Notification is created for transaction ${message.transaction.uuid}`);
+  }
+
+  @EventPattern(TransactionEventPattern.WalletWithdrawal)
+  async handleTransactionWalletWithdrawal(@Payload() message: TransactionWalletWithdrawalMessage) {
+    await this.consumerService.handleTransactionWalletWithdrawal(message);
+    // this.logger.log(`Notification is created for transaction ${message.transaction.uuid}`);
+  }
+
+  @EventPattern(TransactionEventPattern.WalletTransfer)
+  async handleTransactionWalletTransfer(@Payload() message: TransactionWalletTransferMessage) {
+    await this.consumerService.handleTransactionWalletTransfer(message);
+    // this.logger.log(`Notification is created for transaction ${message.transaction.uuid}`);
+  }
+
+  @EventPattern(TransactionEventPattern.CardCreation)
+  async handleTransactionCardCreation(@Payload() message: TransactionCardCreationMessage) {
+    await this.consumerService.handleTransactionCardCreation(message);
+    // this.logger.log(`Notification is created for transaction ${message.transaction.uuid}`);
+  }
+
+  @EventPattern(TransactionEventPattern.CardTopup)
+  async handleTransactionCardTopup(@Payload() message: TransactionCardTopupMessage) {
+    await this.consumerService.handleTransactionCardTopup(message);
+    // this.logger.log(`Notification is created for transaction ${message.transaction.uuid}`);
+  }
+
+  @EventPattern(TransactionEventPattern.CardWithdrawal)
+  async handleTransactionCardWithdrawal(@Payload() message: TransactionCardWithdrawalMessage) {
+    await this.consumerService.handleTransactionCardWithdrawal(message);
+    // this.logger.log(`Notification is created for transaction ${message.transaction.uuid}`);
   }
 
   @EventPattern(BridgecardEventPattern.BridgecardCreate)

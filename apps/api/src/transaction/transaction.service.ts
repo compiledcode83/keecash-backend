@@ -21,9 +21,11 @@ export class TransactionService {
   }
 
   async create(data: Partial<Transaction>): Promise<Transaction> {
-    const txEntity = await this.transactionRepository.create(data);
+    return this.transactionRepository.create(data);
+  }
 
-    return this.transactionRepository.save(txEntity);
+  async save(data: any): Promise<Transaction> {
+    return this.transactionRepository.save(data);
   }
 
   async createMany(data: Partial<Transaction>[]) {

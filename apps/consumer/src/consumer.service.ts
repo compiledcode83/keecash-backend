@@ -10,13 +10,20 @@ import {
 } from '@app/bridgecard';
 import {
   Transaction,
-  TransactionCreateMessage,
+  TransactionCardCreationMessage,
+  TransactionCardTopupMessage,
+  TransactionCardWithdrawalMessage,
   TransactionEventPattern,
   TransactionService,
   TransactionStatusEnum,
   TransactionTypeEnum,
+  TransactionWalletDepositMessage,
+  TransactionWalletTransferMessage,
+  TransactionWalletWithdrawalMessage,
 } from '@app/transaction';
 import { OutboxService } from '@app/outbox';
+import { NotificationService, NotificationType } from '@app/notification';
+import { PricingService } from '@app/pricing';
 
 @Injectable()
 export class ConsumerService {
@@ -27,6 +34,8 @@ export class ConsumerService {
     private readonly bridgecardService: BridgecardService,
     private readonly transactionService: TransactionService,
     private readonly outboxService: OutboxService,
+    private readonly notificationService: NotificationService,
+    private readonly pricingService: PricingService,
   ) {}
 
   async handleUserCreate(message: UserCreateMessage): Promise<void> {
@@ -104,9 +113,63 @@ export class ConsumerService {
     }
   }
 
-  async handleTransactionCreate(message: TransactionCreateMessage) {
-    console.log(message);
+  async handleTransactionWalletDeposit(message: TransactionWalletDepositMessage) {
+    const { transaction } = message;
+
+    const { referralId, referralAppliedId, countryId } = await this.userService.findOne({
+      id: transaction.userId,
+    });
+
+    // If user is referred to KeeCash, send referral fees to referer
+    const referralUser = await this.userService.findOne({ referralId: referralAppliedId });
+    if (referralUser) {
+      const { fixedFee, percentFee } = await this.pricingService.findReferralFee({ countryId });
+
+      await this.transactionService.create({
+        receiverId: referralUser.id,
+        appliedFee: parseFloat(
+          ((transaction.affectedAmount * percentFee) / 100 + fixedFee).toFixed(2),
+        ),
+        fixedFee,
+        percentFee,
+        type: TransactionTypeEnum.ReferralFee,
+        currency: transaction.currency,
+        tripleAPaymentReference: transaction.tripleAPaymentReference,
+        status: TransactionStatusEnum.Performed,
+        description: `Referral fee from ${referralId}'s deposit`,
+      });
+    }
+
+    // Create a notification
+    await this.notificationService.save({
+      userId: transaction.userId,
+      type: NotificationType.Deposit,
+      message: `You deposited ${transaction.affectedAmount} ${transaction.currency}`,
+      amount: transaction.affectedAmount,
+      currency: transaction.currency,
+    });
   }
+
+  async handleTransactionWalletWithdrawal(message: TransactionWalletWithdrawalMessage) {
+    const { transaction } = message;
+
+    // Create a notification
+    await this.notificationService.save({
+      userId: transaction.userId,
+      type: NotificationType.Withdrawal,
+      message: `You withdrew ${-transaction.affectedAmount} ${transaction.currency}`,
+      amount: -transaction.affectedAmount,
+      currency: transaction.currency,
+    });
+  }
+
+  async handleTransactionWalletTransfer(message: TransactionWalletTransferMessage) {}
+
+  async handleTransactionCardCreation(message: TransactionCardCreationMessage) {}
+
+  async handleTransactionCardTopup(message: TransactionCardTopupMessage) {}
+
+  async handleTransactionCardWithdrawal(message: TransactionCardWithdrawalMessage) {}
 
   async handleBridgecardCreate(message: BridgecardCreateMessage) {
     // Create Bridgecard
@@ -160,10 +223,10 @@ export class ConsumerService {
       });
 
       // Produce another message for notification
-      const payload = new TransactionCreateMessage({
+      const payload = new TransactionCardCreationMessage({
         transaction: updatedTransaction,
       });
-      this.outboxService.create(queryRunner, TransactionEventPattern.TransactionCreate, payload);
+      this.outboxService.create(queryRunner, TransactionEventPattern.CardCreation, payload);
 
       await queryRunner.commitTransaction();
     } catch (err) {

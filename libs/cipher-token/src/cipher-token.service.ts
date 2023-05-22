@@ -88,14 +88,12 @@ export class CipherTokenService {
     return token;
   }
 
-  async generateTripleAAccessToken(
-    token: string,
-    currency: FiatCurrencyEnum,
-  ): Promise<CipherToken> {
+  async generateTripleAAccessToken({ token, currency, duration }): Promise<CipherToken> {
     return this.cipherTokenRepository.generateToken({
       token,
       currency,
       type: TokenTypeEnum.TripleAAccessToken,
+      duration,
     });
   }
 

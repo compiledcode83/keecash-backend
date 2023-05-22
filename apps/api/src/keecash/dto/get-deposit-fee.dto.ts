@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumberString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumberString } from 'class-validator';
 import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/common';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
 
 export class GetDepositFeeDto {
   @ApiProperty({ example: 'EUR', description: 'Keecash wallet address' })
@@ -14,4 +15,7 @@ export class GetDepositFeeDto {
   @ApiProperty({ example: 100, description: 'Deposit amount in fiat (EUR, USD ...)' })
   @IsNumberString()
   fiat_amount: string;
+
+  @IsNotEmpty()
+  user: UserAccessTokenInterface;
 }

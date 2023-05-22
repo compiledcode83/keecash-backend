@@ -1,19 +1,26 @@
 import { Injectable } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { FiatCurrencyEnum } from '@app/common';
 import { TripleAService } from '@app/triple-a';
-import { UserService } from '@app/user';
-import { TransactionService, TransactionStatusEnum, TransactionTypeEnum } from '@app/transaction';
-import { PricingService } from '@app/pricing';
+import {
+  Transaction,
+  TransactionEventPattern,
+  TransactionService,
+  TransactionStatusEnum,
+  TransactionWalletDepositMessage,
+  TransactionWalletWithdrawalMessage,
+} from '@app/transaction';
+import { OutboxService } from '@app/outbox';
 import { TripleAWithdrawalNotifyDto } from './dto/triple-a-withdrawal-notify.dto';
 import { TripleADepositNotifyDto } from './dto/triple-a-deposit-notify.dto';
 
 @Injectable()
 export class TripleAWebhookService {
   constructor(
+    private readonly dataSource: DataSource,
     private readonly tripleAService: TripleAService,
-    private readonly userService: UserService,
     private readonly transactionService: TransactionService,
-    private readonly pricingService: PricingService,
+    private readonly outboxService: OutboxService,
   ) {}
 
   async handleDepositNotification(body: TripleADepositNotifyDto) {
@@ -23,45 +30,44 @@ export class TripleAWebhookService {
     );
 
     if (details.status === 'done') {
-      const keecashId = details.payer_id.split('+')[1]; // payer_id looks like 'keecash+SV08DV8'
+      const queryRunner = this.dataSource.createQueryRunner();
 
-      const receiver = await this.userService.findOne({ referralId: keecashId });
+      try {
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-      // Update IN PROGRESS transaction's status to 'PERFORMED'
-      await this.transactionService.update(
-        {
+        // Update IN PROGRESS transaction's status to 'PERFORMED'
+        await queryRunner.manager.update(
+          Transaction,
+          { tripleAPaymentReference: body.payment_reference },
+          { status: TransactionStatusEnum.Performed },
+        );
+        const updatedTransaction = await queryRunner.manager.findOneBy(Transaction, {
           tripleAPaymentReference: body.payment_reference,
-          type: TransactionTypeEnum.Deposit,
-          status: TransactionStatusEnum.InProgress,
-        },
-        { status: TransactionStatusEnum.Performed },
-      );
-
-      const referralUser = await this.userService.getReferralUser(receiver.id);
-
-      if (referralUser) {
-        const { fixedFee, percentFee } = await this.pricingService.findReferralFee({
-          countryId: receiver.countryId,
         });
 
-        await this.transactionService.create({
-          receiverId: referralUser.id,
-          appliedFee: parseFloat(((details.order_amount * percentFee) / 100 + fixedFee).toFixed(2)), // TODO: Check with Hol to define the fee
-          fixedFee,
-          percentFee: percentFee,
-          type: TransactionTypeEnum.ReferralFee,
-          currency: body.order_currency,
-          tripleAPaymentReference: details.payment_reference,
-          status: TransactionStatusEnum.Performed,
-          description: `Referral fee from ${receiver.referralId}'s deposit`,
+        const payload = new TransactionWalletDepositMessage({
+          transaction: updatedTransaction,
         });
-      } else {
-        // TODO: Update specific status options: 'hold', 'invalid'
-        // Update IN PROGRESS transaction's status to 'REJECTED'
-        await this.transactionService.update(body.webhook_data.keecash_tx_id, {
-          status: TransactionStatusEnum.Rejected,
-        });
+        this.outboxService.create(queryRunner, TransactionEventPattern.WalletDeposit, payload);
+
+        await queryRunner.commitTransaction();
+      } catch (err) {
+        await queryRunner.rollbackTransaction();
+
+        throw err;
+      } finally {
+        await queryRunner.release();
       }
+    } else {
+      // TODO: Update specific status options: 'hold', 'invalid'
+      // Update IN PROGRESS transaction's status to 'REJECTED'
+      await this.transactionService.update(
+        { tripleAPaymentReference: body.payment_reference },
+        {
+          status: TransactionStatusEnum.Rejected,
+        },
+      );
     }
   }
 
@@ -73,23 +79,40 @@ export class TripleAWebhookService {
 
     // details.status : 'new', 'confirm', 'done', 'cancel'. See https://developers.triple-a.io/docs/triplea-api-doc/a6c4376384c1e-3-get-payout-details-by-order-id
     if (details.status === 'done') {
-      // const { senderId } = await this.transactionService.findOne({
-      //   tripleAPaymentReference: body.payout_reference,
-      //   type: TransactionTypeEnum.Withdrawal,
-      //   status: TransactionStatusEnum.InProgress
-      // });
+      const queryRunner = this.dataSource.createQueryRunner();
 
-      // const referralUser = await this.userService.getReferralUser(senderId);
+      try {
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-      await this.transactionService.update(
-        {
+        await queryRunner.manager.update(
+          Transaction,
+          { tripleAPaymentReference: body.payout_reference },
+          { status: TransactionStatusEnum.Performed },
+        );
+        const updatedTransaction = await queryRunner.manager.findOneBy(Transaction, {
           tripleAPaymentReference: body.payout_reference,
-          type: TransactionTypeEnum.Withdrawal,
-          status: TransactionStatusEnum.InProgress,
-        },
-        {
-          status: TransactionStatusEnum.Performed,
-        },
+        });
+
+        const payload = new TransactionWalletWithdrawalMessage({
+          transaction: updatedTransaction,
+        });
+        this.outboxService.create(queryRunner, TransactionEventPattern.WalletWithdrawal, payload);
+
+        await queryRunner.commitTransaction();
+      } catch (err) {
+        await queryRunner.rollbackTransaction();
+
+        throw err;
+      } finally {
+        await queryRunner.release();
+      }
+    } else {
+      // TODO: Update specific status options: 'hold', 'invalid'
+      // Update IN PROGRESS transaction's status to 'REJECTED'
+      await this.transactionService.update(
+        { tripleAPaymentReference: body.payout_reference },
+        { status: TransactionStatusEnum.Rejected },
       );
     }
   }

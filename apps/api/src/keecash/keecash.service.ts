@@ -18,13 +18,10 @@ import {
 import { TransactionTypeEnum, TransactionStatusEnum } from '@app/transaction';
 import { CardBrandEnum, CardTypeEnum, CardUsageEnum } from '@app/card';
 import { PricingService } from '@app/pricing';
-import { NotificationType } from '@app/notification';
 import { FiatCurrencyEnum } from '@app/common';
 import { OutboxService } from '@app/outbox';
 import { TransactionService } from '@api/transaction/transaction.service';
 import { UserService } from '@api/user/user.service';
-import { TripleADepositNotifyDto } from '@api/keecash/dto/triple-a-deposit-notify.dto';
-import { NotificationService } from '@api/notification/notification.service';
 import { BeneficiaryService } from '@api/beneficiary/beneficiary.service';
 import { CardService } from '@api/card/card.service';
 import { UserAccessTokenInterface } from '@api/auth/auth.type';
@@ -41,7 +38,6 @@ import { GetWalletTransactionsQueryDto } from './dto/get-wallet-transactions.que
 import { ApplyCardTopupDto } from './dto/card-topup-apply.dto';
 import { GetCardWithdrawalSettingDto } from './dto/get-card-withdrawal-setting.dto';
 import { ApplyCardWithdrawalDto } from './dto/card-withdrawal-apply.dto';
-import { TripleAWithdrawalNotifyDto } from './dto/triple-a-withdrawal-notify.dto';
 import { ManageCardDto } from './dto/manage-card.dto';
 import { GetCreateCardSettingsDto } from './dto/get-create-card-settings.dto';
 
@@ -56,7 +52,6 @@ export class KeecashService {
     private readonly transactionService: TransactionService,
     private readonly bridgecardService: BridgecardService,
     private readonly beneficiaryService: BeneficiaryService,
-    private readonly notificationService: NotificationService,
     private readonly tripleAService: TripleAService,
     private readonly pricingService: PricingService,
     private readonly outboxService: OutboxService,
@@ -260,9 +255,9 @@ export class KeecashService {
 
   // -------------- DEPOSIT -------------------
 
-  async getDepositFee(countryId: number, query: GetDepositFeeDto) {
+  async getDepositFee(query: GetDepositFeeDto) {
     const { fixedFee, percentFee } = await this.pricingService.findWalletDepositFee({
-      countryId,
+      countryId: query.user.countryId,
       currency: query.keecash_wallet,
       method: query.deposit_method,
     });
@@ -280,13 +275,13 @@ export class KeecashService {
     };
   }
 
-  async getDepositPaymentLink(user: UserAccessTokenInterface, body: DepositPaymentLinkDto) {
+  async getDepositPaymentLink(body: DepositPaymentLinkDto) {
     const {
       id: userId,
+      uuid: userUuid,
       countryId,
       email,
-      referralId,
-    } = await this.userService.findByUuid(user.uuid);
+    } = await this.userService.findByUuid(body.user.uuid);
 
     // Calculate fees
     const { fixedFee, percentFee } = await this.pricingService.findWalletDepositFee({
@@ -304,33 +299,27 @@ export class KeecashService {
       amount: amountAfterFee,
       currency: body.keecash_wallet,
       email: email,
-      keecashUserId: referralId,
+      userUuid,
+      webhookData: {},
     });
 
-    // Create a deposit transaction
-    await this.transactionService.create({
-      userId,
-      currency: body.keecash_wallet,
-      affectedAmount: body.desired_amount,
-      appliedFee: feesApplied,
-      fixedFee: fixedFee,
-      percentFee: percentFee,
-      cryptoType: body.deposit_method,
-      type: TransactionTypeEnum.Deposit,
-      status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
-      description: `Deposited ${body.desired_amount} ${body.keecash_wallet} from ${body.deposit_method}`,
-      reason: body.reason,
-      tripleAPaymentReference: res.payment_reference,
-    });
-
-    // TODO: Add to Redis/BullMQ message queue asynchronously
-    // Create a notification for the transaction
-    await this.notificationService.create({
-      userId,
-      type: NotificationType.Deposit,
-      amount: body.desired_amount,
-      currency: body.keecash_wallet,
-    });
+    // Create a deposit transaction in DB
+    await this.transactionService.save(
+      await this.transactionService.create({
+        userId,
+        currency: body.keecash_wallet,
+        affectedAmount: body.desired_amount,
+        appliedFee: feesApplied,
+        fixedFee: fixedFee,
+        percentFee: percentFee,
+        cryptoType: body.deposit_method,
+        type: TransactionTypeEnum.Deposit,
+        status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
+        description: `Deposited ${body.desired_amount} ${body.keecash_wallet} from ${body.deposit_method}`,
+        reason: body.reason,
+        tripleAPaymentReference: res.payment_reference,
+      }),
+    );
 
     return {
       link: res.hosted_url,
@@ -401,28 +390,21 @@ export class KeecashService {
     });
 
     // Create a withdrawal transaction in database
-    await this.transactionService.create({
-      userId,
-      currency: body.keecash_wallet,
-      affectedAmount: -body.target_amount,
-      appliedFee: feesApplied,
-      fixedFee: fixedFee,
-      percentFee: percentFee,
-      cryptoType: body.withdrawal_method,
-      type: TransactionTypeEnum.Withdrawal,
-      status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
-      reason: body.reason,
-      tripleAPaymentReference: res.payout_reference,
-    });
-
-    // TODO: Add to BullMQ
-    // Create a notification for the transaction
-    await this.notificationService.create({
-      userId,
-      type: NotificationType.Withdrawal,
-      amount: body.target_amount,
-      currency: body.keecash_wallet,
-    });
+    await this.transactionService.save(
+      await this.transactionService.create({
+        userId,
+        currency: body.keecash_wallet,
+        affectedAmount: -body.target_amount,
+        appliedFee: feesApplied,
+        fixedFee: fixedFee,
+        percentFee: percentFee,
+        cryptoType: body.withdrawal_method,
+        type: TransactionTypeEnum.Withdrawal,
+        status: TransactionStatusEnum.InProgress, // TODO: set PERFORMED after webhook call
+        reason: body.reason,
+        tripleAPaymentReference: res.payout_reference,
+      }),
+    );
   }
 
   // -------------- TRANSFER -------------------
@@ -506,20 +488,20 @@ export class KeecashService {
 
     // TODO: Add to BullMQ
     // Create notifications for the transaction
-    await this.notificationService.create([
-      {
-        userId: userId,
-        type: NotificationType.TransferSent,
-        amount: body.desired_amount,
-        currency: body.keecash_wallet,
-      },
-      {
-        userId: body.beneficiary_user_id,
-        type: NotificationType.TransferReceived,
-        amount: body.desired_amount,
-        currency: body.keecash_wallet,
-      },
-    ]);
+    // await this.notificationService.create([
+    //   {
+    //     userId: userId,
+    //     type: NotificationType.TransferSent,
+    //     amount: body.desired_amount,
+    //     currency: body.keecash_wallet,
+    //   },
+    //   {
+    //     userId: body.beneficiary_user_id,
+    //     type: NotificationType.TransferReceived,
+    //     amount: body.desired_amount,
+    //     currency: body.keecash_wallet,
+    //   },
+    // ]);
   }
 
   // -------------- HISTORY -------------------
@@ -768,12 +750,12 @@ export class KeecashService {
     });
 
     // TODO: Add to BullMQ
-    await this.notificationService.create({
-      userId,
-      type: NotificationType.CardTopup,
-      amount: totalToPay,
-      currency,
-    });
+    // await this.notificationService.create({
+    //   userId,
+    //   type: NotificationType.CardTopup,
+    //   amount: totalToPay,
+    //   currency,
+    // });
   }
 
   // -------------- CARD TOPUP -------------------
@@ -841,141 +823,11 @@ export class KeecashService {
     });
 
     // TODO: Add to BullMQ
-    await this.notificationService.create({
-      userId,
-      type: NotificationType.CardWithdrawal,
-      amount: body.withdrawalAmount,
-      currency,
-    });
-  }
-
-  // ------------------ Bridgecard Webhook Handler ----------------------
-
-  async handleBridgecardWebhookEvent(event: string, data: any) {
-    switch (event) {
-      case 'cardholder_verification.successful':
-        await this.userService.update(
-          { cardholderId: data.cardholder_id },
-          { cardholderVerified: true },
-        );
-        this.logger.log(`Cardholder: ${data.cardholder_id} is verified successfully`);
-        break;
-
-      case 'cardholder_verification.failed':
-        this.logger.log(`Verification failed for cardholder: ${data.cardholder_id}`);
-        break;
-
-      case 'card_creation_event.successful':
-        const { id: userId } = await this.userService.findOne({ cardholderId: data.cardholder_id });
-        // await this.cardService.create({
-        //   userId: userId,
-        //   bridgecardId: data.card_id,
-        // });
-        break;
-
-      case 'card_creation_event.failed':
-        break;
-
-      case 'card_credit_event.successful':
-        break;
-
-      case 'card_credit_event.failed':
-        break;
-
-      case 'card_debit_event.successful':
-        break;
-
-      case 'card_debit_event.declined':
-        break;
-
-      case 'card_reversal_event.successful':
-        break;
-
-      case '3d_secure_otp_event.generated':
-        break;
-
-      default:
-        break;
-    }
-  }
-
-  // ------------------ TripleA Webhook Handler ----------------------
-
-  async handleDepositNotification(body: TripleADepositNotifyDto) {
-    const details = await this.tripleAService.getDepositDetails(
-      body.payment_reference,
-      body.order_currency as FiatCurrencyEnum,
-    );
-
-    if (details.status === 'done') {
-      const keecashId = details.payer_id.split('+')[1]; // payer_id looks like 'keecash+SV08DV8'
-
-      const receiver = await this.userService.findOne({ referralId: keecashId });
-
-      // Update IN PROGRESS transaction's status to 'PERFORMED'
-      await this.transactionService.update(
-        {
-          tripleAPaymentReference: body.payment_reference,
-          type: TransactionTypeEnum.Deposit,
-          status: TransactionStatusEnum.InProgress,
-        },
-        { status: TransactionStatusEnum.Performed },
-      );
-
-      const referralUser = await this.userService.getReferralUser(receiver.id);
-
-      if (referralUser) {
-        const { fixedFee, percentFee } = await this.pricingService.findReferralFee({
-          countryId: receiver.countryId,
-        });
-
-        await this.transactionService.create({
-          receiverId: referralUser.id,
-          appliedFee: parseFloat(((details.order_amount * percentFee) / 100 + fixedFee).toFixed(2)), // TODO: Check with Hol to define the fee
-          fixedFee,
-          percentFee: percentFee,
-          type: TransactionTypeEnum.ReferralFee,
-          currency: body.order_currency,
-          tripleAPaymentReference: details.payment_reference,
-          status: TransactionStatusEnum.Performed,
-          description: `Referral fee from ${receiver.referralId}'s deposit`,
-        });
-      } else {
-        // TODO: Update specific status options: 'hold', 'invalid'
-        // Update IN PROGRESS transaction's status to 'REJECTED'
-        await this.transactionService.update(body.webhook_data.keecash_tx_id, {
-          status: TransactionStatusEnum.Rejected,
-        });
-      }
-    }
-  }
-
-  async handleWithdrawalNotification(body: TripleAWithdrawalNotifyDto) {
-    const details = await this.tripleAService.getWithdrawalDetails(
-      body.payout_reference,
-      body.local_currency,
-    );
-
-    // details.status : 'new', 'confirm', 'done', 'cancel'. See https://developers.triple-a.io/docs/triplea-api-doc/a6c4376384c1e-3-get-payout-details-by-order-id
-    if (details.status === 'done') {
-      // const { senderId } = await this.transactionService.findOne({
-      //   tripleAPaymentReference: body.payout_reference,
-      //   type: TransactionTypeEnum.Withdrawal,
-      //   status: TransactionStatusEnum.InProgress
-      // });
-
-      // const referralUser = await this.userService.getReferralUser(senderId);
-
-      await this.transactionService.update(
-        {
-          tripleAPaymentReference: body.payout_reference,
-          type: TransactionTypeEnum.Withdrawal,
-          status: TransactionStatusEnum.InProgress,
-        },
-        {
-          status: TransactionStatusEnum.Performed,
-        },
-      );
-    }
+    // await this.notificationService.create({
+    //   userId,
+    //   type: NotificationType.CardWithdrawal,
+    //   amount: body.withdrawalAmount,
+    //   currency,
+    // });
   }
 }

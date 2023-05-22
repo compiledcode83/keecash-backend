@@ -6,7 +6,6 @@ import { OutboxModule } from '@app/outbox';
 import { TransactionModule } from '@api/transaction/transaction.module';
 import { UserModule } from '@api/user/user.module';
 import { BeneficiaryModule } from '@api/beneficiary/beneficiary.module';
-import { NotificationModule } from '@api/notification/notification.module';
 import { CardModule } from '@api/card/card.module';
 import { KeecashService } from './keecash.service';
 import { HistoryController } from './history.controller';
@@ -19,7 +18,6 @@ import { WithdrawalController } from './withdrawal.controller';
 @Module({
   imports: [
     TransactionModule,
-    NotificationModule,
     BridgecardModule,
     TripleAModule,
     BeneficiaryModule,
