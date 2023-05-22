@@ -273,6 +273,7 @@ export class DepositController {
   }
 
   @ApiOperation({ description: 'Post deposit payment link' })
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOkResponse({
     description: 'Payment link response',

@@ -59,6 +59,8 @@ import { ConfirmEmailVerificationCodeForForgotPincodeResponseDto } from './dto/c
 import { ConfirmEmailverificationCodeForForgetPasswordResponseDto } from './dto/confirm-email-verification-code-for-forgot-password-response.dto';
 import { PasswordResetResponseDto } from './dto/password-reset-response.dto';
 import { SumsubTokenResponseDto } from './dto/sumsub-token-response.dto';
+import { CountryService } from '@api/country/country.service';
+import { Country } from '@api/country/country.entity';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -69,6 +71,7 @@ export class AuthController {
     private readonly userService: UserService,
     private readonly cipherTokenService: CipherTokenService,
     private readonly personProfileService: PersonProfileService,
+    private readonly countryService: CountryService,
   ) {}
 
   @ApiOperation({ description: `Create account` })
@@ -256,6 +259,44 @@ export class AuthController {
     };
   }
 
+  @ApiOperation({ description: `Get available country list` })
+  @ApiOkResponse({
+    description: 'Country list',
+    schema: {
+      example: [
+        {
+          name: 'France',
+          country_code: 'FR',
+          phone_code: '+33',
+          is_active: true,
+        },
+        {
+          name: 'Finland',
+          country_code: 'FI',
+          phone_code: '+358',
+          is_active: true,
+        },
+        {
+          name: 'Cameroon',
+          country_code: 'CM',
+          phone_code: '+237',
+          is_active: true,
+        },
+        {
+          name: 'Gabon',
+          country_code: 'GA',
+          phone_code: '+241',
+          is_active: true,
+        },
+      ],
+    },
+  })
+  @ApiBearerAuth()
+  @Get('country-list')
+  async getAllCountries(): Promise<Country[]> {
+    return this.countryService.getCountryList();
+  }
+
   @ApiOperation({
     description: `Send phone number verification code - Only with login token of a user who just validated his email`,
   })
@@ -270,6 +311,7 @@ export class AuthController {
     @Req() req,
     @Body() body: SendPhoneNumberVerificationCodeDto,
   ): Promise<any> {
+    console.log(`body`);
     const token = await this.authService.validateBearerToken(
       req.headers,
       TokenTypeEnum.CreateAccount,

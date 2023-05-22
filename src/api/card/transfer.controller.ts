@@ -6,6 +6,7 @@ import { GetTransferFeeDto } from './dto/get-transfer-fee.dto';
 import { TransferApplyDto } from './dto/transfer-apply.dto';
 
 @Controller('transfer')
+@ApiTags('Transfer')
 export class TransferController {
   constructor(private readonly cardService: CardService) {}
 
@@ -24,7 +25,6 @@ export class TransferController {
   }
 
   @ApiOperation({ description: 'Get transfer fees' })
-  @ApiTags('Transfer')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('fees')
@@ -33,7 +33,6 @@ export class TransferController {
   }
 
   @ApiOperation({ description: 'Apply transfer' })
-  @ApiTags('Transfer')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('apply')

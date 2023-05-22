@@ -48,6 +48,8 @@ import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { SendgridService } from '@api/sendgrid/sendgrid.service';
 import { WebhookDepositResponseInterface } from './dto/webhook-deposit-response.interface';
+import { GetTopupSettingQueryDto } from './dto/get-topup-setting-query.dto';
+import { CardBrandQueryDto } from './dto/card-brand-query.dto';
 
 @Injectable()
 export class CardService {
@@ -866,81 +868,157 @@ export class CardService {
 
   // -------------- CREATE CARD -------------------
 
-  async getCreateCardSettings(countryId: number, currency: FiatCurrencyEnum) {
-    const cardPrices = await this.countryFeeService.findCardPrices({
-      type: CardTypeEnum.Virtual, // Bridgecard provides VIRTUAL cards only
-      countryId,
-      currency,
-    });
+  async getCreateCardSettings(countryId: number, userId: number, query: GetTopupSettingQueryDto) {
+    const walletBalance = await this.transactionService.getWalletBalances(userId);
 
-    const multipleCardPrice = cardPrices.find((price) => price.usage === CardUsageEnum.Multiple);
-    const uniqueCardPrice = cardPrices.find((price) => price.usage === CardUsageEnum.Unique);
+    const userProfile = await this.userService.findOneWithProfileAndDocuments(
+      { id: userId },
+      true,
+      false,
+    );
 
-    if (!multipleCardPrice || !uniqueCardPrice) {
-      throw new NotFoundException('Cannot find card prices for requested country');
+    const getCardTypes = async (currencyIn: FiatCurrencyEnum) => {
+      const cardPrices = await this.countryFeeService.findCardPrices({
+        type: CardTypeEnum.Virtual, // Bridgecard provides VIRTUAL cards only
+        countryId,
+        currency: currencyIn,
+      });
+
+      const multipleCardPrice = cardPrices.find((price) => price.usage === CardUsageEnum.Multiple);
+      const uniqueCardPrice = cardPrices.find((price) => price.usage === CardUsageEnum.Unique);
+
+      if (!multipleCardPrice || !uniqueCardPrice) {
+        throw new NotFoundException('Cannot find card prices for requested country');
+      }
+
+      const { cardTopUpMinAmount, cardTopUpFixedFee } =
+        await this.countryFeeService.findOneCardTopupFee({
+          countryId,
+          currency: currencyIn,
+          usage: query ? query.cardUsageType : CardUsageEnum.Multiple,
+        });
+
+      const getCardPriceFromType = async (type: CardUsageEnum) => {
+        return await this.countryFeeService.findOneCardPrice({
+          countryId,
+          currency: currencyIn,
+          usage: type,
+          type: CardTypeEnum.Virtual, // Bridgecard provides VIRTUAL cards only
+        });
+      };
+
+      const cardPriceMultiple = (await getCardPriceFromType(CardUsageEnum.Multiple)).cardPrice;
+
+      const cardPriceUnique = (await getCardPriceFromType(CardUsageEnum.Unique)).cardPrice;
+
+      const keecashWallet = {
+        currency: currencyIn,
+        balance: walletBalance[currencyIn],
+        is_checked: true,
+        min: cardTopUpMinAmount,
+        max: cardTopUpFixedFee,
+        after_decimal: 2,
+        cardTypes: [
+          {
+            name: userProfile.language === 'en' ? 'Multiple use card' : 'Carte à usage multiple',
+            type: 'MULTIPLE',
+            description:
+              userProfile.language === 'en'
+                ? 'Topped up multiple time'
+                : 'Rechargeable plusieurs fois',
+            is_checked: true,
+            price: cardPriceMultiple,
+            cardValidity: '2 years',
+          },
+          {
+            name: userProfile.language === 'en' ? 'Single use card' : 'Carte à usage unique',
+            type: 'SINGLE',
+            description:
+              userProfile.language === 'en' ? 'Topped up one time' : 'Rechargeable une fois',
+            is_checked: false,
+            price: cardPriceUnique,
+            cardValidity: '2 years',
+          },
+        ],
+      };
+
+      return keecashWallet;
+    };
+
+    const keecashWallets = [];
+    for (const eachCurrency of ['EUR', 'USD'] as FiatCurrencyEnum[]) {
+      keecashWallets.push(await getCardTypes(eachCurrency));
     }
 
-    const cardTypes = [
-      {
-        name: 'Multiple use card',
-        type: CardUsageEnum.Multiple,
-        description: 'Topped up multiple time',
-        is_checked: true,
-        price: multipleCardPrice.cardPrice,
-        currency,
-        cardValidity: '2 years',
-      },
-      {
-        name: 'Single use card',
-        type: CardUsageEnum.Unique,
-        description: 'Topped up one time',
-        is_checked: false,
-        price: uniqueCardPrice.cardPrice,
-        currency,
-        cardValidity: '2 years',
-      },
-    ];
-
-    return {
-      cardTypes,
-    };
+    return keecashWallets;
   }
 
-  async getFeesAppliedTotalToPay(userId: number, query: GetCreateCardTotalFeeDto) {
+  async getFeesAppliedTotalToPay(
+    userId: number,
+    body: GetCreateCardTotalFeeDto,
+    includeFees?: boolean,
+  ) {
     const {
       personProfile: { countryId },
     } = await this.userService.findOneWithProfileAndDocuments({ id: userId }, true, false);
 
-    const { cardTopUpPercentFee, cardTopUpFixedFee } =
+    const { cardTopUpPercentFee, cardTopUpFixedFee, cardTopUpMinAmount, cardTopUpMaxAmount } =
       await this.countryFeeService.findOneCardTopupFee({
         countryId,
-        currency: query.currency,
-        usage: query.cardUsageType,
+        currency: body.currency,
+        usage: body.cardUsageType,
       });
-
-    const feesApplied = parseFloat(
-      ((query.desiredAmount * cardTopUpPercentFee) / 100 + cardTopUpFixedFee).toFixed(2),
-    );
 
     const { cardPrice } = await this.countryFeeService.findOneCardPrice({
       countryId,
-      currency: query.currency,
-      usage: query.cardUsageType,
+      currency: body.currency,
+      usage: body.cardUsageType,
       type: CardTypeEnum.Virtual, // Bridgecard provides VIRTUAL cards only
     });
 
-    const totalToPay = parseFloat((cardPrice + query.desiredAmount + feesApplied).toFixed(2));
+    //Check min max
+    const isDesiredAmountIntoMinAndMax =
+      body.desiredAmount >= cardTopUpMinAmount && body.desiredAmount <= cardTopUpMaxAmount;
 
-    return {
-      fixedFee: cardTopUpFixedFee,
-      percentageFee: cardTopUpPercentFee,
-      feesApplied,
-      cardPrice,
-      totalToPay,
-    };
+    if (!isDesiredAmountIntoMinAndMax) {
+      throw new BadRequestException(
+        `Amount out of range : Min: ${cardTopUpMinAmount} ${body.currency} - Max: ${cardTopUpMaxAmount} ${body.currency}`,
+      );
+    }
+
+    const feesApplied = parseFloat(
+      ((body.desiredAmount * cardTopUpPercentFee) / 100 + cardTopUpFixedFee).toFixed(2),
+    );
+
+    const totalToPay = parseFloat((cardPrice + body.desiredAmount + feesApplied).toFixed(2));
+
+    if (includeFees) {
+      return {
+        fixedFee: cardTopUpFixedFee,
+        percentageFee: cardTopUpPercentFee,
+        feesApplied,
+        cardPrice,
+        totalToPay,
+        cardTopUpFixedFee,
+        cardTopUpPercentFee,
+      };
+    } else {
+      return {
+        fixedFee: cardTopUpFixedFee,
+        percentageFee: cardTopUpPercentFee,
+        feesApplied,
+        cardPrice,
+        totalToPay,
+      };
+    }
   }
 
-  async createCard(userId: number, countryId: number, body: CreateCardDto) {
+  async createCard(
+    userId: number,
+    countryId: number,
+    body: CreateCardDto,
+    query: CardBrandQueryDto,
+  ) {
     const { cardholderId, cardholderVerified } =
       await this.userService.findOneWithProfileAndDocuments({ id: userId }, true, false);
 
@@ -949,32 +1027,19 @@ export class CardService {
     }
 
     // Calculate price
-    const { cardPrice } = await this.countryFeeService.findOneCardPrice({
-      countryId,
+    const createCardGetFees: GetCreateCardTotalFeeDto = {
       currency: body.keecashWallet,
-      type: body.cardType,
-      usage: body.cardUsage,
-    });
-
-    const { cardTopUpFixedFee, cardTopUpPercentFee } =
-      await this.countryFeeService.findOneCardTopupFee({
-        countryId,
-        currency: body.keecashWallet,
-        usage: body.cardUsage,
-      });
-
-    const targetAmount = body.topupAmount;
-    const appliedFee = parseFloat(
-      (cardTopUpFixedFee + (targetAmount * cardTopUpPercentFee) / 100).toFixed(2),
-    );
-    const totalToPay = parseFloat((cardPrice + targetAmount + appliedFee).toFixed(2));
+      cardUsageType: body.cardUsage,
+      desiredAmount: body.topupAmount,
+    };
+    const fees = await this.getFeesAppliedTotalToPay(userId, createCardGetFees, true);
 
     const { balance } = await this.transactionService.getBalanceArrayByCurrency(
       userId,
       body.keecashWallet,
     );
 
-    if (balance < totalToPay) {
+    if (balance < fees.totalToPay) {
       throw new BadRequestException('Total pay amount exceeds current wallet balance');
     }
 
@@ -983,7 +1048,7 @@ export class CardService {
       userId,
       cardholderId,
       type: body.cardType,
-      brand: CardBrandEnum.Visa, // default
+      brand: query ? query.cardBrand : CardBrandEnum.Mastercard, // default
       currency: body.keecashWallet,
       cardName: body.name,
     });
@@ -1007,11 +1072,11 @@ export class CardService {
     await this.transactionService.create({
       userId,
       currency: body.keecashWallet,
-      cardPrice,
-      appliedFee,
-      affectedAmount: -totalToPay,
-      fixedFee: cardTopUpFixedFee,
-      percentageFee: cardTopUpPercentFee,
+      cardPrice: fees.cardPrice,
+      appliedFee: fees.feesApplied,
+      affectedAmount: -fees.totalToPay,
+      fixedFee: fees.cardTopUpFixedFee,
+      percentageFee: fees.cardTopUpPercentFee,
       cardId,
       type: TxTypeEnum.CardCreation,
       status: TransactionStatusEnum.Performed, // Should be set to PENDING and update by webhook
@@ -1024,8 +1089,42 @@ export class CardService {
 
   // -------------- CARD TOPUP -------------------
 
-  async getCardTopupSettings(user: UserAccessTokenInterface, query: GetCardTopupSettingDto) {
-    const card = await this.findOne({ userId: user.id, bridgecardId: query.bridgecardId });
+  async getCardTopupSettings(
+    user: UserAccessTokenInterface,
+    cardId: string,
+    query: GetTopupSettingQueryDto,
+  ) {
+    const card = await this.findOne({ userId: user.id, bridgecardId: cardId });
+    if (!card) {
+      throw new NotFoundException('Cannot find card with requested id');
+    }
+    const walletBalance = await this.transactionService.getWalletBalances(user.id);
+
+    const { cardTopUpMinAmount, cardTopUpMaxAmount } =
+      await this.countryFeeService.findOneCardTopupFee({
+        countryId: user.countryId,
+        currency: card.currency,
+        usage: query ? query.cardUsageType : CardUsageEnum.Multiple,
+      });
+
+    return {
+      keecash_wallets: {
+        currency: card.currency,
+        balance: walletBalance[card.currency],
+        is_checked: true,
+        min: cardTopUpMinAmount,
+        max: cardTopUpMaxAmount,
+        after_decimal: 2,
+      },
+    };
+  }
+
+  async getCardTopupFees(
+    user: UserAccessTokenInterface,
+    query: GetCardTopupSettingDto,
+    cardId: string,
+  ) {
+    const card = await this.findOne({ userId: user.id, bridgecardId: cardId });
 
     if (!card) {
       throw new NotFoundException('Cannot find card with requested id');
@@ -1045,15 +1144,15 @@ export class CardService {
     const totalToPay = parseFloat((query.desiredAmount + feesApplied).toFixed(2));
 
     return {
-      fixedFee: cardTopUpFixedFee,
-      percentageFee: cardTopUpPercentFee,
-      feesApplied,
-      totalToPay,
+      fix_fees: cardTopUpFixedFee,
+      percent_fees: cardTopUpPercentFee,
+      fees_applied: feesApplied,
+      total_to_pay: totalToPay,
     };
   }
 
-  async applyCardTopup(userId: number, countryId: number, body: ApplyCardTopupDto) {
-    const { currency, usage } = await this.findOne({ bridgecardId: body.bridgecardId });
+  async applyCardTopup(userId: number, countryId: number, body: ApplyCardTopupDto, cardId: string) {
+    const { currency, usage } = await this.findOne({ bridgecardId: cardId });
 
     const { cardTopUpFixedFee, cardTopUpPercentFee } =
       await this.countryFeeService.findOneCardTopupFee({ countryId, currency, usage });
@@ -1074,7 +1173,7 @@ export class CardService {
 
     // Deposit to card using Bridgecard provider
     await this.bridgecardService.fundCard({
-      card_id: body.bridgecardId,
+      card_id: cardId,
       amount: body.topupAmount * 100, // Amount in cents
       transaction_reference: uuid(),
       currency,
@@ -1086,7 +1185,7 @@ export class CardService {
       false,
     );
 
-    const { name } = await this.findOne({ bridgecardId: body.bridgecardId });
+    const { name } = await this.findOne({ bridgecardId: cardId });
 
     await this.transactionService.create({
       userId,
@@ -1294,8 +1393,6 @@ export class CardService {
 
     const body: WebhookDepositResponseInterface = req.body;
 
-    console.log(body);
-
     if (
       body.payment_tier === 'good' ||
       body.payment_tier === 'short' ||
@@ -1398,14 +1495,14 @@ export class CardService {
                 ? `Your payment was rejected because the amount is either too small or too large than what is acceptable in your country.` +
                   `\nHere is the amount we received: ` +
                   `\n${body.crypto_amount} ${body.crypto_currency} ↔ ${body.payment_amount} ${body.payment_currency}` +
-                  `\nCrypto where you send your crypto: ${body.crypto_address}` +
+                  `\nCrypto address where you send your crypto: ${body.crypto_address}` +
                   `\nThe minimum expected is ${depositMinAmount} ${body.payment_currency} and the maximum is ${depositMaxAmount} ${body.payment_currency}` +
                   `\nBecause you have not met the stated thresolds, this amount will not be refunded to you in accordance with our Terms of Service`
                 : `Votre paiement a été rejeté car le montant est soit trop petit ou soit trop grand que ce qui est acceptable dans votre pays.` +
                   `\nVoici le montant que nous avons reçu: ` +
                   `\n${body.payment_crypto_amount} ${body.crypto_currency} ↔ ${body.payment_amount} ${body.payment_currency}` +
                   `\nLe minimum attendu est de ${depositMinAmount} ${body.payment_currency} et le maximum est de ${depositMaxAmount} ${body.payment_currency}` +
-                  `\nL'adresse où vous avez envoyé: ${body.crypto_address}` +
+                  `\nL'adresse où vous avez effectué l'envoi: ${body.crypto_address}` +
                   `\nEtant donné que vous n'avez pas respecté les seuils indiqués, ce montant ne vous sera pas remboursé conformément à nos conditions d'utilisations`,
             emailTopImage: 'ko',
           });

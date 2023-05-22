@@ -16,6 +16,7 @@ import { GetWithdrawalFeeDto } from './dto/get-withdrawal-fee.dto';
 import { WithdrawalApplyDto } from './dto/withdrawal-apply.dto';
 
 @Controller('withdrawal')
+@ApiTags('Withdrawal')
 export class WithdrawalController {
   constructor(private readonly cardService: CardService) {}
 
@@ -264,7 +265,6 @@ export class WithdrawalController {
     },
   })
   @HttpCode(HttpStatus.OK)
-  @ApiTags('Withdrawal')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('fees')
@@ -278,7 +278,6 @@ export class WithdrawalController {
     schema: { example: 'ok' },
   })
   @HttpCode(HttpStatus.OK)
-  @ApiTags('Withdrawal')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('apply')
