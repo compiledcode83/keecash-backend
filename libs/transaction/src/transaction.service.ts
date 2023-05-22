@@ -9,4 +9,8 @@ export class TransactionService {
   async create(data: Partial<Transaction>): Promise<Transaction> {
     return this.transactionRepository.create(data);
   }
+
+  async update(param: any, data: Partial<Transaction>) {
+    return this.transactionRepository.update(param, data);
+  }
 }

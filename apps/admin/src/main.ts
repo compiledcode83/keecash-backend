@@ -10,7 +10,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('API Gateway')
-    .setDescription('API Gateway documentation')
+    .setDescription('Admin panel API documentation')
     .setVersion('1.0')
     .addBearerAuth()
     .addServer('/api/v1')
@@ -21,6 +21,6 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  await app.listen(process.env.PORT || 3006);
+  await app.listen(3002);
 }
 bootstrap();

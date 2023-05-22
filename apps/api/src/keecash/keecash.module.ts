@@ -10,7 +10,6 @@ import { NotificationModule } from '@api/notification/notification.module';
 import { CardModule } from '@api/card/card.module';
 import { KeecashService } from './keecash.service';
 import { HistoryController } from './history.controller';
-import { WebhookController } from './webhook.controller';
 import { TopupCardController } from './topup-card.controller';
 import { CardController } from './card.controller';
 import { TransferController } from './transfer.controller';
@@ -35,7 +34,6 @@ import { WithdrawalController } from './withdrawal.controller';
     WithdrawalController,
     TransferController,
     HistoryController,
-    WebhookController,
     TopupCardController,
   ],
   providers: [KeecashService],
