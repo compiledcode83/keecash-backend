@@ -621,10 +621,6 @@ export class CardService {
       throw new UnauthorizedException(`Address not valid for ${body.withdrawal_method}`);
     }
 
-    if (addressCheckResponse.isCryptoWalletAlreadySave) {
-      throw new UnauthorizedException(`User has already saved this wallet`);
-    }
-
     // Check if user has enough balance
     const { balance } = await this.transactionService.getBalanceArrayByCurrency(
       user.id,
@@ -657,8 +653,8 @@ export class CardService {
     );
     const amountAfterFee = parseFloat((body.target_amount - feesApplied).toFixed(2));
 
-    // Add beneficiary user wallet
-    if (body.to_save_as_beneficiary) {
+    // Add beneficiary user wallet only if cryptoWallet not already save by the user
+    if (body.to_save_as_beneficiary && !addressCheckResponse.isCryptoWalletAlreadySave) {
       await this.beneficiaryService.createBeneficiaryWallet({
         userId: user.id,
         address: body.wallet_address,
