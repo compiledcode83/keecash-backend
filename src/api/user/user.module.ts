@@ -23,6 +23,7 @@ import { UserSubscriber } from './user.subscriber';
 import { SumsubModule } from '@api/sumsub/sumsub.module';
 import { AuthModule } from '@api/auth/auth.module';
 import { BeneficiaryUserModule } from '@api/beneficiary/beneficiary-user/beneficiary-user.module';
+import { StorageModule } from '@api/storage/storage.module';
 
 @Module({
   imports: [
@@ -33,13 +34,14 @@ import { BeneficiaryUserModule } from '@api/beneficiary/beneficiary-user/benefic
     EnterpriseProfileModule,
     PersonProfileModule,
     ShareholderModule,
-    ClosureReasonModule,
+    forwardRef(() => ClosureReasonModule),
     TransactionModule,
     forwardRef(() => CardModule),
     forwardRef(() => AuthModule),
     forwardRef(() => BeneficiaryUserModule),
     BridgecardModule,
     SumsubModule,
+    StorageModule,
   ],
   controllers: [UserController],
   providers: [
@@ -52,6 +54,6 @@ import { BeneficiaryUserModule } from '@api/beneficiary/beneficiary-user/benefic
     ReferralIdExistsValidator,
     LegitEmailValidator,
   ],
-  exports: [UserService],
+  exports: [UserService, UserRepository],
 })
 export class UserModule {}

@@ -1,30 +1,51 @@
 [
   {
-    "reason": "Fees are too high for me",
+    "reason": {
+      "en": "Fees are too high for me",
+      "fr": "Les frais sont trop élevés pour moi"
+    },
     "is_checked": false
   },
   {
-    "reason": "Bugs on the app",
+    "reason": {
+      "en": "Too many bugs",
+      "fr": "Trop de bugs"
+    },
     "is_checked": false
   },
   {
-    "reason": "I found an other app",
+    "reason": {
+      "en": "I found an other app",
+      "fr": "J'ai trouvé une autre application"
+    },
     "is_checked": false
   },
   {
-    "reason": "My preferred payment method is missing",
+    "reason": {
+      "en": "My preferred payment method is missing",
+      "fr": "Mon mode de paiement préféré est manquant"
+    },
     "is_checked": false
   },
   {
-    "reason": "My preferred withdrawal method is missing",
+    "reason": {
+      "en": "My preferred withdrawal method is missing",
+      "fr": "Ma méthode de retrait préférée est manquante"
+    },
     "is_checked": false
   },
   {
-    "reason": "My card is refused many times",
+    "reason": {
+      "en": "My card is refused many times",
+      "fr": "Ma carte est refusée plusieurs fois"
+    },
     "is_checked": false
   },
   {
-    "reason": "One or more service isn’t activated in my country",
+    "reason": {
+      "en": "One or more service isn’t activated in my country",
+      "fr": "Un ou plusieurs services ne sont pas activés dans mon pays"
+    },
     "is_checked": false
   }
 ]

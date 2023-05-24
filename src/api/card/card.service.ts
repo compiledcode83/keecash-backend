@@ -50,6 +50,7 @@ import { SendgridService } from '@api/sendgrid/sendgrid.service';
 import { WebhookDepositResponseInterface } from './dto/webhook-deposit-response.interface';
 import { GetTopupSettingQueryDto } from './dto/get-topup-setting-query.dto';
 import { CardBrandQueryDto } from './dto/card-brand-query.dto';
+import { ToolsHelper } from '@common/helpers/tools.helper';
 
 @Injectable()
 export class CardService {
@@ -117,31 +118,43 @@ export class CardService {
     if (cardholderId && cardholderVerified) {
       const cards = await this.bridgecardService.getAllCardholderCards(cardholderId);
 
-      eurCards = cards
-        .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.EUR)
-        .map((card) => ({
-          cardId: card.card_id,
-          balance: card.balance,
-          currency: card.card_currency,
-          cardNumber: card.card_number,
-          name: card.meta_data.keecash_card_name,
-          date: {
-            expiry_month: card.expiry_month,
-            expiry_year: card.expiry_year,
-          },
-        }));
-      usdCards = cards
-        .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.USD)
-        .map((card) => ({
-          cardId: card.card_id,
-          balance: card.balance,
-          currency: card.card_currency,
-          cardNumber: card.card_number,
-          name: card.meta_data.keecash_card_name,
-          date: `${card.expiry_month < 10 && '0' + card.expiry_month}/${card.expiry_year.slice(
-            -2,
-          )}`,
-        }));
+      const balanceTab = { EUR: [], USD: [] };
+
+      for (const cardHold of cards) {
+        const balance = await this.bridgecardService.getCardBalance(cardHold.card_id);
+        balanceTab[cardHold.card_currency].push(balance);
+      }
+
+      eurCards =
+        cards.length === 0
+          ? []
+          : cards
+              .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.EUR)
+              .map((card, i) => ({
+                cardId: card.card_id,
+                balance: balanceTab.EUR[i],
+                currency: card.card_currency,
+                cardNumber: card.card_number,
+                name: card.meta_data ? card.meta_data.keecash_card_name : 'Unnamed',
+                date: `${
+                  Number(card.expiry_month) < 10 ? '0' + card.expiry_month : card.expiry_month
+                }/${card.expiry_year.slice(-2)}`,
+              }));
+      usdCards =
+        cards.length === 0
+          ? []
+          : cards
+              .filter(({ card_currency }) => card_currency === FiatCurrencyEnum.USD)
+              .map((card, i) => ({
+                cardId: card.card_id,
+                balance: balanceTab.USD[i],
+                currency: card.card_currency,
+                cardNumber: card.card_number,
+                name: card.meta_data ? card.meta_data.keecash_card_name : 'Unnamed',
+                date: `${
+                  Number(card.expiry_month) < 10 ? '0' + card.expiry_month : card.expiry_month
+                }/${card.expiry_year.slice(-2)}`,
+              }));
     }
 
     return {
@@ -164,7 +177,7 @@ export class CardService {
   }
 
   async getCardListByUserId(userId: number): Promise<any> {
-    const { cardholderId } = await this.userService.findOne({ id: userId });
+    const { cardholderId, lastName, firstName } = await this.userService.findOne({ id: userId });
 
     const cards = await this.bridgecardService.getAllCardholderCards(cardholderId);
 
@@ -184,15 +197,18 @@ export class CardService {
 
         return {
           balance,
-          isBlockByAdmin: keecashCard.isBlocked,
+          isBlockByAdmin: keecashCard ? keecashCard.isBlocked ?? false : false,
           lastTransaction: transactions.transactions && {
             amount: transactions.transactions[0].amount,
             date: transactions.transactions[0].transaction_date, //2022-08-08 02:48:15
-            image: '',
+            image: ToolsHelper.getImageTransaction(transactions.transactions[0].description),
             to: transactions.transactions[0].description,
-            type: '',
-            currency: transactions.transactions[0].currency,
-            from: '',
+            type:
+              transactions.transactions[0].card_transaction_type === 'DEBIT'
+                ? 'outgoing'
+                : 'income',
+            currency: transactions.transactions[0].currency === 'USD' ? '€' : '$',
+            from: card.card_name,
           },
         };
       }),
@@ -206,8 +222,10 @@ export class CardService {
       isBlockByAdmin: details[i].isBlockByAdmin,
       isExpired: new Date(`${card.expiry_year}-${card.expiry_month}-01`) < new Date(),
       cardNumber: card.card_number,
-      name: card.meta_data.keecash_card_name,
+      name: card.meta_data ? card.meta_data.keecash_card_name : 'Unnamed',
       date: `${card.expiry_month}/${card.expiry_year.slice(-2)}`,
+      holderLastName: lastName,
+      holderFirstName: firstName,
       cardholderName: card.card_name,
       lastTransaction: details[i].lastTransaction,
     }));
@@ -622,10 +640,13 @@ export class CardService {
     }
 
     // Check if user has enough balance
-    const { balance } = await this.transactionService.getBalanceArrayByCurrency(
+    const balanceRaw = await this.transactionService.getBalanceArrayByCurrency(
       user.id,
       body.keecash_wallet,
     );
+
+    const balance = balanceRaw ? balanceRaw.balance : 0;
+
     if (balance < body.target_amount) {
       throw new BadRequestException('Total pay amount exceeds current wallet balance');
     }
@@ -746,10 +767,13 @@ export class CardService {
 
   async applyTransfer(userId: number, countryId: number, body: TransferApplyDto) {
     // Check if user has enough balance
-    const { balance } = await this.transactionService.getBalanceArrayByCurrency(
+    const balanceRaw = await this.transactionService.getBalanceArrayByCurrency(
       userId,
       body.keecash_wallet,
     );
+
+    const balance = balanceRaw ? balanceRaw.balance : 0;
+
     if (balance < body.desired_amount) {
       throw new BadRequestException('Requested transfer amount exceeds current wallet balance');
     }
@@ -1022,6 +1046,20 @@ export class CardService {
       throw new BadRequestException('User is not registered in Bridgecard provider');
     }
 
+    //Function to capitalize first letter and let over in lowercase : flexible ==> Flexible
+    const formatCardName = (cardName: string) => {
+      return cardName.charAt(0).toUpperCase() + cardName.slice(1);
+    };
+
+    const cardName = formatCardName(body.name);
+
+    //we check if the name to give to the card is unique
+    const card = await this.findOne({ userId: userId, name: cardName });
+
+    if (card) {
+      throw new BadRequestException(`You already use this card name.`);
+    }
+
     // Calculate price
     const createCardGetFees: GetCreateCardTotalFeeDto = {
       currency: body.keecashWallet,
@@ -1030,23 +1068,36 @@ export class CardService {
     };
     const fees = await this.getFeesAppliedTotalToPay(userId, createCardGetFees, true);
 
-    const { balance } = await this.transactionService.getBalanceArrayByCurrency(
+    const balanceRaw = await this.transactionService.getBalanceArrayByCurrency(
       userId,
       body.keecashWallet,
     );
 
+    const balance = balanceRaw ? balanceRaw.balance : 0;
+
     if (balance < fees.totalToPay) {
       throw new BadRequestException('Total pay amount exceeds current wallet balance');
     }
+
+    //TODO: check balance of bridgecard and if not enough just debit user, schedule the transaction when bridgecard account will be topup
+    // todo with kafka process
 
     // Create a Bridgecard
     const bridgecardId = await this.bridgecardService.createCard({
       userId,
       cardholderId,
       type: body.cardType,
-      brand: query ? query.cardBrand : CardBrandEnum.Mastercard, // default
+      brand: query.cardBrand ?? CardBrandEnum.Visa, // default
       currency: body.keecashWallet,
-      cardName: body.name,
+      cardName: cardName,
+    });
+
+    //Top up the card
+    await this.bridgecardService.fundCard({
+      card_id: bridgecardId,
+      amount: body.topupAmount * 100, // Amount in cents
+      transaction_reference: uuid(),
+      currency: body.keecashWallet,
     });
 
     // TODO: Implement database transaction rollback mechanism, using queryRunnet.connect() startTransation(), commitTransaction(), rollbackTransaction(), release()
@@ -1148,7 +1199,13 @@ export class CardService {
   }
 
   async applyCardTopup(userId: number, countryId: number, body: ApplyCardTopupDto, cardId: string) {
-    const { currency, usage } = await this.findOne({ bridgecardId: cardId });
+    const card = await this.findOne({ userId: userId, bridgecardId: cardId });
+
+    if (!card) {
+      throw new NotFoundException('Cannot find card with requested id');
+    }
+
+    const { currency, usage } = card;
 
     const { cardTopUpFixedFee, cardTopUpPercentFee } =
       await this.countryFeeService.findOneCardTopupFee({ countryId, currency, usage });
@@ -1159,7 +1216,9 @@ export class CardService {
 
     const totalToPay = parseFloat((body.topupAmount + feesApplied).toFixed(2));
 
-    const { balance } = await this.transactionService.getBalanceArrayByCurrency(userId, currency);
+    const balanceRaw = await this.transactionService.getBalanceArrayByCurrency(userId, currency);
+
+    const balance = balanceRaw ? balanceRaw.balance : 0;
 
     if (balance < totalToPay) {
       throw new BadRequestException('Total pay amount exceeds current wallet balance');
@@ -1205,58 +1264,113 @@ export class CardService {
     });
   }
 
-  // -------------- CARD TOPUP -------------------
+  // -------------- CARD WITHDRAWAL -------------------
 
-  async getCardWithdrawalSettings(countryId: number, query: GetCardWithdrawalSettingDto) {
-    const { currency } = await this.findOne({ bridgecardId: query.bridgecardId });
+  async getCardWithdrawalSettings(countryId: number, userId: number, cardId: string) {
+    const card = await this.findOne({ userId: userId, bridgecardId: cardId });
+    if (!card) {
+      throw new NotFoundException('Cannot find card with requested id');
+    }
 
-    const { cardWithdrawFixedFee, cardWithdrawPercentFee } =
-      await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
-        countryId,
-        currency,
-      });
+    const {
+      cardWithdrawMinAmount,
+      cardWithdrawMaxAmount,
+      cardWithdrawFixedFee,
+      cardWithdrawPercentFee,
+    } = await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
+      countryId: countryId,
+      currency: card.currency,
+    });
 
-    const feesApplied = parseFloat(
-      ((query.desiredAmount * cardWithdrawPercentFee) / 100 + cardWithdrawFixedFee).toFixed(2),
-    );
+    //TODO:get also available balance on provider of card to perform or put in waiting list when we will get more fund - To do in kafka
 
-    const totalToPay = parseFloat((query.desiredAmount + feesApplied).toFixed(2));
+    const balance = await this.bridgecardService.getCardBalance(card.bridgecardId);
 
     return {
-      fixedFee: cardWithdrawFixedFee,
-      percentageFee: cardWithdrawPercentFee,
-      feesApplied,
-      totalToPay,
+      card_info: {
+        currency: card.currency,
+        balance: balance,
+        is_checked: true,
+        min: Math.ceil(cardWithdrawMinAmount + cardWithdrawFixedFee),
+        max: cardWithdrawMaxAmount,
+        after_decimal: 2,
+      },
+      fix_fees: cardWithdrawFixedFee,
+      percent_fees: cardWithdrawPercentFee,
     };
   }
 
-  async applyCardWithdrawal(userId: number, countryId: number, body: ApplyCardWithdrawalDto) {
-    const { currency } = await this.findOne({ bridgecardId: body.bridgecardId });
+  async getCardWithdrawalFees(
+    countryId: number,
+    body: GetCardWithdrawalSettingDto,
+    cardId: string,
+    withCurrency?: boolean,
+  ) {
+    const { currency } = await this.findOne({ bridgecardId: cardId });
 
-    const { cardWithdrawFixedFee, cardWithdrawPercentFee } =
-      await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
-        countryId,
-        currency,
-      });
+    const {
+      cardWithdrawFixedFee,
+      cardWithdrawPercentFee,
+      cardWithdrawMinAmount,
+      cardWithdrawMaxAmount,
+    } = await this.countryFeeService.findOneTransferReferralCardWithdrawalFee({
+      countryId,
+      currency,
+    });
+
+    const isDesiredAmountIntoMinAndMax =
+      body.desiredAmount >= cardWithdrawMinAmount && body.desiredAmount <= cardWithdrawMaxAmount;
+
+    if (!isDesiredAmountIntoMinAndMax) {
+      throw new BadRequestException(
+        `Amount out of range : Min: ${cardWithdrawMinAmount} ${currency} - Max: ${cardWithdrawMaxAmount} ${currency}`,
+      );
+    }
 
     const feesApplied = parseFloat(
-      ((body.withdrawalAmount * cardWithdrawPercentFee) / 100 + cardWithdrawFixedFee).toFixed(2),
+      ((body.desiredAmount * cardWithdrawPercentFee) / 100 + cardWithdrawFixedFee).toFixed(2),
     );
 
-    const totalToPay = parseFloat((body.withdrawalAmount + feesApplied).toFixed(2));
+    const totalToPay = parseFloat((body.desiredAmount + feesApplied).toFixed(2));
 
-    const { balance } = await this.transactionService.getBalanceArrayByCurrency(userId, currency);
+    let cardFees = {
+      fix_fees: cardWithdrawFixedFee,
+      percent_fees: cardWithdrawPercentFee,
+      fees_applied: feesApplied,
+      total_to_pay: totalToPay,
+    };
 
-    if (balance < totalToPay) {
-      throw new BadRequestException('Total pay amount exceeds current wallet balance');
+    if (withCurrency) {
+      cardFees = { ...cardFees, ...{ currency } };
+    }
+
+    return cardFees;
+  }
+
+  async applyCardWithdrawal(
+    userId: number,
+    countryId: number,
+    body: GetCardWithdrawalSettingDto,
+    cardId: string,
+  ) {
+    const cardFees = await this.getCardWithdrawalFees(countryId, body, cardId, true);
+
+    const currency = cardFees['currency'] as FiatCurrencyEnum;
+
+    const balance = await this.bridgecardService.getCardBalance(cardId);
+
+    if (balance < cardFees.total_to_pay) {
+      throw new BadRequestException(
+        `Need at least ${cardFees.total_to_pay} ${currency} on the card to perform this transaction`,
+      );
     }
 
     // Withdraw from card using Bridgecard provider
     await this.bridgecardService.unloadCard({
-      card_id: body.bridgecardId,
-      amount: totalToPay * 100, // Amount in cents
+      card_id: cardId,
+      amount: cardFees.total_to_pay * 100, // Amount in cents
       transaction_reference: uuid(),
-      currency,
+      currency: currency,
     });
 
     const userProfile = await this.userService.findOneWithProfileAndDocuments(
@@ -1265,15 +1379,15 @@ export class CardService {
       false,
     );
 
-    const { name } = await this.findOne({ bridgecardId: body.bridgecardId });
+    const { name } = await this.findOne({ bridgecardId: cardId });
 
     await this.transactionService.create({
       userId,
       currency,
-      affectedAmount: body.withdrawalAmount,
-      appliedFee: feesApplied,
-      fixedFee: cardWithdrawFixedFee,
-      percentageFee: cardWithdrawPercentFee,
+      affectedAmount: body.desiredAmount,
+      appliedFee: cardFees.fees_applied,
+      fixedFee: cardFees.fix_fees,
+      percentageFee: cardFees.percent_fees,
       type: TxTypeEnum.CardWithdrawal,
       status: TransactionStatusEnum.Performed,
       description:
@@ -1286,7 +1400,7 @@ export class CardService {
     await this.notificationService.create({
       userId,
       type: NotificationType.CardWithdrawal,
-      amount: body.withdrawalAmount,
+      amount: body.desiredAmount,
       currency,
     });
   }
@@ -1308,32 +1422,35 @@ export class CardService {
         break;
 
       case 'card_creation_event.successful':
-        const { id: userId } = await this.userService.findOne({ cardholderId: data.cardholder_id });
-        await this.create({
-          userId: userId,
-          bridgecardId: data.card_id,
-        });
+        this.logger.log(`card_creation_event.successful : ${data.card_id}`);
         break;
 
       case 'card_creation_event.failed':
+        this.logger.log(`card_creation_event.failed : ${data.card_id}`);
         break;
 
       case 'card_credit_event.successful':
+        this.logger.log(`card_credit_event.successful : ${data.card_id}`);
         break;
 
       case 'card_credit_event.failed':
+        this.logger.log(`card_credit_event.failed : ${data.card_id}`);
         break;
 
       case 'card_debit_event.successful':
+        this.logger.log(`card_debit_event.successful : ${data.card_id}`);
         break;
 
       case 'card_debit_event.declined':
+        this.logger.log(`card_debit_event.declined : ${data.card_id}`);
         break;
 
       case 'card_reversal_event.successful':
+        this.logger.log(`card_reversal_event.successful : ${data.card_id}`);
         break;
 
       case '3d_secure_otp_event.generated':
+        this.logger.log(`3d_secure_otp_event.generated : ${data.card_id}`);
         break;
 
       default:

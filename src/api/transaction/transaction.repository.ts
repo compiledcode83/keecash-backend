@@ -65,7 +65,7 @@ export class TransactionRepository extends Repository<Transaction> {
     }
 
     queryBuilder
-      .select('SUM(transaction.affected_amount)', 'balance')
+      .select('ROUND(SUM(transaction.affected_amount)::numeric, 2)', 'balance')
       .addSelect('transaction.currency', 'currency')
       .groupBy('transaction.currency');
 

@@ -22,6 +22,7 @@ import { CardSubscriber } from './card.subscriber';
 import { AuthModule } from '@api/auth/auth.module';
 import { CoinlayerModule } from '@api/coinlayer/coinlayer.module';
 import { SendgridModule } from '@api/sendgrid/sendgrid.module';
+import { WithdrawCardController } from './withdraw-card.controller';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SendgridModule } from '@api/sendgrid/sendgrid.module';
     WebhookController,
     CreateCardController,
     TopupCardController,
+    WithdrawCardController,
   ],
   providers: [CardService, CardRepository, CardSubscriber],
   exports: [CardService],

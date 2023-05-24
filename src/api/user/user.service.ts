@@ -29,8 +29,10 @@ import { TransactionService } from '@api/transaction/transaction.service';
 import { CardService } from '@api/card/card.service';
 import { BridgecardService } from '@api/bridgecard/bridgecard.service';
 import { SumsubService } from '@api/sumsub/sumsub.service';
+import { ClosureReasonInterface } from '@api/closure-reason/dto/closure-reason.interface';
 
-const closure_reasons = require('../closure-reason/closure-reasons.json');
+const closure_reasons =
+  require('../closure-reason/closure-reasons.json') as ClosureReasonInterface[];
 
 const REFERRAL_ID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const REFERRAL_ID_LENGTH = 7;
@@ -306,7 +308,12 @@ export class UserService {
 
     const { countryCode } = await this.countryService.findOne({ id: countryId });
 
-    const defaultReasons = closure_reasons;
+    const defaultReasons = closure_reasons.map((reason) => {
+      return {
+        reason: reason.reason[user.language],
+        is_checked: reason.is_checked,
+      };
+    });
 
     if (user.status === UserStatus.Closed) {
       const reasonIds = await this.closureReasonService.findByUserId(userId);

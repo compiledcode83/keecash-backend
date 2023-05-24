@@ -311,7 +311,6 @@ export class AuthController {
     @Req() req,
     @Body() body: SendPhoneNumberVerificationCodeDto,
   ): Promise<any> {
-    console.log(`body`);
     const token = await this.authService.validateBearerToken(
       req.headers,
       TokenTypeEnum.CreateAccount,
