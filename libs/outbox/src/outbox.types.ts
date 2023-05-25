@@ -4,7 +4,15 @@ import {
   BridgecardFreezeMessage,
   BridgecardUnfreezeMessage,
 } from '@app/bridgecard';
-import { TransactionCreateMessage, TransactionEventPattern } from '@app/transaction';
+import {
+  TransactionCardCreationMessage,
+  TransactionCardTopupMessage,
+  TransactionCardWithdrawalMessage,
+  TransactionEventPattern,
+  TransactionWalletDepositMessage,
+  TransactionWalletTransferMessage,
+  TransactionWalletWithdrawalMessage,
+} from '@app/transaction';
 import { UserCreateMessage, UserEventPattern } from '@app/user';
 
 export enum OutboxStatus {
@@ -16,7 +24,12 @@ export type OutboxEventName = UserEventPattern | TransactionEventPattern | Bridg
 
 export type OutboxPayload =
   | UserCreateMessage
-  | TransactionCreateMessage
+  | TransactionWalletDepositMessage
+  | TransactionWalletWithdrawalMessage
+  | TransactionWalletTransferMessage
+  | TransactionCardCreationMessage
+  | TransactionCardTopupMessage
+  | TransactionCardWithdrawalMessage
   | BridgecardCreateMessage
   | BridgecardFreezeMessage
   | BridgecardUnfreezeMessage;

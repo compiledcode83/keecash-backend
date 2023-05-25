@@ -20,51 +20,51 @@ class EnvironmentVariables {
   @IsEnum(Environment, { groups: ['api', 'database', 'producer', 'consumer', 'admin'] })
   NODE_ENV: Environment;
 
-  @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsString({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_HOST: string;
 
-  @IsInt({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @Min(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsInt({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @Min(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_PORT: number;
 
-  @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsString({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_PASSWORD: string;
 
-  @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsString({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_DATABASE: string;
 
-  @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsString({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_USERNAME: string;
 
-  @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsString({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_CONNECTION: string;
 
-  @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsString({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_MIGRATIONS: string;
 
-  @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsString({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_MIGRATIONS_DIR: string;
 
-  @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsString({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_LOGGING: string;
 
-  @IsString({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsString({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @MinLength(1, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_SYNCHRONIZE: string;
 
-  @IsInt({ groups: ['database', 'producer', 'consumer', 'admin'] })
-  @Min(10, { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsInt({ groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
+  @Min(10, { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   TYPEORM_POOL_SIZE: number;
 
-  @IsIn(['true', 'false'], { groups: ['database', 'producer', 'consumer', 'admin'] })
+  @IsIn(['true', 'false'], { groups: ['database', 'producer', 'consumer', 'admin', 'webhook'] })
   POSTGRESQL_TLS: 'true' | 'false';
 
   @IsString({ groups: ['producer', 'consumer'] })
@@ -148,32 +148,32 @@ class EnvironmentVariables {
   @MinLength(1, { groups: ['api'] })
   STORAGE_MEDIA_BUCKET: string;
 
-  @IsString({ groups: ['api', 'consumer'] })
-  @MinLength(1, { groups: ['api', 'consumer'] })
+  @IsString({ groups: ['api', 'consumer', 'webhook'] })
+  @MinLength(1, { groups: ['api', 'consumer', 'webhook'] })
   TRIPLEA_API_BASE_URL: string;
 
-  @IsString({ groups: ['api', 'consumer'] })
-  @MinLength(1, { groups: ['api', 'consumer'] })
+  @IsString({ groups: ['api', 'consumer', 'webhook'] })
+  @MinLength(1, { groups: ['api', 'consumer', 'webhook'] })
   TRIPLEA_EUR_CLIENT_ID: string;
 
-  @IsString({ groups: ['api', 'consumer'] })
-  @MinLength(1, { groups: ['api', 'consumer'] })
+  @IsString({ groups: ['api', 'consumer', 'webhook'] })
+  @MinLength(1, { groups: ['api', 'consumer', 'webhook'] })
   TRIPLEA_EUR_CLIENT_SECRET: string;
 
-  @IsString({ groups: ['api', 'consumer'] })
-  @MinLength(1, { groups: ['api', 'consumer'] })
+  @IsString({ groups: ['api', 'consumer', 'webhook'] })
+  @MinLength(1, { groups: ['api', 'consumer', 'webhook'] })
   TRIPLEA_EUR_MERCHANT_KEY: string;
 
-  @IsString({ groups: ['api', 'consumer'] })
-  @MinLength(1, { groups: ['api', 'consumer'] })
+  @IsString({ groups: ['api', 'consumer', 'webhook'] })
+  @MinLength(1, { groups: ['api', 'consumer', 'webhook'] })
   TRIPLEA_USD_CLIENT_ID: string;
 
-  @IsString({ groups: ['api', 'consumer'] })
-  @MinLength(1, { groups: ['api', 'consumer'] })
+  @IsString({ groups: ['api', 'consumer', 'webhook'] })
+  @MinLength(1, { groups: ['api', 'consumer', 'webhook'] })
   TRIPLEA_USD_CLIENT_SECRET: string;
 
-  @IsString({ groups: ['api', 'consumer'] })
-  @MinLength(1, { groups: ['api', 'consumer'] })
+  @IsString({ groups: ['api', 'consumer', 'webhook'] })
+  @MinLength(1, { groups: ['api', 'consumer', 'webhook'] })
   TRIPLEA_USD_MERCHANT_KEY: string;
 
   @IsString({ groups: ['api'] })
@@ -257,6 +257,22 @@ export function validateProducer(config: Record<string, unknown>) {
   const errors = validateSync(validatedConfig, {
     skipMissingProperties: false,
     groups: ['producer'],
+  });
+
+  if (errors.length > 0) {
+    throw new Error(errors.toString());
+  }
+
+  return validatedConfig;
+}
+
+export function validateWebhook(config: Record<string, unknown>) {
+  const validatedConfig = plainToInstance(EnvironmentVariables, config, {
+    enableImplicitConversion: true,
+  });
+  const errors = validateSync(validatedConfig, {
+    skipMissingProperties: false,
+    groups: ['webhook'],
   });
 
   if (errors.length > 0) {

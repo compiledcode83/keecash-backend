@@ -8,6 +8,7 @@ import { BridgecardModule } from '@app/bridgecard';
 import { TransactionModule } from '@app/transaction';
 import { OutboxModule } from '@app/outbox';
 import { PricingModule } from '@app/pricing';
+import { NotificationModule } from '@app/notification';
 import twilioConfig from '@app/common/configs/twilio.config';
 import bridgecardConfig from '@app/common/configs/bridgecard.config';
 import tripleAConfig from '@app/common/configs/triple-a.config';
@@ -33,6 +34,7 @@ EnvHelper.verifyNodeEnv();
     TransactionModule,
     OutboxModule,
     PricingModule,
+    NotificationModule,
   ],
   providers: [ConsumerService],
   controllers: [ConsumerController],

@@ -21,6 +21,6 @@ export class NotificationController {
   @UseGuards(JwtAuthGuard)
   @Get('read-all')
   markAsReadAll(@Req() req): Promise<any> {
-    return this.notificationService.markAsReadAdll(req.user.id);
+    return this.notificationService.markAsReadAll(req.user.id);
   }
 }

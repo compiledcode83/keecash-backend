@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { EnvHelper, validateApi } from '@app/env';
+import { EnvHelper, validateWebhook } from '@app/env';
 import appConfig from './config/app.config';
 import tripleAConfig from '@app/common/configs/triple-a.config';
 import bridgecardConfig from '@app/common/configs/bridgecard.config';
@@ -18,7 +18,7 @@ EnvHelper.verifyNodeEnv();
       envFilePath: EnvHelper.getEnvFilePath(),
       isGlobal: true,
       load: [appConfig, tripleAConfig, bridgecardConfig, sumsubConfig],
-      validate: validateApi,
+      validate: validateWebhook,
     }),
     DatabaseModule,
     BridgecardWebhookModule,
