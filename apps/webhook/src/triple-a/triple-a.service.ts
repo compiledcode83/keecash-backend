@@ -24,12 +24,18 @@ export class TripleAWebhookService {
   ) {}
 
   async handleDepositNotification(body: TripleADepositNotifyDto) {
-    const details = await this.tripleAService.getDepositDetails(
-      body.payment_reference,
-      body.order_currency as FiatCurrencyEnum,
-    );
+    // // Check transaction status by another API call
+    // const details = await this.tripleAService.getDepositDetails(
+    //   body.payment_reference,
+    //   body.order_currency as FiatCurrencyEnum,
+    // );
 
-    if (details.status === 'done') {
+    // Possible status: 'done', 'short', 'hold', 'good', 'invalid'
+    // See https://developers.triple-a.io/docs/triplea-api-doc/96532c880a416-webhook-notifications
+    const transactionSucceeded = body.status === 'done';
+    // const transactionSucceeded = details.status === 'done'
+
+    if (transactionSucceeded) {
       const queryRunner = this.dataSource.createQueryRunner();
 
       try {
@@ -72,12 +78,16 @@ export class TripleAWebhookService {
   }
 
   async handleWithdrawalNotification(body: TripleAWithdrawalNotifyDto) {
+    // Check transaction status by another API call
     const details = await this.tripleAService.getWithdrawalDetails(
       body.payout_reference,
       body.local_currency,
     );
 
     // details.status : 'new', 'confirm', 'done', 'cancel'. See https://developers.triple-a.io/docs/triplea-api-doc/a6c4376384c1e-3-get-payout-details-by-order-id
+    // const transactionSucceeded = body.status === 'done';
+    // const transactionSucceeded = details.status === 'done'
+
     if (details.status === 'done') {
       const queryRunner = this.dataSource.createQueryRunner();
 

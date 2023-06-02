@@ -115,7 +115,7 @@ export class TripleAService {
         success_url: 'https://www.success.io/success.html',
         cancel_url: 'https://www.failure.io/cancel.html',
         webhook_data: dto.webhookData,
-        // sandbox: this.isSandboxMode,
+        notify_email: 'ryan.kennedy@keecash.com',
       };
 
       const accessToken = await this.getAccessToken(dto.currency);

@@ -7,13 +7,13 @@ import { TripleAWithdrawalNotifyDto } from './dto/triple-a-withdrawal-notify.dto
 export class TripleAWebhookController {
   constructor(private readonly tripleAWebhookService: TripleAWebhookService) {}
 
-  @Post('payment-notify-deposit')
-  async paymentNotifyDeposit(@Body() body: TripleADepositNotifyDto) {
+  @Post('notify-deposit')
+  async notifyDeposit(@Body() body: TripleADepositNotifyDto) {
     await this.tripleAWebhookService.handleDepositNotification(body);
   }
 
-  @Post('payment-notify-withdraw')
-  async paymentNotifyWithdraw(@Body() body: TripleAWithdrawalNotifyDto) {
+  @Post('notify-withdraw')
+  async notifyWithdraw(@Body() body: TripleAWithdrawalNotifyDto) {
     await this.tripleAWebhookService.handleWithdrawalNotification(body);
   }
 }
