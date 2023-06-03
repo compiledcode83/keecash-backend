@@ -1,7 +1,6 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { v4 as uuid } from 'uuid';
 import * as qs from 'qs';
 import { CipherTokenService } from '@app/cipher-token';
 import { FiatCurrencyEnum } from '@app/common';
@@ -167,12 +166,13 @@ export class TripleAService {
         withdraw_currency: dto.currency,
         withdraw_amount: dto.amount,
         crypto_currency: dto.cryptocurrency,
+        remarks: dto.reason,
         address: dto.walletAddress,
         name: dto.name,
         country: dto.country,
-        order_id: `${dto.keecashUserId}-${uuid()}`,
-        notify_url: `${this.tripleANotifyUrl}/crypto-tx/payment-notifiy-withdraw`,
-        sandbox: this.isSandboxMode,
+        // notify_url: `${this.tripleANotifyUrl}/crypto-tx/payment-notifiy-withdraw`,
+        notify_url: 'https://webhook.site/530e2e3a-378b-4bfc-8409-d561d739ad41',
+        notify_email: 'ryan.kennedy@keecash.com',
       };
 
       const accessToken = await this.getAccessToken(dto.currency);
@@ -190,21 +190,21 @@ export class TripleAService {
       );
 
       // Confirm the payout
-      const res = await this.axiosInstance.put(
+      const confirmRes = await this.axiosInstance.put(
         `/payout/withdraw/${prepareRes.data.payout_reference}/local/crypto/confirm`,
         {},
         config,
       );
 
       return {
-        crypto_amount: res.data.crypto_amount,
-        exnetwork_fee_crypto_amount: res.data.network_fee_crypto_amount,
-        fee: res.data.network_fee_crypto_amount,
-        net_crypto_amount: res.data.net_crypto_amount,
-        payout_reference: res.data.payout_reference,
-        local_currency: res.data.local_currency,
-        crypto_currency: res.data.crypto_currency,
-        exchange_rate: res.data.exchange_rate,
+        crypto_amount: confirmRes.data.crypto_amount,
+        exnetwork_fee_crypto_amount: confirmRes.data.network_fee_crypto_amount,
+        fee: confirmRes.data.network_fee_crypto_amount,
+        net_crypto_amount: confirmRes.data.net_crypto_amount,
+        payout_reference: confirmRes.data.payout_reference,
+        local_currency: confirmRes.data.local_currency,
+        crypto_currency: confirmRes.data.crypto_currency,
+        exchange_rate: confirmRes.data.exchange_rate,
       };
     } catch (error) {
       const { status, statusText, data } = error.response || {};

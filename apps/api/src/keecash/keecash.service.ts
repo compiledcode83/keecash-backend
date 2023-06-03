@@ -328,15 +328,17 @@ export class KeecashService {
 
   // -------------- WITHDRAWAL -------------------
 
-  async getWithdrawalFee(countryId: number, query: GetWithdrawalFeeDto) {
+  async getWithdrawalFee(query: GetWithdrawalFeeDto) {
     const { fixedFee, percentFee } = await this.pricingService.findWalletWithdrawalFee({
-      countryId,
+      countryId: query.user.countryId,
       currency: query.keecash_wallet,
       method: query.withdrawal_method,
     });
 
-    const feesApplied = parseFloat(((query.fiat_amount * percentFee) / 100 + fixedFee).toFixed(2));
-    const amountAfterFee = query.fiat_amount - feesApplied;
+    const feesApplied = parseFloat(
+      ((parseFloat(query.fiat_amount) * percentFee) / 100 + fixedFee).toFixed(2),
+    );
+    const amountAfterFee = parseFloat(query.fiat_amount) - feesApplied;
 
     return {
       fix_fees: fixedFee,
@@ -346,8 +348,8 @@ export class KeecashService {
     };
   }
 
-  async applyWithdrawal(user: UserAccessTokenInterface, body: WithdrawalApplyDto) {
-    const { id: userId } = await this.userService.findByUuid(user.uuid);
+  async applyWithdrawal(body: WithdrawalApplyDto) {
+    const { id: userId } = await this.userService.findByUuid(body.user.uuid);
 
     // Check if user has enough balance
     const { balance } = await this.transactionService.getBalanceArrayByCurrency(
@@ -370,7 +372,7 @@ export class KeecashService {
 
     // Calculate fees
     const { fixedFee, percentFee } = await this.pricingService.findWalletWithdrawalFee({
-      countryId: user.countryId,
+      countryId: body.user.countryId,
       currency: body.keecash_wallet,
       method: body.withdrawal_method,
     });
@@ -379,14 +381,15 @@ export class KeecashService {
 
     // Trigger TripleA API
     const res = await this.tripleAService.withdraw({
-      email: user.email,
+      email: body.user.email,
       amount: amountAfterFee,
       cryptocurrency: body.withdrawal_method,
       currency: body.keecash_wallet,
       walletAddress: body.wallet_address,
       name: 'Keecash',
       country: 'FR',
-      keecashUserId: user.referralId,
+      keecashUserId: body.user.referralId,
+      reason: body.reason,
     });
 
     // Create a withdrawal transaction in database

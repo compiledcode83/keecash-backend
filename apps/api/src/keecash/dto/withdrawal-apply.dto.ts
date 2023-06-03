@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/common';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { UserAccessTokenInterface } from '@api/auth/auth.type';
 
 export class WithdrawalApplyDto {
   @ApiProperty({ example: FiatCurrencyEnum.EUR, description: 'Keecash wallet' })
@@ -20,7 +21,6 @@ export class WithdrawalApplyDto {
   target_amount: number;
 
   @ApiProperty({ example: true, description: 'Option that whether you save it as a beneficiary' })
-  @IsOptional()
   @IsBoolean()
   to_save_as_beneficiary: boolean;
 
@@ -32,4 +32,7 @@ export class WithdrawalApplyDto {
   @ApiProperty({ example: '0x8078****cdE37C7bbB86', description: 'Wallet address' })
   @IsString()
   wallet_address: string;
+
+  @IsNotEmpty()
+  user: UserAccessTokenInterface;
 }

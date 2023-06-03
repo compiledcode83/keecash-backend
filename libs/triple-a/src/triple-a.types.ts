@@ -29,8 +29,7 @@ export interface TripleAWithdrawInterface {
   country: string;
   email: string;
   keecashUserId: string;
-  // Webhook data
-  // keecashTransactionId: number;
+  reason: string;
 }
 
 export interface TripleAWithdrawResponseInterface {
