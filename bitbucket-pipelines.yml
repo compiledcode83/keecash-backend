@@ -10,8 +10,8 @@ definitions:
           - npm install eslint
           - npx eslint .
 
-    - step: &module-install
-        name: Module install
+    - step: &project-build
+        name: Project build
         caches:
           - node
         script:
@@ -23,10 +23,10 @@ definitions:
         caches:
           - node
         script:
-          # - npm install
+          - npm install
           - npm run test
 
 pipelines:
   default:
     - step: *code-linting
-    - step: *module-install
+    - step: *project-build
