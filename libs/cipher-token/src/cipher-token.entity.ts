@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
-import { TokenTypeEnum } from './cipher-token.types';
 import { FiatCurrencyEnum } from '@app/common';
+import { TokenTypeEnum } from './cipher-token.types';
 
 @Entity('cipher_token')
 export class CipherToken {
