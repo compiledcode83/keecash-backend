@@ -1,89 +1,101 @@
 {
-  "name": "backend",
-  "version": "0.0.1",
-  "description": "",
+  "name": "keecash-backend",
+  "version": "1.1.0",
+  "description": "Keecash Backend Monorepo",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "workspaces": {
+    "packages": [
+      "./apps/*",
+      "./libs/*"
+    ]
+  },
   "scripts": {
-    "prebuild": "rimraf dist",
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "api:start": "nest start api",
+    "api:start:dev": "nest start api --watch",
+    "api:start:debug": "nest start api --debug --watch",
+    "api:start:prod": "node dist/apps/api/apps/api/src/main",
+    "webhook:start": "nest start webhook",
+    "webhook:start:dev": "nest start webhook --watch",
+    "webhook:start:debug": "nest start webhook --debug --watch",
+    "webhook:start:prod": "node dist/apps/api/apps/webhook/src/main",
+    "admin:start": "nest start admin",
+    "admin:start:dev": "nest start admin --watch",
+    "admin:start:debug": "nest start admin --debug --watch",
+    "admin:start:prod": "node dist/apps/api/apps/admin/src/main",
+    "producer:start": "nest start producer",
+    "producer:start:dev": "nest start producer --watch",
+    "producer:start:debug": "nest start producer --debug --watch",
+    "producer:start:prod": "node dist/apps/api/apps/producer/src/main",
+    "consumer:start": "nest start consumer",
+    "consumer:start:dev": "nest start consumer --watch",
+    "consumer:start:debug": "nest start consumer --debug --watch",
+    "consumer:start:prod": "node dist/apps/api/apps/consumer/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "migration:run": "NODE_ENV=development npx typeorm-ts-node-commonjs migration:run --dataSource ./src/config/datasource.ts",
-    "migration:revert": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:revert",
-    "migration:generate": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:generate --",
-    "migration:create": "dotenv -e .env.development ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:create --",
-    "repl": "npm run start -- --entryFile repl"
+    "test:e2e": "jest --config ./apps/api/test/jest-e2e.json",
+    "api:repl": "npm run api:start -- --entryFile repl"
   },
   "dependencies": {
-    "@google-cloud/storage": "^6.7.0",
-    "@nestjs/axios": "^1.0.0",
+    "@google-cloud/storage": "^6.11.0",
+    "@nestjs/axios": "^1.0.1",
     "@nestjs/common": "^9.0.0",
-    "@nestjs/config": "^2.2.0",
+    "@nestjs/config": "^2.3.2",
     "@nestjs/core": "^9.0.0",
-    "@nestjs/jwt": "^9.0.0",
-    "@nestjs/passport": "^9.0.0",
+    "@nestjs/jwt": "^10.0.3",
+    "@nestjs/microservices": "^9.4.2",
+    "@nestjs/passport": "^9.0.3",
     "@nestjs/platform-express": "^9.0.0",
-    "@nestjs/swagger": "^6.1.3",
-    "@nestjs/testing": "^9.0.0",
+    "@nestjs/schedule": "^2.2.2",
+    "@nestjs/swagger": "^6.3.0",
     "@nestjs/typeorm": "^9.0.1",
-    "@sendgrid/mail": "^7.7.0",
-    "@sentry/node": "^7.19.0",
-    "@types/passport-jwt": "^3.0.7",
+    "@sentry/node": "^7.54.0",
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.13.2",
+    "class-validator": "^0.14.0",
     "i18n-iso-countries": "^7.6.0",
+    "kafkajs": "^2.2.4",
     "legit": "^1.0.9",
-    "luxon": "^3.1.0",
-    "multicoin-address-validator": "^0.5.12",
+    "luxon": "^3.3.0",
     "nanoid": "^3.3.6",
     "nestjs-real-ip": "^2.2.0",
-    "passport": "^0.6.0",
-    "passport-jwt": "^4.0.0",
+    "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "pg": "^8.8.0",
+    "pg": "^8.11.0",
     "reflect-metadata": "^0.1.13",
-    "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
-    "twilio": "^3.83.3",
-    "typeorm": "^0.3.10",
-    "typeorm-cursor-pagination": "^0.10.0",
+    "twilio": "^4.11.2",
+    "typeorm": "^0.3.16",
     "typeorm-naming-strategies": "^4.1.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
+    "@nestjs/testing": "^9.0.0",
     "@types/express": "^4.17.13",
-    "@types/jest": "28.1.8",
-    "@types/multer": "^1.4.7",
-    "@types/node": "^16.0.0",
+    "@types/jest": "29.5.1",
+    "@types/node": "18.16.12",
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "dotenv": "^16.0.3",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^8.0.2",
-    "jest": "28.1.3",
+    "husky": "^8.0.3",
+    "jest": "29.5.0",
     "prettier": "^2.3.2",
     "source-map-support": "^0.5.20",
     "supertest": "^6.1.3",
-    "ts-jest": "28.0.8",
+    "ts-jest": "29.1.0",
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
-    "tsconfig-paths": "4.1.0",
+    "tsconfig-paths": "4.2.0",
     "typescript": "^4.7.4"
   },
   "jest": {
@@ -92,7 +104,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -100,27 +112,45 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "./coverage",
     "testEnvironment": "node",
-    "moduleNameMapper": {
-      "^@src/(.*)$": "<rootDir>/$1"
-    }
-  },
-  "lint-staged": {
-    "**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --config ./.prettierrc.js --write"
+    "roots": [
+      "<rootDir>/apps/",
+      "<rootDir>/libs/"
     ],
-    "**/*.{css,scss,md,html,json}": [
-      "prettier --config ./.prettierrc.js --write"
-    ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
+    "moduleNameMapper": {
+      "^@app/beneficiary-user(|/.*)$": "<rootDir>/libs/beneficiary-user/src/$1",
+      "^@app/beneficiary-wallet(|/.*)$": "<rootDir>/libs/beneficiary-wallet/src/$1",
+      "^@app/bridgecard(|/.*)$": "<rootDir>/libs/bridgecard/src/$1",
+      "^@app/card(|/.*)$": "<rootDir>/libs/card/src/$1",
+      "^@app/cipher-token(|/.*)$": "<rootDir>/libs/cipher-token/src/$1",
+      "^@app/closure-reason(|/.*)$": "<rootDir>/libs/closure-reason/src/$1",
+      "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1",
+      "^@app/country(|/.*)$": "<rootDir>/libs/country/src/$1",
+      "^@app/country-activation(|/.*)$": "<rootDir>/libs/country-activation/src/$1",
+      "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1",
+      "^@app/document(|/.*)$": "<rootDir>/libs/document/src/$1",
+      "^@app/enterprise-profile(|/.*)$": "<rootDir>/libs/enterprise-profile/src/$1",
+      "^@app/env(|/.*)$": "<rootDir>/libs/env/src/$1",
+      "^@app/notification(|/.*)$": "<rootDir>/libs/notification/src/$1",
+      "^@app/outbox(|/.*)$": "<rootDir>/libs/outbox/src/$1",
+      "^@app/person-profile(|/.*)$": "<rootDir>/libs/person-profile/src/$1",
+      "^@app/pricing(|/.*)$": "<rootDir>/libs/pricing/src/$1",
+      "^@app/shareholder(|/.*)$": "<rootDir>/libs/shareholder/src/$1",
+      "^@app/sumsub(|/.*)$": "<rootDir>/libs/sumsub/src/$1",
+      "^@app/transaction(|/.*)$": "<rootDir>/libs/transaction/src/$1",
+      "^@app/triple-a(|/.*)$": "<rootDir>/libs/triple-a/src/$1",
+      "^@app/twilio(|/.*)$": "<rootDir>/libs/twilio/src/$1",
+      "^@app/user(|/.*)$": "<rootDir>/libs/user/src/$1"
+    },
+    "lint-staged": {
+      "**/*.{js,jsx,ts,tsx}": [
+        "eslint --fix",
+        "prettier --config ./.prettierrc.js --write"
+      ],
+      "**/*.{css,scss,md,html,json}": [
+        "prettier --config ./.prettierrc.js --write"
+      ]
     }
-  },
-  "engines": {
-    "node": ">=18.12.1"
   }
 }
