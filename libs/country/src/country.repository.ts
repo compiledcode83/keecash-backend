@@ -16,6 +16,22 @@ export class CountryRepository extends Repository<Country> {
     return names;
   }
 
+  async getCountryList(): Promise<any[]> {
+    const countries: {
+      name: string;
+      country_code: string;
+      phone_code: string;
+      is_active: boolean;
+    }[] = await this.createQueryBuilder('country')
+      .innerJoin('country.activation', 'activation')
+      .select(['name', 'country_code', 'phone_code', 'activation.isActive as is_active'])
+      .getRawMany();
+
+    const activeCountryOnly = countries.filter((country) => country.is_active === true);
+
+    return activeCountryOnly;
+  }
+
   async findOneWithActivationAndFee(name, withActivation, withFee): Promise<Country> {
     const queryBuilder = this.createQueryBuilder('country');
 

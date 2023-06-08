@@ -12,18 +12,19 @@ export class NotificationRepository extends Repository<Notification> {
     const notifications = await this.createQueryBuilder('notification')
       .where({ userId })
       .select([
+        'created_at as date',
         'type',
-        'has_read',
+        `case when has_read = true then 'READ' else 'UNREAD' end as status `,
         'message',
         'amount',
         'currency',
-        'url_avatar',
-        'card_brand',
-        'card_name',
+        `case when url_avatar is null then '' else url_avatar end as url_avatar`,
+        `case when card_brand is null then '' else card_brand end as card_brand`,
+        `case when card_name is null then '' else card_name end as card_name`,
       ])
       .getRawMany();
 
-    return notifications;
+    return { notifications };
   }
 
   async markAsReadAll(userId: number): Promise<void> {

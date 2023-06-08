@@ -52,18 +52,14 @@ export class StorageService {
     return storageFile;
   }
 
-  async save(
-    path: string,
-    contentType: string,
-    media: Buffer,
-    metadata: { [key: string]: string }[],
-  ) {
-    const object = metadata.reduce((obj, item) => Object.assign(obj, item), {});
+  async save(path: string, mimetype: string, media: Buffer) {
     const file = this.storage.bucket(this.bucket).file(path);
     const stream = file.createWriteStream();
     stream.on('finish', async () => {
       return await file.setMetadata({
-        metadata: object,
+        metadata: {
+          contentType: mimetype,
+        },
       });
     });
     stream.end(media);

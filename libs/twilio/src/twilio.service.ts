@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TWILIO_PROVIDER_TOKEN } from './twilio.types';
+import { Twilio } from 'twilio';
 
 const SMSCHANNEL = 'sms';
 const EMAILCHANNEL = 'email';
@@ -10,7 +11,10 @@ export class TwilioService {
   private readonly logger = new Logger(TwilioService.name);
   private serviceId: string;
 
-  constructor(@Inject(TWILIO_PROVIDER_TOKEN) public twilioClient, configService: ConfigService) {
+  constructor(
+    @Inject(TWILIO_PROVIDER_TOKEN) public twilioClient: Twilio,
+    configService: ConfigService,
+  ) {
     this.serviceId = configService.get('twilioConfig.twilioVerificationServiceSid');
   }
 
