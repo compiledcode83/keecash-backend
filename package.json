@@ -8,7 +8,8 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "api:start": "nest start api",
     "api:start:dev": "nest start api --watch",
     "api:start:debug": "nest start api --debug --watch",
@@ -29,7 +30,6 @@
     "consumer:start:dev": "nest start consumer --watch",
     "consumer:start:debug": "nest start consumer --debug --watch",
     "consumer:start:prod": "node dist/apps/consumer/src/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
