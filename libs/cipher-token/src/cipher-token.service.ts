@@ -16,12 +16,6 @@ export class CipherTokenService {
     return this.cipherTokenRepository.findOneBy({ ...params });
   }
 
-  async findLastNotExpiredExchangeRate(): Promise<CipherToken> {
-    return this.cipherTokenRepository.findValidToken({
-      type: TokenTypeEnum.ExchangeRateEncoded,
-    });
-  }
-
   async findValidTripleAAccessToken(currency: FiatCurrencyEnum): Promise<CipherToken> {
     return this.cipherTokenRepository.findValidToken({
       type: TokenTypeEnum.TripleAAccessToken,
@@ -116,17 +110,6 @@ export class CipherTokenService {
     });
   }
 
-  async generateExchangeRateEncoded(
-    exchangeRateEncoded: string,
-    duration: number,
-  ): Promise<CipherToken> {
-    return this.cipherTokenRepository.generateToken({
-      token: exchangeRateEncoded,
-      duration,
-      type: TokenTypeEnum.ExchangeRateEncoded,
-    });
-  }
-
   async checkIfValid(token: string, type: TokenTypeEnum): Promise<number> {
     const cipherToken = await this.cipherTokenRepository.findOneBy({ token, type });
 
@@ -138,12 +121,7 @@ export class CipherTokenService {
     const now = new Date();
 
     if (expiryDate.getTime() < now.getTime()) {
-      //we send a specific message when login token is check and is expired. That enable the frontend to check that and logout the user
-      throw new UnauthorizedException(
-        type === TokenTypeEnum.AuthRefresh || type === TokenTypeEnum.CreateAccount
-          ? 'loginToken expired'
-          : 'Token is expired',
-      );
+      throw new UnauthorizedException('Token is expired');
     }
 
     return cipherToken.userId;

@@ -14,10 +14,6 @@ export class CountryService {
     return this.countryRepository.getNameList();
   }
 
-  async getCountryList(): Promise<any> {
-    return this.countryRepository.getCountryList();
-  }
-
   async findOneWithActivationAndFee(
     name: string,
     withActivation = true,

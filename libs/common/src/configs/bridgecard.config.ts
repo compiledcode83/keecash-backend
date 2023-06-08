@@ -6,5 +6,4 @@ export default registerAs('bridgecardConfig', () => ({
   authToken: process.env.BRIDGECARD_AUTH_TOKEN,
   secretKey: process.env.BRIDGECARD_SECRET_KEY,
   issuingId: process.env.BRIDGECARD_ISSUING_ID,
-  whSecretkey: process.env.BRIDGECARD_WEBHOOK_SECRET_KEY,
 }));

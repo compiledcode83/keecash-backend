@@ -52,16 +52,4 @@ export class PersonProfileService {
 
     return userInfo;
   }
-
-  async getPersonProfileWithCountry(userId: number) {
-    const userInfo = await this.personProfileRepository
-      .createQueryBuilder('person_profile')
-      .innerJoin('person_profile.user', 'user')
-      .leftJoinAndSelect('person_profile.country', 'country')
-      .leftJoinAndSelect('country.activation', 'activation')
-      .where(`user.id='${userId}'`)
-      .getOne();
-
-    return userInfo;
-  }
 }

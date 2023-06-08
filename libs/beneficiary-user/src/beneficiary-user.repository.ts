@@ -25,15 +25,4 @@ export class BeneficiaryUserRepository extends Repository<BeneficiaryUser> {
 
     return payees;
   }
-
-  async findByPayerIdAndPayeeId(payerId: number, payeeId: number) {
-    const queryBuilder = this.createQueryBuilder('beneficiary_user').leftJoinAndSelect(
-      'beneficiary_user.payee',
-      'payee',
-    );
-
-    const payee = await queryBuilder.where({ payerId }).andWhere({ payeeId }).getOne();
-
-    return payee;
-  }
 }

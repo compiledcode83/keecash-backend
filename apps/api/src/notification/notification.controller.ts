@@ -1,13 +1,7 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-<<<<<<< HEAD:apps/api/src/notification/notification.controller.ts
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@api/auth/guards/jwt-auth.guard';
 import { NotificationService } from './notification.service';
-=======
-import { NotificationService } from './notification.service';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
->>>>>>> 381621e06e83efe140d01ba95f21884ffdfb849c:src/api/notification/notification.controller.ts
 
 @Controller('notifications')
 @ApiTags('Manage Notification')
@@ -15,26 +9,6 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   @ApiOperation({ description: 'Get all notifications' })
-  @ApiOkResponse({
-    description: 'Notification response',
-    schema: {
-      example: {
-        notifications: [
-          {
-            date: '2023-05-03T12:51:07.656Z',
-            type: 'DEPOSIT',
-            status: 'UNREAD',
-            message: null,
-            amount: 100,
-            currency: 'EUR',
-            url_avatar: '',
-            card_brand: '',
-            card_name: '',
-          },
-        ],
-      },
-    },
-  })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('all')

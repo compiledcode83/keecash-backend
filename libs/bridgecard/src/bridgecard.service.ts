@@ -109,9 +109,8 @@ export class BridgecardService {
           card_id: cardId,
         },
       });
-      const balance = parseFloat((Number(res.data.data.balance) / 100).toFixed(2));
 
-      return balance;
+      return res.data.data.balance;
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
@@ -143,7 +142,7 @@ export class BridgecardService {
         },
       });
 
-      return res.data.data.cards as BridgecardCardDetailsInterface[];
+      return res.data.data.cards;
     } catch (error) {
       const { status, statusText, data } = error.response || {};
 
@@ -177,7 +176,7 @@ export class BridgecardService {
 
   async fundCard(data: FundBridgecardDto): Promise<any> {
     try {
-      const res = await this.axiosInstance.patch('/cards/fund_card', data);
+      const res = await this.axiosInstance.post('/cards/fund_card', data);
 
       this.logger.log(res.data.message);
 
@@ -191,7 +190,7 @@ export class BridgecardService {
 
   async unloadCard(data: UnloadBridgecardDto): Promise<any> {
     try {
-      const res = await this.axiosInstance.patch('/cards/unload_card', data);
+      const res = await this.axiosInstance.post('/cards/unload_card', data);
 
       this.logger.log(res.data.message);
 

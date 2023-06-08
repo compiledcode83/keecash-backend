@@ -1,14 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { UserClosureReasonRepository } from './user-closure-reason.repository';
 import closure_reasons from './closure-reasons.json';
-import { UserRepository } from '@api/user/user.repository';
 
 @Injectable()
 export class ClosureReasonService {
-  constructor(
-    private readonly userClosureReasonRepository: UserClosureReasonRepository,
-    private readonly userRepository: UserRepository,
-  ) {}
+  constructor(private readonly userClosureReasonRepository: UserClosureReasonRepository) {}
 
   async findByUserId(userId: number): Promise<number[]> {
     const closureReasons = await this.userClosureReasonRepository.getClosureReasonsForUser(userId);
@@ -17,10 +13,8 @@ export class ClosureReasonService {
   }
 
   async createMany(userId: number, closureReasons: string[]): Promise<void> {
-    const user = await this.userRepository.findOneBy({ id: userId });
-
     const reasonEntities = [];
-    const reasonArray = closure_reasons.map((obj) => obj.reason[user.language]);
+    const reasonArray = closure_reasons.map((obj) => obj.reason);
 
     for (const reason of closureReasons) {
       const closureReasonId = reasonArray.indexOf(reason) + 1;

@@ -64,7 +64,7 @@ export class TransactionRepository extends CommonRepository {
     }
 
     queryBuilder
-      .select('ROUND(SUM(transaction.affected_amount)::numeric, 2)', 'balance')
+      .select('SUM(transaction.affected_amount)', 'balance')
       .addSelect('transaction.currency', 'currency')
       .groupBy('transaction.currency');
 

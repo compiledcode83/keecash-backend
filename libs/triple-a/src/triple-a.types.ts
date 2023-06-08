@@ -2,7 +2,6 @@ import { CryptoCurrencyEnum, FiatCurrencyEnum } from '@app/common';
 
 export interface TripleADepositInterface {
   amount: number;
-  desired_amount: number;
   currency: FiatCurrencyEnum;
   email: string;
   userUuid: string;
