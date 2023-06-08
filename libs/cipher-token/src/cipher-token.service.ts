@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { FiatCurrencyEnum } from '@app/common';
 import { CipherToken } from './cipher-token.entity';
 import { CipherTokenRepository } from './cipher-token.repository';
 import { TokenTypeEnum } from './cipher-token.types';
-import { FiatCurrencyEnum } from '@app/common';
 
 @Injectable()
 export class CipherTokenService {

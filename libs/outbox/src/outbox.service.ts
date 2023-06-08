@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { Outbox } from './outbox.entity';
 import { OutboxRepository } from './outbox.repository';
-import { OutboxEventName, OutboxPayload, OutboxStatus } from './outbox.types';
+import { OutboxEventName, OutboxPayload } from './outbox.types';
 
 @Injectable()
 export class OutboxService {

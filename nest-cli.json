@@ -18,15 +18,6 @@
         "tsConfigPath": "apps/api/tsconfig.app.json"
       }
     },
-    "webhook": {
-      "type": "application",
-      "root": "apps/webhook",
-      "entryFile": "main",
-      "sourceRoot": "apps/webhook/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/webhook/tsconfig.app.json"
-      }
-    },
     "producer": {
       "type": "application",
       "root": "apps/producer",
@@ -45,6 +36,15 @@
         "tsConfigPath": "apps/consumer/tsconfig.app.json"
       }
     },
+    "webhook": {
+      "type": "application",
+      "root": "apps/webhook",
+      "entryFile": "main",
+      "sourceRoot": "apps/webhook/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/webhook/tsconfig.app.json"
+      }
+    },
     "admin": {
       "type": "application",
       "root": "apps/admin",
@@ -52,6 +52,87 @@
       "sourceRoot": "apps/admin/src",
       "compilerOptions": {
         "tsConfigPath": "apps/admin/tsconfig.app.json"
+      }
+    },
+    "beneficiary-user": {
+      "type": "library",
+      "root": "libs/beneficiary-user",
+      "entryFile": "index",
+      "sourceRoot": "libs/beneficiary-user/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/beneficiary-user/tsconfig.lib.json"
+      }
+    },
+    "beneficiary-wallet": {
+      "type": "library",
+      "root": "libs/beneficiary-wallet",
+      "entryFile": "index",
+      "sourceRoot": "libs/beneficiary-wallet/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/beneficiary-wallet/tsconfig.lib.json"
+      }
+    },
+    "bridgecard": {
+      "type": "library",
+      "root": "libs/bridgecard",
+      "entryFile": "index",
+      "sourceRoot": "libs/bridgecard/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/bridgecard/tsconfig.lib.json"
+      }
+    },
+    "card": {
+      "type": "library",
+      "root": "libs/card",
+      "entryFile": "index",
+      "sourceRoot": "libs/card/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/card/tsconfig.lib.json"
+      }
+    },
+    "cipher-token": {
+      "type": "library",
+      "root": "libs/cipher-token",
+      "entryFile": "index",
+      "sourceRoot": "libs/cipher-token/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/cipher-token/tsconfig.lib.json"
+      }
+    },
+    "closure-reason": {
+      "type": "library",
+      "root": "libs/closure-reason",
+      "entryFile": "index",
+      "sourceRoot": "libs/closure-reason/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/closure-reason/tsconfig.lib.json"
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
+      }
+    },
+    "country": {
+      "type": "library",
+      "root": "libs/country",
+      "entryFile": "index",
+      "sourceRoot": "libs/country/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/country/tsconfig.lib.json"
+      }
+    },
+    "country-activation": {
+      "type": "library",
+      "root": "libs/country-activation",
+      "entryFile": "index",
+      "sourceRoot": "libs/country-activation/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/country-activation/tsconfig.lib.json"
       }
     },
     "database": {
@@ -63,6 +144,24 @@
         "tsConfigPath": "libs/database/tsconfig.lib.json"
       }
     },
+    "document": {
+      "type": "library",
+      "root": "libs/document",
+      "entryFile": "index",
+      "sourceRoot": "libs/document/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/document/tsconfig.lib.json"
+      }
+    },
+    "enterprise-profile": {
+      "type": "library",
+      "root": "libs/enterprise-profile",
+      "entryFile": "index",
+      "sourceRoot": "libs/enterprise-profile/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/enterprise-profile/tsconfig.lib.json"
+      }
+    },
     "env": {
       "type": "library",
       "root": "libs/env",
@@ -72,13 +171,94 @@
         "tsConfigPath": "libs/env/tsconfig.lib.json"
       }
     },
-    "common": {
+    "notification": {
       "type": "library",
-      "root": "libs/common",
+      "root": "libs/notification",
       "entryFile": "index",
-      "sourceRoot": "libs/common/src",
+      "sourceRoot": "libs/notification/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/common/tsconfig.lib.json"
+        "tsConfigPath": "libs/notification/tsconfig.lib.json"
+      }
+    },
+    "outbox": {
+      "type": "library",
+      "root": "libs/outbox",
+      "entryFile": "index",
+      "sourceRoot": "libs/outbox/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/outbox/tsconfig.lib.json"
+      }
+    },
+    "person-profile": {
+      "type": "library",
+      "root": "libs/person-profile",
+      "entryFile": "index",
+      "sourceRoot": "libs/person-profile/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/person-profile/tsconfig.lib.json"
+      }
+    },
+    "pricing": {
+      "type": "library",
+      "root": "libs/pricing",
+      "entryFile": "index",
+      "sourceRoot": "libs/pricing/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/pricing/tsconfig.lib.json"
+      }
+    },
+    "shareholder": {
+      "type": "library",
+      "root": "libs/shareholder",
+      "entryFile": "index",
+      "sourceRoot": "libs/shareholder/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shareholder/tsconfig.lib.json"
+      }
+    },
+    "sumsub": {
+      "type": "library",
+      "root": "libs/sumsub",
+      "entryFile": "index",
+      "sourceRoot": "libs/sumsub/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/sumsub/tsconfig.lib.json"
+      }
+    },
+    "transaction": {
+      "type": "library",
+      "root": "libs/transaction",
+      "entryFile": "index",
+      "sourceRoot": "libs/transaction/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/transaction/tsconfig.lib.json"
+      }
+    },
+    "triple-a": {
+      "type": "library",
+      "root": "libs/triple-a",
+      "entryFile": "index",
+      "sourceRoot": "libs/triple-a/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/triple-a/tsconfig.lib.json"
+      }
+    },
+    "twilio": {
+      "type": "library",
+      "root": "libs/twilio",
+      "entryFile": "index",
+      "sourceRoot": "libs/twilio/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/twilio/tsconfig.lib.json"
+      }
+    },
+    "user": {
+      "type": "library",
+      "root": "libs/user",
+      "entryFile": "index",
+      "sourceRoot": "libs/user/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/user/tsconfig.lib.json"
       }
     }
   }

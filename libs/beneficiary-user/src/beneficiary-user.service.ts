@@ -13,7 +13,6 @@ export class BeneficiaryUserService {
   async create(param: Partial<BeneficiaryUser>) {
     // Check if beneficiary user already exists
     const beneficiary = await this.beneficiaryUserRepository.find({ where: param });
-
     if (beneficiary.length > 0) {
       return false;
     }
