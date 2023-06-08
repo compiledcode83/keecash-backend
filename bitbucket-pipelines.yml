@@ -1,0 +1,36 @@
+image: node:18.12.1
+
+definitions:
+  steps:
+    - step: &code-linting
+      name: Code linting
+      caches:
+        - node
+      script:
+        - npm install eslint
+        - npx eslint .
+
+    - step: &module-install
+      name: Module install
+      caches:
+        - node
+      script:
+        - npm install
+        # - npm run build
+
+    - step: &test
+        name: Project Test
+        caches:
+          - node
+        script:
+          # - npm install
+          - npm run test
+
+    # - step: &build-api
+    #   name: Build Main API
+
+pipelines:
+  default:
+    - parallel:
+        - step: *code-linting
+        - step: *module-install
