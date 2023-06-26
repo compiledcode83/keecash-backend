@@ -84,6 +84,7 @@
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "concurrently": "^8.2.0",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
@@ -141,7 +142,8 @@
       "^@app/transaction(|/.*)$": "<rootDir>/libs/transaction/src/$1",
       "^@app/triple-a(|/.*)$": "<rootDir>/libs/triple-a/src/$1",
       "^@app/twilio(|/.*)$": "<rootDir>/libs/twilio/src/$1",
-      "^@app/user(|/.*)$": "<rootDir>/libs/user/src/$1"
+      "^@app/user(|/.*)$": "<rootDir>/libs/user/src/$1",
+      "^@app/google-cloud-storage(|/.*)$": "<rootDir>/libs/google-cloud-storage/src/$1"
     },
     "lint-staged": {
       "**/*.{js,jsx,ts,tsx}": [
