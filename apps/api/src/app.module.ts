@@ -16,7 +16,6 @@ import { BeneficiaryModule } from './beneficiary/beneficiary.module';
 import { CardModule } from './card/card.module';
 import { KeecashModule } from './keecash/keecash.module';
 import { NotificationModule } from './notification/notification.module';
-import { StorageModule } from './storage/storage.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { UserModule } from './user/user.module';
 
@@ -44,7 +43,6 @@ EnvHelper.verifyNodeEnv();
     CardModule,
     KeecashModule,
     NotificationModule,
-    StorageModule,
     TransactionModule,
     UserModule,
   ],
