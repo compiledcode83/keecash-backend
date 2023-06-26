@@ -1,10 +1,10 @@
-import { StorageFile } from './storage-file';
-import { DownloadResponse, Storage } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DownloadResponse, Storage } from '@google-cloud/storage';
+import { StorageFile } from './storage-file';
 
 @Injectable()
-export class StorageService {
+export class GoogleCloudStorageService {
   private storage: Storage;
   private bucket: string;
 

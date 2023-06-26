@@ -260,6 +260,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/user/tsconfig.lib.json"
       }
+    },
+    "google-cloud-storage": {
+      "type": "library",
+      "root": "libs/google-cloud-storage",
+      "entryFile": "index",
+      "sourceRoot": "libs/google-cloud-storage/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/google-cloud-storage/tsconfig.lib.json"
+      }
     }
   }
 }
