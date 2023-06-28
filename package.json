@@ -12,6 +12,8 @@
     ]
   },
   "scripts": {
+    "start": "concurrently \"npm run api:start\" \"npm run webhook:start\" \"npm run producer:start\" \"npm run consumer:start\"",
+    "start:dev": "concurrently \"npm run api:start:dev\" \"npm run webhook:start:dev\" \"npm run producer:start:dev\" \"npm run consumer:start:dev\"",
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "api:start": "nest start api",
@@ -54,6 +56,7 @@
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/schedule": "^2.2.2",
     "@nestjs/swagger": "^6.3.0",
+    "@nestjs/testing": "^9.4.3",
     "@nestjs/typeorm": "^9.0.1",
     "@sentry/node": "^7.54.0",
     "bcrypt": "^5.1.0",
@@ -77,7 +80,6 @@
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
-    "@nestjs/testing": "^9.0.0",
     "@types/express": "^4.17.13",
     "@types/jest": "29.5.1",
     "@types/node": "18.16.12",
